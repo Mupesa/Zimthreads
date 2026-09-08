@@ -8,7 +8,6 @@ import {
   CheckIcon,
   ClockIcon,
   ArrowRightIcon,
-  PhoneIcon,
   WhatsAppIcon,
 } from "@/components/Icons"
 
@@ -64,7 +63,7 @@ export default function Home() {
   return (
     <main>
       {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-[#f5f2ec]">
+      <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center overflow-hidden bg-[#f5f2ec]">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-10 pointer-events-none"
           style={{
@@ -72,48 +71,28 @@ export default function Home() {
               "url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1400&h=900&fit=crop&auto=format')",
           }}
         />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center pt-12 pb-28 sm:py-24">
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center pt-8 pb-24 sm:py-24">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4a5c2d]/10 text-[#4a5c2d] text-[10px] font-bold tracking-[0.25em] uppercase mb-4">
               Clothes · Sneakers · Community
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase leading-[0.95] text-[#1a1a1a] mb-8">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase leading-[0.95] text-[#1a1a1a]">
               CLEANER SHOES.
               <br />
               <span className="text-[#4a5c2d]">A STRONGER YOU.</span>
             </h1>
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <Link
-                to="/booking"
-                className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#4a5c2d] text-[#f5f2ec] text-xs font-bold tracking-wider uppercase hover:bg-[#3d4d24] active:scale-[0.98] transition-all shadow-sm"
-              >
-                <span>BOOK A SERVICE</span>
-                <ArrowRightIcon className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <a
-                href="https://wa.me/23055132614"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#1a1a1a] bg-white text-[#1a1a1a] text-xs font-bold tracking-wider uppercase hover:bg-[#1a1a1a] hover:text-[#f5f2ec] active:scale-[0.98] transition-all shadow-xs"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-400 transition-colors" />
-                <span>WHATSAPP</span>
-              </a>
-            </div>
           </div>
 
           <div className="flex justify-center mt-4 lg:mt-0">
             <div className="relative max-w-xs sm:max-w-md">
+              <div className="absolute -bottom-2 sm:-bottom-4 left-1/2 -translate-x-1/2 w-4/5 h-6 bg-black/15 blur-xl rounded-full pointer-events-none" />
               <img
                 src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=500&fit=crop&auto=format"
                 alt="Clean white sneakers"
-                className="w-full object-contain drop-shadow-2xl"
+                className="w-full object-contain drop-shadow-2xl relative z-1"
               />
-              <div className="absolute top-1 right-1 sm:top-4 sm:right-4 w-20 h-20 sm:w-28 sm:h-28 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center bg-[#f5f2ec] shadow-lg">
+              <div className="absolute top-1 right-1 sm:top-4 sm:right-4 w-20 h-20 sm:w-28 sm:h-28 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center bg-[#f5f2ec] shadow-lg z-2">
                 <div className="text-center">
                   <div className="text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider leading-tight text-[#1a1a1a]">
                     WE CLEAN.

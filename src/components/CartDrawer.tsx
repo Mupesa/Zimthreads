@@ -27,8 +27,8 @@ export default function CartDrawer() {
     email: "",
     phone: "",
     address: "",
-    city: "Harare",
-    paymentMethod: "EcoCash" as OrderItem["paymentMethod"],
+    city: "Mauritius",
+    paymentMethod: "Juice by MCB" as OrderItem["paymentMethod"],
     notes: "",
   })
   const [orderComplete, setOrderComplete] = useState<OrderItem | null>(null)
@@ -74,8 +74,8 @@ export default function CartDrawer() {
       email: "",
       phone: "",
       address: "",
-      city: "Harare",
-      paymentMethod: "EcoCash",
+      city: "Mauritius",
+      paymentMethod: "Juice by MCB",
       notes: "",
     })
   }
@@ -112,8 +112,8 @@ export default function CartDrawer() {
           <div className="flex justify-between text-xs font-semibold uppercase tracking-wider mb-1.5 text-[#4a5c2d]">
             <span>
               {isFreeDelivery
-                ? "Eligible for Free Harare Metro Delivery"
-                : `Add $${(settings.freeDeliveryThreshold - cartTotal).toFixed(2)} for Free Delivery`}
+                ? "Eligible for Free Standard Delivery"
+                : `Add Rs ${(settings.freeDeliveryThreshold - cartTotal).toFixed(0)} for Free Delivery`}
             </span>
             <span className="font-mono">{Math.round(progressToFree)}%</span>
           </div>
@@ -213,7 +213,7 @@ export default function CartDrawer() {
                       </button>
                     </div>
                     <span className="font-display font-bold text-sm text-[#1a1a1a]">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      Rs {(item.price * item.quantity).toFixed(0)}
                     </span>
                   </div>
                 </div>
@@ -229,23 +229,23 @@ export default function CartDrawer() {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="font-semibold text-[#1a1a1a]">
-                  ${cartTotal.toFixed(2)}
+                  Rs {cartTotal.toFixed(0)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Delivery (Harare Metro)</span>
+                <span>Standard Delivery</span>
                 <span>
                   {isFreeDelivery ? (
                     <span className="text-[#4a5c2d] font-bold">FREE</span>
                   ) : (
-                    `$${deliveryFee.toFixed(2)}`
+                    `Rs ${deliveryFee.toFixed(0)}`
                   )}
                 </span>
               </div>
               <div className="flex justify-between text-base font-bold text-[#1a1a1a] pt-2 border-t border-[#e5e1d8]">
                 <span>Total</span>
                 <span className="font-display text-xl text-[#4a5c2d]">
-                  ${grandTotal.toFixed(2)}
+                  Rs {grandTotal.toFixed(0)}
                 </span>
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function CartDrawer() {
                     <div className="flex justify-between pb-2 border-b border-[#e5e1d8]">
                       <span className="font-bold text-[#6b7280]">AMOUNT</span>
                       <span className="font-bold text-sm text-[#1a1a1a]">
-                        ${orderComplete.totalAmount.toFixed(2)}
+                        Rs {orderComplete.totalAmount.toFixed(0)}
                       </span>
                     </div>
                     <div className="flex justify-between pb-2 border-b border-[#e5e1d8]">
@@ -325,7 +325,7 @@ export default function CartDrawer() {
                         COMPLETE CHECKOUT
                       </h3>
                       <p className="text-xs text-[#6b7280]">
-                        Deliveries across Harare & Nationwide
+                        Delivery & Collection across Mauritius
                       </p>
                     </div>
                     <button
@@ -349,13 +349,13 @@ export default function CartDrawer() {
                           onChange={(e) =>
                             setFormData({ ...formData, name: e.target.value })
                           }
-                          placeholder="e.g. Tendai Chikore"
+                          placeholder="e.g. Jean-Luc"
                           className="w-full border border-[#e5e1d8] bg-white px-3.5 py-2.5 text-xs text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-1">
-                          Phone Number *
+                          Phone / WhatsApp *
                         </label>
                         <input
                           type="tel"
@@ -364,7 +364,7 @@ export default function CartDrawer() {
                           onChange={(e) =>
                             setFormData({ ...formData, phone: e.target.value })
                           }
-                          placeholder="+263 77..."
+                          placeholder="+230 5513 2614"
                           className="w-full border border-[#e5e1d8] bg-white px-3.5 py-2.5 text-xs text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
                         />
                       </div>
@@ -389,7 +389,7 @@ export default function CartDrawer() {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="col-span-2">
                         <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-1">
-                          Street Address / Suburb *
+                          Street Address / Area *
                         </label>
                         <input
                           type="text"
@@ -401,13 +401,13 @@ export default function CartDrawer() {
                               address: e.target.value,
                             })
                           }
-                          placeholder="12 Enterprise Rd, Highlands"
+                          placeholder="e.g. Royal Road, Ebene / Grand Baie"
                           className="w-full border border-[#e5e1d8] bg-white px-3.5 py-2.5 text-xs text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-1">
-                          City
+                          District / Region
                         </label>
                         <select
                           value={formData.city}
@@ -416,11 +416,16 @@ export default function CartDrawer() {
                           }
                           className="w-full border border-[#e5e1d8] bg-white px-3 py-2.5 text-xs text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
                         >
-                          <option value="Harare">Harare</option>
-                          <option value="Bulawayo">Bulawayo</option>
-                          <option value="Mutare">Mutare</option>
-                          <option value="Gweru">Gweru</option>
-                          <option value="Other">Other</option>
+                          <option value="Port Louis">Port Louis</option>
+                          <option value="Grand Baie">Grand Baie</option>
+                          <option value="Ebene / Cybercity">Ebene</option>
+                          <option value="Tamarin / Black River">Tamarin</option>
+                          <option value="Flic en Flac">Flic en Flac</option>
+                          <option value="Curepipe">Curepipe</option>
+                          <option value="Rose Hill / Beau Bassin">
+                            Rose Hill
+                          </option>
+                          <option value="Other Area">Other Region</option>
                         </select>
                       </div>
                     </div>
@@ -431,10 +436,10 @@ export default function CartDrawer() {
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {([
-                          "EcoCash",
-                          "ZIPIT",
-                          "Swipe / Card",
-                          "Cash on Delivery",
+                          "Juice by MCB",
+                          "Bank Transfer",
+                          "Cash on Drop-off",
+                          "Card / Online",
                         ] as OrderItem["paymentMethod"][]).map((method) => (
                           <button
                             type="button"
@@ -463,20 +468,20 @@ export default function CartDrawer() {
                     <div className="bg-white border border-[#e5e1d8] p-3 text-xs space-y-1 mt-4">
                       <div className="flex justify-between font-semibold">
                         <span>Items Total ({cart.length})</span>
-                        <span>${cartTotal.toFixed(2)}</span>
+                        <span>Rs {cartTotal.toFixed(0)}</span>
                       </div>
                       <div className="flex justify-between text-[#6b7280]">
                         <span>Delivery</span>
                         <span>
                           {isFreeDelivery
                             ? "FREE"
-                            : `$${deliveryFee.toFixed(2)}`}
+                            : `Rs ${deliveryFee.toFixed(0)}`}
                         </span>
                       </div>
                       <div className="flex justify-between font-bold text-sm pt-1 border-t border-[#e5e1d8] text-[#1a1a1a]">
                         <span>Grand Total</span>
                         <span className="text-[#4a5c2d]">
-                          ${grandTotal.toFixed(2)}
+                          Rs {grandTotal.toFixed(0)}
                         </span>
                       </div>
                     </div>
@@ -493,7 +498,7 @@ export default function CartDrawer() {
                         type="submit"
                         className="flex-1 py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
                       >
-                        CONFIRM ORDER (${grandTotal.toFixed(2)})
+                        CONFIRM ORDER (Rs {grandTotal.toFixed(0)})
                       </button>
                     </div>
                   </form>

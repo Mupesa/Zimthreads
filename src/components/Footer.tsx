@@ -68,22 +68,46 @@ export default function Footer() {
             Studio
           </h4>
           <ul className="space-y-2 text-sm text-[#9ca3af]">
-            <li>info@zimthread.co.zw</li>
-            <li>+263 77 123 4567</li>
-            <li>Harare, Zimbabwe</li>
+            <li>
+              <a
+                href="mailto:zimthreadmu@gmail.com"
+                className="hover:text-[#86a84e] transition-colors"
+              >
+                zimthreadmu@gmail.com
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://wa.me/23055132614"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#86a84e] transition-colors"
+              >
+                +230 5513 2614 (WhatsApp)
+              </a>
+            </li>
+            <li>Mauritius (Drop Off & Collection)</li>
             <li className="text-xs text-[#6b7280] pt-1">
               Mon–Sat: 8:00 AM – 6:00 PM
             </li>
           </ul>
           <div className="flex gap-2 mt-4">
-            {["INSTAGRAM", "WHATSAPP", "FACEBOOK"].map((s) => (
-              <span
-                key={s}
-                className="text-[10px] font-bold text-[#9ca3af] tracking-wider uppercase border border-[#374151] px-2 py-1"
-              >
-                {s}
-              </span>
-            ))}
+            <a
+              href="https://instagram.com/zimthread.collective"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-[#9ca3af] hover:text-white hover:border-white tracking-wider uppercase border border-[#374151] px-2 py-1 transition-colors"
+            >
+              INSTAGRAM
+            </a>
+            <a
+              href="https://wa.me/23055132614"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-[#9ca3af] hover:text-white hover:border-white tracking-wider uppercase border border-[#374151] px-2 py-1 transition-colors"
+            >
+              WHATSAPP
+            </a>
           </div>
         </div>
       </div>
@@ -92,7 +116,7 @@ export default function Footer() {
           © 2026 Zimthread Collective. All rights reserved.
         </span>
         <span className="text-xs text-[#6b7280]">
-          Crafted in Harare, Zimbabwe
+          Mauritius · Clothes · Sneakers · Community
         </span>
       </div>
     </footer>

@@ -122,9 +122,18 @@ export default function Booking() {
           {/* Step 0: Choose Service */}
           {step === 0 && (
             <div>
-              <h2 className="font-display text-xl font-bold uppercase tracking-wide mb-6 text-[#1a1a1a]">
-                SELECT TREATMENT TIER
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
+                <div>
+                  <h2 className="font-display text-xl font-bold uppercase tracking-wide text-[#1a1a1a]">
+                    SELECT TREATMENT OR COMBO DEAL
+                  </h2>
+                  <p className="text-xs text-[#6b7280]">
+                    Choose from standard cleaning, deep restorations, or
+                    multi-pair packages.
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {activeServices.map((s) => (
                   <button
@@ -136,9 +145,14 @@ export default function Booking() {
                         : "border-[#e5e1d8] hover:border-[#4a5c2d]"
                     }`}
                   >
+                    {s.badge && (
+                      <span className="absolute -top-2.5 right-3 bg-[#4a5c2d] text-white text-[8px] font-extrabold px-2 py-0.5 uppercase tracking-widest shadow-xs">
+                        {s.badge}
+                      </span>
+                    )}
                     <div>
                       <div className="flex justify-between items-start">
-                        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-[#1a1a1a]">
+                        <h3 className="font-display text-base font-bold uppercase tracking-wide text-[#1a1a1a]">
                           {s.title}
                         </h3>
                         {selectedService === s.id && (
@@ -148,9 +162,14 @@ export default function Booking() {
                       <p className="text-xs text-[#6b7280] mt-1 leading-tight">
                         {s.subtitle}
                       </p>
+                      {s.tagline && (
+                        <p className="text-[10px] text-[#4a5c2d] font-bold mt-1 uppercase">
+                          {s.tagline}
+                        </p>
+                      )}
                     </div>
-                    <div className="mt-3 flex items-center justify-between">
-                      <p className="text-xs font-bold text-[#4a5c2d]">
+                    <div className="mt-4 pt-2 border-t border-[#f5f2ec] flex items-center justify-between">
+                      <p className="text-sm font-extrabold text-[#4a5c2d]">
                         {s.price}
                       </p>
                       {s.turnaround && (
@@ -168,28 +187,32 @@ export default function Booking() {
           {/* Step 1: Details */}
           {step === 1 && (
             <div>
-              <h2 className="font-display text-xl font-bold uppercase tracking-wide mb-6 text-[#1a1a1a]">
-                CUSTOMER DETAILS
+              <h2 className="font-display text-xl font-bold uppercase tracking-wide mb-2 text-[#1a1a1a]">
+                CLIENT & SHOE DETAILS
               </h2>
+              <p className="text-xs text-[#6b7280] mb-6">
+                Provide your contact information. Drop-off coordinates will be
+                shared on WhatsApp.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   {
                     label: "Full Name *",
                     key: "name",
                     type: "text",
-                    placeholder: "e.g. Tendai Moyo",
+                    placeholder: "e.g. Jean-Luc / Alex",
                   },
                   {
                     label: "Email Address *",
                     key: "email",
                     type: "email",
-                    placeholder: "e.g. tendai@example.com",
+                    placeholder: "e.g. client@example.com",
                   },
                   {
-                    label: "Phone Number *",
+                    label: "Phone / WhatsApp Number *",
                     key: "phone",
                     type: "tel",
-                    placeholder: "e.g. +263 77 123 4567",
+                    placeholder: "e.g. +230 5513 2614",
                   },
                 ].map(({ label, key, type, placeholder }) => (
                   <div
@@ -213,7 +236,7 @@ export default function Booking() {
                 ))}
                 <div className="sm:col-span-2">
                   <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-1">
-                    Shoe Model & Specific Restoration Requests
+                    Shoe Model & Condition Notes
                   </label>
                   <textarea
                     value={details.notes}
@@ -222,8 +245,12 @@ export default function Booking() {
                     }
                     rows={3}
                     className="w-full border border-[#e5e1d8] bg-[#f5f2ec] px-4 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d] resize-none"
-                    placeholder="e.g. Air Jordan 1 High (Size 43), heavy mud stains on heel and mid-sole..."
+                    placeholder="e.g. Nike Air Force 1 White (EU 43), heavy scuffing on toe box..."
                   />
+                  <p className="text-[11px] text-[#4a5c2d] font-semibold mt-1">
+                    Tip: You can send us a photo of your pair on WhatsApp (+230
+                    55132614) for instant material inspection.
+                  </p>
                 </div>
               </div>
             </div>
@@ -346,7 +373,17 @@ export default function Booking() {
                   </p>
                 )}
               </div>
-              <div className="flex justify-center">
+              <div className="flex flex-wrap justify-center gap-3">
+                <a
+                  href={`https://wa.me/23055132614?text=${encodeURIComponent(
+                    `Hi Zimthread, I booked ${serviceObj?.title} for ${details.name} (Ref: ${confirmedBooking?.id || "BK"}). Sending my shoe photo here!`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3.5 bg-[#1a1a1a] text-white text-[11px] font-bold tracking-widest uppercase hover:bg-black transition-colors"
+                >
+                  SEND PHOTO ON WHATSAPP
+                </a>
                 <button
                   onClick={() => {
                     setStep(0)
@@ -355,7 +392,7 @@ export default function Booking() {
                     setSelectedTime("")
                     setConfirmedBooking(null)
                   }}
-                  className="px-8 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
+                  className="px-6 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
                 >
                   BOOK ANOTHER SESSION
                 </button>

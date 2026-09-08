@@ -61,7 +61,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             </h3>
 
             <p className="font-display text-2xl font-bold text-[#4a5c2d] mb-3">
-              ${product.price}
+              Rs {product.price}
             </p>
 
             <p className="text-xs text-[#6b7280] leading-relaxed mb-5">
@@ -125,7 +125,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               disabled={product.stock <= 0}
               className="w-full py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              ADD TO BAG (${(product.price * quantity).toFixed(2)})
+              ADD TO BAG (Rs {(product.price * quantity).toFixed(0)})
             </button>
           </div>
         </div>

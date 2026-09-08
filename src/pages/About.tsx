@@ -77,16 +77,16 @@ export default function About() {
             WHY WE STARTED
           </h2>
           <p className="text-[#6b7280] text-base leading-relaxed mb-4">
-            It started with a single pair of Air Forces and a determination to
-            make them look like they just came out of the box. Tinashe Moyo, our
-            founder, started Zimthread Collective in Harare after realising
-            there was a gap in the market for professional shoe care.
+            It started with a single pair of sneakers and a determination to
+            restore them to factory condition. Zimthread Collective was built
+            around a dedicated community that values craft, longevity, and
+            streetwear culture.
           </p>
           <p className="text-[#6b7280] text-base leading-relaxed mb-6">
-            What began as a side hustle quickly grew into a full-service brand
-            offering shoe cleaning, custom apparel, and personalization — all
-            under one roof. Today, Zimthread is trusted by sneakerheads,
-            athletes, and everyday shoe lovers across Zimbabwe.
+            What began with shoe cleaning has expanded into specialized
+            multi-pair rotations, restorations, and tailored custom apparel.
+            Today, Zimthread is trusted by students, creatives, athletes, and
+            sneaker lovers across Mauritius.
           </p>
           <Link
             to="/booking"

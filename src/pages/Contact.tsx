@@ -58,21 +58,28 @@ export default function Contact() {
           </p>
           <div className="space-y-6">
             {[
-              { label: "Email", value: settings.email, icon: MailIcon },
+              {
+                label: "Email Address",
+                value: settings.email,
+                href: `mailto:${settings.email}`,
+                icon: MailIcon,
+              },
               {
                 label: "Phone / WhatsApp",
                 value: settings.phone,
+                href: "https://wa.me/23055132614",
                 icon: PhoneIcon,
               },
               {
-                label: "Studio Location",
-                value: settings.location,
-                icon: LocationIcon,
+                label: "Instagram",
+                value: "@zimthread.collective",
+                href: "https://instagram.com/zimthread.collective",
+                icon: ClockIcon,
               },
               {
-                label: "Business Hours",
-                value: settings.hours,
-                icon: ClockIcon,
+                label: "Drop Off & Collection",
+                value: settings.location,
+                icon: LocationIcon,
               },
             ].map((c) => {
               const IconComp = c.icon
@@ -85,9 +92,22 @@ export default function Contact() {
                     <p className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280]">
                       {c.label}
                     </p>
-                    <p className="text-sm font-semibold text-[#1a1a1a] mt-0.5">
-                      {c.value}
-                    </p>
+                    {c.href ? (
+                      <a
+                        href={c.href}
+                        target={
+                          c.href.startsWith("http") ? "_blank" : undefined
+                        }
+                        rel="noopener noreferrer"
+                        className="text-sm font-semibold text-[#1a1a1a] hover:text-[#4a5c2d] transition-colors mt-0.5 inline-block"
+                      >
+                        {c.value}
+                      </a>
+                    ) : (
+                      <p className="text-sm font-semibold text-[#1a1a1a] mt-0.5">
+                        {c.value}
+                      </p>
+                    )}
                   </div>
                 </div>
               )

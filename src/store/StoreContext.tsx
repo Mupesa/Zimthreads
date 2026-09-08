@@ -128,14 +128,14 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 const STORAGE_KEYS = {
-  PRODUCTS: "zimthread_products_v4",
-  SERVICES: "zimthread_services_v4",
-  BOOKINGS: "zimthread_bookings_v4",
-  ORDERS: "zimthread_orders_v4",
-  BLOG_POSTS: "zimthread_blog_posts_v4",
-  INQUIRIES: "zimthread_inquiries_v4",
-  SETTINGS: "zimthread_settings_v4",
-  CART: "zimthread_cart_v4",
+  PRODUCTS: "zimthread_products_v6",
+  SERVICES: "zimthread_services_v6",
+  BOOKINGS: "zimthread_bookings_v6",
+  ORDERS: "zimthread_orders_v6",
+  BLOG_POSTS: "zimthread_blog_posts_v6",
+  INQUIRIES: "zimthread_inquiries_v6",
+  SETTINGS: "zimthread_settings_v6",
+  CART: "zimthread_cart_v6",
 }
 
 function getStored<T>(key: string, fallback: T): T {
@@ -159,9 +159,23 @@ function setStored<T>(key: string, data: T) {
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [products, setProducts] = useState<Product[]>(() =>
-    getStored(STORAGE_KEYS.PRODUCTS, initialProducts),
-  )
+  const [products, setProducts] = useState<Product[]>(() => {
+    const loaded = getStored(STORAGE_KEYS.PRODUCTS, initialProducts)
+    return loaded.map((p) => {
+      if (
+        p.id === "prod-4" &&
+        (!p.img ||
+          p.img.includes("photo-1556821840-3a63f15732ce") ||
+          p.img === "/images/products/black-hoodie.jpg")
+      ) {
+        return {
+          ...p,
+          img: "https://res.cloudinary.com/qyuoyjju/image/upload/f_auto,q_auto/v1788884997/zimthreads/products/zcb9ju1mhzsuaizw668l.jpg",
+        }
+      }
+      return p
+    })
+  })
   const [services, setServices] = useState<Service[]>(() => {
     const loaded = getStored(STORAGE_KEYS.SERVICES, initialServices)
     return loaded.map((s) => {

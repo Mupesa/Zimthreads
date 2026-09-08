@@ -218,8 +218,8 @@ export default function Dashboard() {
     return [
       {
         label: "TOTAL REVENUE",
-        value: `$${totalRev.toFixed(0)}`,
-        sub: `Orders: $${totalOrderRev.toFixed(0)} · Clean: $${totalBookingRev.toFixed(0)}`,
+        value: `Rs ${totalRev.toFixed(0)}`,
+        sub: `Orders: Rs ${totalOrderRev.toFixed(0)} · Services: Rs ${totalBookingRev.toFixed(0)}`,
         icon: DollarIcon,
       },
       {
@@ -237,7 +237,7 @@ export default function Dashboard() {
       {
         label: "REGISTERED CLIENTS",
         value: `${customers.length}`,
-        sub: "Across Zimbabwe",
+        sub: "Across Mauritius",
         icon: UsersIcon,
       },
     ]
@@ -573,8 +573,8 @@ export default function Dashboard() {
                     ADMIN DASHBOARD OVERVIEW
                   </h1>
                   <p className="text-xs text-[#9ca3af]">
-                    Realtime metrics across Harare studio bookings & e-commerce
-                    shop
+                    Realtime metrics across Mauritius studio bookings &
+                    e-commerce shop
                   </p>
                 </div>
                 <div className="flex gap-2">

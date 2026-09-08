@@ -131,7 +131,7 @@ export default function Shop() {
               <div className="p-4 pt-0">
                 <div className="flex items-center justify-between pt-2 border-t border-[#f5f2ec]">
                   <span className="font-display text-lg font-bold text-[#1a1a1a]">
-                    ${p.price}
+                    Rs {p.price}
                   </span>
                   <button
                     onClick={(e) => handleQuickAdd(e, p)}

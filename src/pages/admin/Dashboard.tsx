@@ -24,9 +24,16 @@ import {
   AlertTriangleIcon,
   MenuIcon,
   CheckIcon,
+  SparklesIcon,
 } from "@/components/Icons"
+import ImageUploader from "@/components/ImageUploader"
+import {
+  getCloudinaryConfig,
+  saveCloudinaryConfig,
+  testCloudinaryConnection,
+} from "@/lib/cloudinary"
 
-type Section = "dashboard" | "bookings" | "orders" | "services" | "products" | "blog" | "customers" | "inquiries" | "settings"
+type Section = "dashboard" | "bookings" | "orders" | "services" | "products" | "blog" | "customers" | "inquiries" | "settings" | "media"
 
 export default function Dashboard() {
   const {
@@ -161,6 +168,71 @@ export default function Dashboard() {
 
   const [settingsForm, setSettingsForm] = useState(settings)
 
+  // Cloudinary Media Studio State
+  const [quickMediaUrl, setQuickMediaUrl] = useState("")
+  const [mediaFolder, setMediaFolder] = useState("zimthreads/products")
+  const [recentUploads, setRecentUploads] = useState<Array<{
+    url: string
+    timestamp: string
+  }>>(() => {
+    try {
+      const saved = localStorage.getItem("zimthreads_recent_uploads")
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+  const [testingConnection, setTestingConnection] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<string | null>(null)
+  const [cloudinaryConfigState, setCloudinaryConfigState] = useState(() =>
+    getCloudinaryConfig(),
+  )
+  const [copiedMediaUrl, setCopiedMediaUrl] = useState<string | null>(null)
+
+  const handleMediaUploaded = (url: string) => {
+    setQuickMediaUrl(url)
+    const newEntry = { url, timestamp: new Date().toLocaleTimeString() }
+    const updated = [
+      newEntry,
+      ...recentUploads.filter((u) => u.url !== url),
+    ].slice(0, 16)
+    setRecentUploads(updated)
+    try {
+      localStorage.setItem("zimthreads_recent_uploads", JSON.stringify(updated))
+    } catch {}
+    showToast("Media Uploaded", "Image sent to Cloudinary CDN successfully.")
+  }
+
+  const handleTestConnection = async () => {
+    setTestingConnection(true)
+    setConnectionStatus(null)
+    const result = await testCloudinaryConnection()
+    setTestingConnection(false)
+    setConnectionStatus(result.message)
+    if (result.success) {
+      showToast(
+        "Cloudinary Connected",
+        "Connection verified with Cloudinary API.",
+      )
+    } else {
+      showToast("Connection Error", result.message, "info")
+    }
+  }
+
+  const handleSaveCloudinaryConfig = (e: React.FormEvent) => {
+    e.preventDefault()
+    saveCloudinaryConfig(cloudinaryConfigState)
+    showToast("Credentials Saved", "Cloudinary configuration saved to browser.")
+  }
+
+  const handleCopyAnyUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedMediaUrl(url)
+      setTimeout(() => setCopiedMediaUrl(null), 2000)
+    } catch {}
+  }
+
   // Navigation Items
   const unreadInquiriesCount = useMemo(
     () => inquiries.filter((i) => !i.read).length,
@@ -191,6 +263,7 @@ export default function Dashboard() {
     },
     { icon: BrushIcon, label: "Services", id: "services", count: null },
     { icon: BagIcon, label: "Products", id: "products", count: null },
+    { icon: SparklesIcon, label: "Media Studio", id: "media", count: null },
     { icon: ArticleIcon, label: "Blog Posts", id: "blog", count: null },
     { icon: UsersIcon, label: "Customers", id: "customers", count: null },
     {
@@ -1785,6 +1858,298 @@ export default function Dashboard() {
                   Save Store Settings
                 </button>
               </form>
+
+              {/* Cloudinary Integration Settings Card */}
+              <form
+                onSubmit={handleSaveCloudinaryConfig}
+                className="bg-[#1f2937] border border-[#374151] p-6 space-y-4 text-xs"
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-[#374151]">
+                  <div>
+                    <h3 className="font-display text-base font-bold uppercase text-white">
+                      Cloudinary CDN Configuration
+                    </h3>
+                    <p className="text-xs text-[#9ca3af]">
+                      Credentials used for browser-native signed uploads
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTestConnection}
+                    disabled={testingConnection}
+                    className="px-3 py-1 bg-[#374151] hover:bg-[#4b5563] text-white text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                  >
+                    {testingConnection ? "Testing..." : "Test Connection"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                      Cloud Name
+                    </label>
+                    <input
+                      type="text"
+                      value={cloudinaryConfigState.cloudName}
+                      onChange={(e) =>
+                        setCloudinaryConfigState({
+                          ...cloudinaryConfigState,
+                          cloudName: e.target.value,
+                        })
+                      }
+                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                      Default Upload Folder
+                    </label>
+                    <input
+                      type="text"
+                      value={cloudinaryConfigState.defaultFolder}
+                      onChange={(e) =>
+                        setCloudinaryConfigState({
+                          ...cloudinaryConfigState,
+                          defaultFolder: e.target.value,
+                        })
+                      }
+                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                      API Key
+                    </label>
+                    <input
+                      type="text"
+                      value={cloudinaryConfigState.apiKey}
+                      onChange={(e) =>
+                        setCloudinaryConfigState({
+                          ...cloudinaryConfigState,
+                          apiKey: e.target.value,
+                        })
+                      }
+                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                      API Secret
+                    </label>
+                    <input
+                      type="password"
+                      value={cloudinaryConfigState.apiSecret}
+                      onChange={(e) =>
+                        setCloudinaryConfigState({
+                          ...cloudinaryConfigState,
+                          apiSecret: e.target.value,
+                        })
+                      }
+                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest transition-colors"
+                >
+                  Save Cloudinary Credentials
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Media Atelier Section */}
+          {active === "media" && (
+            <div className="space-y-6 max-w-5xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="font-display text-2xl font-extrabold uppercase text-[#f9fafb]">
+                    CLOUDINARY MEDIA ATELIER
+                  </h1>
+                  <p className="text-xs text-[#9ca3af]">
+                    Upload and host photos directly on Cloudinary CDN with
+                    automatic f_auto,q_auto optimization
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-bold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Cloud: {cloudinaryConfigState.cloudName}</span>
+                  </div>
+                  <button
+                    onClick={handleTestConnection}
+                    disabled={testingConnection}
+                    className="px-3 py-1 bg-[#374151] hover:bg-[#4b5563] text-white text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                  >
+                    {testingConnection ? "Testing..." : "Test Connection"}
+                  </button>
+                </div>
+              </div>
+
+              {connectionStatus && (
+                <div className="p-3 bg-[#111827] border border-[#374151] text-xs flex items-center justify-between">
+                  <span className="text-[#86a84e]">{connectionStatus}</span>
+                  <button
+                    onClick={() => setConnectionStatus(null)}
+                    className="text-[#9ca3af] hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Upload Card */}
+              <div className="bg-[#1f2937] border border-[#374151] p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#374151]">
+                  <div>
+                    <h3 className="font-display text-base font-bold uppercase text-white">
+                      Direct CDN Upload
+                    </h3>
+                    <p className="text-xs text-[#9ca3af]">
+                      Select or drop any image file to send it straight to
+                      Cloudinary
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase text-[#9ca3af]">
+                      Target Folder:
+                    </span>
+                    <select
+                      value={mediaFolder}
+                      onChange={(e) => setMediaFolder(e.target.value)}
+                      className="bg-[#111827] border border-[#374151] text-xs text-white px-2 py-1 outline-none"
+                    >
+                      <option value="zimthreads/products">
+                        zimthreads/products
+                      </option>
+                      <option value="zimthreads/services">
+                        zimthreads/services
+                      </option>
+                      <option value="zimthreads/blog">zimthreads/blog</option>
+                      <option value="zimthreads/general">
+                        zimthreads/general
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <ImageUploader
+                  value={quickMediaUrl}
+                  onChange={handleMediaUploaded}
+                  folder={mediaFolder}
+                  label="Select Image to Upload"
+                  helperText="Supports high-res PNG, JPG, WEBP, SVG up to 10MB"
+                />
+
+                {quickMediaUrl && (
+                  <div className="p-4 bg-[#111827] border border-[#4a5c2d] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold uppercase text-[#86a84e] tracking-widest mb-0.5">
+                        Latest Upload CDN URL
+                      </div>
+                      <div className="font-mono text-xs text-white truncate max-w-xl">
+                        {quickMediaUrl}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleCopyAnyUrl(quickMediaUrl)}
+                        className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors border ${
+                          copiedMediaUrl === quickMediaUrl
+                            ? "bg-emerald-950 border-emerald-500 text-emerald-300"
+                            : "bg-[#4a5c2d] border-[#4a5c2d] text-white hover:bg-[#5a7038]"
+                        }`}
+                      >
+                        {copiedMediaUrl === quickMediaUrl
+                          ? "Copied!"
+                          : "Copy URL"}
+                      </button>
+                      <a
+                        href={quickMediaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-[#1f2937] border border-[#374151] text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white transition-colors"
+                      >
+                        Open ↗
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Uploads Gallery */}
+              <div className="bg-[#1f2937] border border-[#374151] p-6 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-[#374151]">
+                  <div>
+                    <h3 className="font-display text-base font-bold uppercase text-white">
+                      Recent Session Uploads ({recentUploads.length})
+                    </h3>
+                    <p className="text-xs text-[#9ca3af]">
+                      Quickly copy URLs from your recently uploaded images
+                    </p>
+                  </div>
+                  {recentUploads.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setRecentUploads([])
+                        localStorage.removeItem("zimthreads_recent_uploads")
+                      }}
+                      className="text-[10px] font-bold uppercase text-[#9ca3af] hover:text-red-400"
+                    >
+                      Clear History
+                    </button>
+                  )}
+                </div>
+
+                {recentUploads.length === 0 ? (
+                  <div className="py-12 text-center text-[#9ca3af] text-xs">
+                    No uploads in this session yet. Drop an image in the
+                    uploader above to test it live.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {recentUploads.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-[#111827] border border-[#374151] p-2 flex flex-col justify-between group hover:border-[#86a84e] transition-colors"
+                      >
+                        <div className="relative aspect-square bg-black border border-[#374151] overflow-hidden mb-2">
+                          <img
+                            src={item.url}
+                            alt="Uploaded media"
+                            className="w-full h-full object-contain"
+                          />
+                          <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 text-[8px] font-mono text-[#86a84e]">
+                            CDN
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[9px] text-[#6b7280] font-mono truncate">
+                            {item.timestamp}
+                          </p>
+                          <button
+                            onClick={() => handleCopyAnyUrl(item.url)}
+                            className={`w-full py-1 text-[10px] font-bold uppercase tracking-wider transition-colors border ${
+                              copiedMediaUrl === item.url
+                                ? "bg-emerald-950 border-emerald-500 text-emerald-300"
+                                : "bg-[#1f2937] border-[#374151] text-[#9ca3af] hover:text-white hover:border-[#6b7280]"
+                            }`}
+                          >
+                            {copiedMediaUrl === item.url
+                              ? "Copied!"
+                              : "Copy URL"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </main>
@@ -2026,20 +2391,13 @@ export default function Dashboard() {
                   className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
                 />
               </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  required
-                  value={productForm.img}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, img: e.target.value })
-                  }
-                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
-                />
-              </div>
+              <ImageUploader
+                value={productForm.img}
+                onChange={(url) => setProductForm({ ...productForm, img: url })}
+                folder="zimthreads/products"
+                label="Product Image"
+                compact
+              />
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                   Description
@@ -2136,6 +2494,13 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
+              <ImageUploader
+                value={editProduct.img || ""}
+                onChange={(url) => setEditProduct({ ...editProduct, img: url })}
+                folder="zimthreads/products"
+                label="Product Image"
+                compact
+              />
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                   Description
@@ -2240,6 +2605,13 @@ export default function Dashboard() {
                   className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
                 />
               </div>
+              <ImageUploader
+                value={serviceForm.img}
+                onChange={(url) => setServiceForm({ ...serviceForm, img: url })}
+                folder="zimthreads/services"
+                label="Service Showcase Image"
+                compact
+              />
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                   Description
@@ -2427,20 +2799,13 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
-                  Hero Image URL
-                </label>
-                <input
-                  type="url"
-                  required
-                  value={blogForm.img}
-                  onChange={(e) =>
-                    setBlogForm({ ...blogForm, img: e.target.value })
-                  }
-                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
-                />
-              </div>
+              <ImageUploader
+                value={blogForm.img}
+                onChange={(url) => setBlogForm({ ...blogForm, img: url })}
+                folder="zimthreads/blog"
+                label="Article Hero Banner"
+                compact
+              />
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                   Short Excerpt *

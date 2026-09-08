@@ -1,0 +1,10 @@
+{
+  "description": "Zimthreads offers a mobile-responsive platform for users to book services while providing admins with a dashboard to monitor user activities and bookings.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

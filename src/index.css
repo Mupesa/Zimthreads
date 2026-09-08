@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --color-brand-green: #4a5c2d;
+  --color-brand-green-light: #5a7038;
+  --color-brand-cream: #f5f2ec;
+  --color-brand-dark: #1a1a1a;
+  --color-brand-gray: #6b7280;
+  --color-brand-border: #e5e1d8;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f5f2ec;
+  color: #1a1a1a;
+  margin: 0;
+  padding: 0;
+}
+
+.font-display {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

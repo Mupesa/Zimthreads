@@ -9,6 +9,7 @@ import {
   ClockIcon,
   ArrowRightIcon,
   PhoneIcon,
+  WhatsAppIcon,
 } from "@/components/Icons"
 
 const categories = [
@@ -81,21 +82,26 @@ export default function Home() {
               <br />
               <span className="text-[#4a5c2d]">A STRONGER YOU.</span>
             </h1>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link
                 to="/booking"
-                className="w-full sm:w-auto px-7 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors shadow-sm text-center"
+                className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#4a5c2d] text-[#f5f2ec] text-xs font-bold tracking-wider uppercase hover:bg-[#3d4d24] active:scale-[0.98] transition-all shadow-sm"
               >
-                BOOK A SERVICE
+                <span>BOOK A SERVICE</span>
+                <ArrowRightIcon className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <a
                 href="https://wa.me/23055132614"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 border-2 border-[#1a1a1a] text-[#1a1a1a] text-[11px] font-bold tracking-widest uppercase hover:bg-[#1a1a1a] hover:text-[#f5f2ec] transition-colors text-center"
+                className="group inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#1a1a1a] bg-white text-[#1a1a1a] text-xs font-bold tracking-wider uppercase hover:bg-[#1a1a1a] hover:text-[#f5f2ec] active:scale-[0.98] transition-all shadow-xs"
               >
-                <PhoneIcon className="w-3.5 h-3.5" />
-                WHATSAPP (+230 5513 2614)
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-400 transition-colors" />
+                <span>WHATSAPP</span>
               </a>
             </div>
           </div>
@@ -333,20 +339,21 @@ export default function Home() {
               every silhouette with precision active formulations and tailored
               craft.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               <Link
                 to="/about"
-                className="px-6 py-3 border border-[#f5f2ec] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#f5f2ec] hover:text-[#1a1a1a] transition-colors inline-block"
+                className="inline-flex items-center justify-center px-4 py-2.5 border border-[#f5f2ec]/60 text-[#f5f2ec] text-xs font-bold tracking-wider uppercase hover:bg-[#f5f2ec] hover:text-[#1a1a1a] active:scale-[0.98] transition-all"
               >
-                OUR STORY & PHILOSOPHY
+                OUR STORY
               </Link>
               <a
                 href="https://wa.me/23055132614"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3 bg-[#86a84e] text-black text-[11px] font-bold tracking-widest uppercase hover:bg-[#9cc45e] transition-colors inline-block"
+                className="group inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#86a84e] text-black text-xs font-bold tracking-wider uppercase hover:bg-[#9cc45e] active:scale-[0.98] transition-all shadow-sm"
               >
-                WHATSAPP CHAT
+                <WhatsAppIcon className="w-3.5 h-3.5 text-[#1a1a1a]" />
+                <span>WHATSAPP</span>
               </a>
             </div>
           </div>
@@ -377,20 +384,22 @@ export default function Home() {
           Book your shoe cleaning service today or message us on WhatsApp for
           fast drop-off coordination.
         </p>
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-wrap justify-center items-center gap-3">
           <Link
             to="/booking"
-            className="px-8 py-4 bg-[#f5f2ec] text-[#1a1a1a] text-[11px] font-bold tracking-widest uppercase hover:bg-white transition-colors inline-block shadow-lg"
+            className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#f5f2ec] text-[#1a1a1a] text-xs font-bold tracking-wider uppercase hover:bg-white active:scale-[0.98] transition-all shadow-md"
           >
-            BOOK YOUR SERVICE NOW
+            <span>BOOK A SERVICE</span>
+            <ArrowRightIcon className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <a
             href="https://wa.me/23055132614"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-8 py-4 bg-[#1a1a1a] text-white text-[11px] font-bold tracking-widest uppercase hover:bg-black transition-colors inline-block shadow-lg"
+            className="group inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] text-white text-xs font-bold tracking-wider uppercase hover:bg-black active:scale-[0.98] transition-all shadow-md"
           >
-            WHATSAPP: 55132614
+            <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400" />
+            <span>WHATSAPP</span>
           </a>
         </div>
       </section>

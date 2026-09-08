@@ -29,13 +29,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       <div className="relative bg-white border border-[#e5e1d8] w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl z-10 grid grid-cols-1 sm:grid-cols-2 animate-scale-up">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 border border-[#e5e1d8] flex items-center justify-center text-[#1a1a1a] hover:bg-black hover:text-white transition-colors"
+          className="absolute top-2.5 right-2.5 z-20 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white/95 border border-[#e5e1d8] flex items-center justify-center text-[#1a1a1a] hover:bg-black hover:text-white transition-colors shadow-md touch-manipulation"
           aria-label="Close modal"
         >
-          <CloseIcon className="w-3.5 h-3.5" />
+          <CloseIcon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
         </button>
 
-        <div className="h-64 sm:h-full bg-[#f5f2ec] overflow-hidden">
+        <div className="h-48 sm:h-full bg-[#f5f2ec] overflow-hidden">
           <img
             src={product.img}
             alt={product.alt}
@@ -43,7 +43,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           />
         </div>
 
-        <div className="p-5 sm:p-8 flex flex-col justify-between">
+        <div className="p-4 sm:p-8 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d] bg-[#4a5c2d]/10 px-2 py-0.5">

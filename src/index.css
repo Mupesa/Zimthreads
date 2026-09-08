@@ -18,12 +18,19 @@ body,
   min-height: 100%;
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f5f2ec;
   color: #1a1a1a;
   margin: 0;
   padding: 0;
+  touch-action: manipulation;
+  overflow-x: hidden;
 }
 
 .font-display {

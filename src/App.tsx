@@ -31,7 +31,7 @@ function AppRoutes() {
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f2ec] text-[#1a1a1a]">
       <Navbar />
-      <div className="flex-1">
+      <div className="flex-1 pb-16 lg:pb-0">
         {cleanPath === "/" && <Home />}
         {cleanPath === "/services" && <Services />}
         {cleanPath === "/shop" && <Shop />}

@@ -45,16 +45,16 @@ export default function Shop() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
-        <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((c) => (
             <button
               key={c}
               onClick={() => setActiveCategory(c)}
-              className={`px-5 py-2 text-[11px] font-bold tracking-widest uppercase border transition-colors ${
+              className={`px-4 py-2 text-[10px] sm:text-[11px] font-bold tracking-widest uppercase border whitespace-nowrap transition-colors shrink-0 ${
                 activeCategory === c
                   ? "bg-[#1a1a1a] text-[#f5f2ec] border-[#1a1a1a]"
-                  : "border-[#e5e1d8] text-[#6b7280] hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
+                  : "border-[#e5e1d8] text-[#6b7280] hover:border-[#1a1a1a] hover:text-[#1a1a1a] bg-white"
               }`}
             >
               {c}
@@ -69,14 +69,14 @@ export default function Shop() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products..."
-            className="w-full border border-[#e5e1d8] bg-white px-4 py-2 text-xs text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
+            className="w-full border border-[#e5e1d8] bg-white px-4 py-2.5 sm:py-2 text-xs text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
           />
         </div>
       </div>
 
       {/* Product Grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-20 bg-white border border-[#e5e1d8]">
+        <div className="text-center py-16 sm:py-20 bg-white border border-[#e5e1d8]">
           <p className="font-display text-lg font-bold uppercase text-[#1a1a1a] mb-1">
             No Products Found
           </p>
@@ -85,7 +85,7 @@ export default function Shop() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {filtered.map((p) => (
             <div
               key={p.id}
@@ -100,43 +100,43 @@ export default function Shop() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   {p.stock <= 5 && p.stock > 0 && (
-                    <span className="absolute top-2 left-2 bg-amber-600 text-white text-[9px] font-bold uppercase px-2 py-0.5">
+                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5">
                       Low Stock
                     </span>
                   )}
                   {p.stock === 0 && (
-                    <span className="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold uppercase px-2 py-0.5">
+                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5">
                       Sold Out
                     </span>
                   )}
                 </div>
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-[10px] font-semibold tracking-widest uppercase text-[#4a5c2d]">
+                    <p className="text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-[#4a5c2d]">
                       {p.category}
                     </p>
                     {p.sizes && (
-                      <span className="text-[9px] text-[#9ca3af]">
+                      <span className="text-[8px] sm:text-[9px] text-[#9ca3af]">
                         {p.sizes.length}{" "}
                         {p.sizes.length === 1 ? "Option" : "Sizes"}
                       </span>
                     )}
                   </div>
-                  <h3 className="font-semibold text-sm text-[#1a1a1a] mb-2 leading-tight group-hover:text-[#4a5c2d] transition-colors">
+                  <h3 className="font-semibold text-xs sm:text-sm text-[#1a1a1a] mb-1.5 leading-snug group-hover:text-[#4a5c2d] transition-colors line-clamp-2">
                     {p.name}
                   </h3>
                 </div>
               </div>
 
-              <div className="p-4 pt-0">
-                <div className="flex items-center justify-between pt-2 border-t border-[#f5f2ec]">
-                  <span className="font-display text-lg font-bold text-[#1a1a1a]">
+              <div className="p-3 sm:p-4 pt-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-2 border-t border-[#f5f2ec]">
+                  <span className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
                     Rs {p.price}
                   </span>
                   <button
                     onClick={(e) => handleQuickAdd(e, p)}
                     disabled={p.stock <= 0}
-                    className="px-3 py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center"
                   >
                     + ADD
                   </button>

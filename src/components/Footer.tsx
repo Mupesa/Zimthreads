@@ -14,8 +14,8 @@ export default function Footer() {
             </div>
           </div>
           <p className="text-sm text-[#9ca3af] leading-relaxed">
-            Harare's premier sneaker restoration lab, premium shoe care
-            formulations & custom streetwear atelier.
+            Mauritius premier sneaker restoration atelier, premium shoe care
+            formulations & custom streetwear collective.
           </p>
         </div>
         <div>

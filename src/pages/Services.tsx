@@ -41,17 +41,17 @@ export default function Services() {
         {coreServices.map((s, i) => (
           <div
             key={s.id}
-            className={`relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white border ${
+            className={`relative grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center bg-white border ${
               s.badge ? "border-[#4a5c2d] shadow-sm" : "border-[#e5e1d8]"
-            } p-6 sm:p-8 hover:border-[#4a5c2d] transition-colors`}
+            } p-4 sm:p-8 hover:border-[#4a5c2d] transition-colors`}
           >
             {s.badge && (
-              <div className="absolute -top-3 right-6 bg-[#4a5c2d] text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 shadow-xs">
+              <div className="absolute -top-3 right-4 sm:right-6 bg-[#4a5c2d] text-white text-[9px] sm:text-[10px] font-extrabold tracking-widest uppercase px-2.5 sm:px-3 py-1 shadow-xs">
                 ★ {s.badge}
               </div>
             )}
             <div
-              className={`overflow-hidden bg-[#e5e1d8] h-72 ${
+              className={`overflow-hidden bg-[#e5e1d8] h-52 sm:h-72 ${
                 i % 2 === 1 ? "lg:order-2" : ""
               }`}
             >
@@ -80,27 +80,13 @@ export default function Services() {
                 {s.price}
               </p>
               {s.tagline && (
-                <p className="text-xs font-bold uppercase tracking-wider text-[#1a1a1a] mb-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#1a1a1a] mb-5">
                   "{s.tagline}"
                 </p>
               )}
-              <p className="text-[#6b7280] text-sm leading-relaxed mb-5">
-                {s.desc}
-              </p>
-              <ul className="space-y-2 mb-6">
-                {s.features.map((f) => (
-                  <li
-                    key={f}
-                    className="flex items-center gap-2 text-sm text-[#1a1a1a]"
-                  >
-                    <CheckIcon className="w-4 h-4 text-[#4a5c2d] shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
               <button
                 onClick={() => handleBookService(s.id)}
-                className="inline-block px-6 py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
+                className="w-full sm:w-auto text-center px-6 py-3.5 sm:py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors shadow-xs"
               >
                 BOOK THIS SERVICE
               </button>
@@ -150,17 +136,6 @@ export default function Services() {
                     {deal.price}
                   </span>
                 </div>
-                <ul className="space-y-2 mb-6">
-                  {deal.features.map((f) => (
-                    <li
-                      key={f}
-                      className="flex items-center gap-2 text-xs text-[#d1d5db]"
-                    >
-                      <CheckIcon className="w-3.5 h-3.5 text-[#86a84e] shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
               </div>
               <button
                 onClick={() => handleBookService(deal.id)}

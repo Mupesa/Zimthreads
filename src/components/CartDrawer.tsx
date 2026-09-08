@@ -192,7 +192,7 @@ export default function CartDrawer() {
                             item.size,
                           )
                         }
-                        className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[#6b7280] hover:bg-[#e5e1d8]"
+                        className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation"
                       >
                         -
                       </button>
@@ -207,7 +207,7 @@ export default function CartDrawer() {
                             item.size,
                           )
                         }
-                        className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[#6b7280] hover:bg-[#e5e1d8]"
+                        className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation"
                       >
                         +
                       </button>
@@ -386,8 +386,8 @@ export default function CartDrawer() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
                         <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-1">
                           Street Address / Area *
                         </label>
@@ -434,7 +434,7 @@ export default function CartDrawer() {
                       <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-2">
                         Payment Method
                       </label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {([
                           "Juice by MCB",
                           "Bank Transfer",

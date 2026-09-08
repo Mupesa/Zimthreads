@@ -82,8 +82,26 @@ export default function Booking() {
           BOOK YOUR SESSION
         </h1>
 
-        {/* Step indicators */}
-        <div className="flex items-center mb-10 overflow-x-auto scrollbar-hide pb-2">
+        {/* Mobile Step Bar */}
+        <div className="sm:hidden mb-6 bg-white border border-[#e5e1d8] p-4 shadow-xs">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d]">
+              STEP {step + 1} OF {steps.length}
+            </span>
+            <span className="text-xs font-bold uppercase text-[#1a1a1a]">
+              {steps[step]}
+            </span>
+          </div>
+          <div className="w-full bg-[#e5e1d8] h-1.5 rounded-full overflow-hidden">
+            <div
+              className="bg-[#4a5c2d] h-full transition-all duration-300 rounded-full"
+              style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Desktop Step indicators */}
+        <div className="hidden sm:flex items-center mb-10 overflow-x-auto scrollbar-hide pb-2">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center flex-shrink-0">
               <div className="flex flex-col items-center">
@@ -181,6 +199,46 @@ export default function Booking() {
                   </button>
                 ))}
               </div>
+
+              {/* Service Details on Booking Selection */}
+              {selectedService && serviceObj && (
+                <div className="mt-6 p-4 sm:p-5 bg-[#f5f2ec] border border-[#4a5c2d]/30 animate-slide-down">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e5e1d8] gap-1">
+                    <div>
+                      <span className="text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d]">
+                        Selected Treatment
+                      </span>
+                      <h4 className="font-display text-xl font-bold uppercase text-[#1a1a1a]">
+                        {serviceObj.title} ({serviceObj.price})
+                      </h4>
+                    </div>
+                    {serviceObj.turnaround && (
+                      <span className="text-xs font-mono text-[#6b7280]">
+                        Turnaround: {serviceObj.turnaround}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#4b5563] leading-relaxed my-3">
+                    {serviceObj.desc}
+                  </p>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-[#1a1a1a] mb-2">
+                      Included in this service:
+                    </p>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {serviceObj.features.map((f) => (
+                        <li
+                          key={f}
+                          className="flex items-center gap-2 text-xs text-[#1a1a1a]"
+                        >
+                          <CheckIcon className="w-3.5 h-3.5 text-[#4a5c2d] shrink-0" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -278,7 +336,7 @@ export default function Booking() {
                 <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-3">
                   Time Window *
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {timeSlots.map((t) => (
                     <button
                       key={t}
@@ -403,11 +461,11 @@ export default function Booking() {
 
         {/* Navigation buttons */}
         {step < 4 && (
-          <div className="flex justify-between mt-6">
+          <div className="flex items-center justify-between gap-3 mt-6">
             <button
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               disabled={step === 0}
-              className="px-6 py-3 border border-[#e5e1d8] text-[#6b7280] text-[11px] font-bold tracking-widest uppercase hover:border-[#1a1a1a] hover:text-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 sm:flex-none px-6 py-3.5 border border-[#e5e1d8] text-[#6b7280] text-[11px] font-bold tracking-widest uppercase hover:border-[#1a1a1a] hover:text-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center"
             >
               BACK
             </button>
@@ -420,7 +478,7 @@ export default function Booking() {
                 }
               }}
               disabled={!canNext()}
-              className="px-6 py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex-[1.5] sm:flex-none px-7 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center shadow-xs"
             >
               {step === 3 ? "CONFIRM BOOKING" : "CONTINUE"}
             </button>

@@ -6,7 +6,9 @@ import {
   LocationIcon,
   ClockIcon,
   CheckIcon,
+  WhatsAppIcon,
 } from "@/components/Icons"
+import { formatInquiryWhatsAppMessage, getWhatsAppUrl } from "@/lib/whatsapp"
 
 export default function Contact() {
   const { addInquiry, settings } = useStore()
@@ -126,14 +128,33 @@ export default function Contact() {
             </h2>
             <p className="text-[#6b7280] text-sm max-w-sm mb-6">
               Thank you, <strong>{form.name}</strong>. Your inquiry has been
-              received. Our team will follow up within 24 hours.
+              received. You can also message us directly on WhatsApp for an
+              instant response.
             </p>
-            <button
-              onClick={handleSendAnother}
-              className="px-6 py-3 border border-[#1a1a1a] text-[11px] font-bold tracking-widest uppercase text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#f5f2ec] transition-colors"
-            >
-              SEND ANOTHER MESSAGE
-            </button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <a
+                href={getWhatsAppUrl(
+                  formatInquiryWhatsAppMessage({
+                    name: form.name,
+                    email: form.email,
+                    subject: form.subject,
+                    message: form.message,
+                  }),
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-[#25D366] hover:bg-[#1EBE5D] text-black text-[11px] font-bold tracking-widest uppercase transition-colors inline-flex items-center gap-2 shadow-sm"
+              >
+                <WhatsAppIcon className="w-3.5 h-3.5 text-black" />
+                <span>CHAT ON WHATSAPP (+230 5513 2614)</span>
+              </a>
+              <button
+                onClick={handleSendAnother}
+                className="px-6 py-3 border border-[#1a1a1a] text-[11px] font-bold tracking-widest uppercase text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#f5f2ec] transition-colors"
+              >
+                SEND ANOTHER MESSAGE
+              </button>
+            </div>
           </div>
         ) : (
           <form
@@ -197,12 +218,23 @@ export default function Contact() {
               />
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-4 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
-            >
-              SEND MESSAGE
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="submit"
+                className="flex-1 py-4 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
+              >
+                SEND MESSAGE
+              </button>
+              <a
+                href="https://wa.me/23055132614"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-4 border border-[#1a1a1a] text-[#1a1a1a] text-[11px] font-bold tracking-widest uppercase hover:bg-[#1a1a1a] hover:text-white transition-colors flex items-center justify-center gap-2 text-center"
+              >
+                <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
+                <span>CHAT ON WHATSAPP</span>
+              </a>
+            </div>
           </form>
         )}
       </div>

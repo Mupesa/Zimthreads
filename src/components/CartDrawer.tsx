@@ -7,7 +7,13 @@ import {
   CheckIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
+  WhatsAppIcon,
 } from "@/components/Icons"
+import {
+  formatOrderWhatsAppMessage,
+  getWhatsAppUrl,
+  openWhatsApp,
+} from "@/lib/whatsapp"
 
 export default function CartDrawer() {
   const {
@@ -63,6 +69,20 @@ export default function CartDrawer() {
     })
 
     setOrderComplete(order)
+
+    // Automatically dispatch order receipt via WhatsApp
+    const waText = formatOrderWhatsAppMessage({
+      id: order.id,
+      customer: order.customer,
+      phone: order.phone,
+      email: order.email,
+      address: order.address,
+      city: order.city,
+      paymentMethod: order.paymentMethod,
+      items: order.items,
+      totalAmount: order.totalAmount,
+    })
+    openWhatsApp(waText)
   }
 
   const handleResetCheckout = () => {
@@ -310,9 +330,36 @@ export default function CartDrawer() {
                     </div>
                   </div>
 
+                  <a
+                    href={getWhatsAppUrl(
+                      formatOrderWhatsAppMessage({
+                        id: orderComplete.id,
+                        customer: orderComplete.customer,
+                        phone: orderComplete.phone,
+                        email: orderComplete.email,
+                        address: orderComplete.address,
+                        city: orderComplete.city,
+                        paymentMethod: orderComplete.paymentMethod,
+                        items: orderComplete.items,
+                        totalAmount: orderComplete.totalAmount,
+                      }),
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 mb-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-black text-xs font-bold tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <WhatsAppIcon className="w-4 h-4 text-black" />
+                    <span>SEND ORDER ON WHATSAPP</span>
+                  </a>
+
+                  <p className="text-[10px] text-[#6b7280] text-center mb-4">
+                    WhatsApp will open with your order details pre-filled to
+                    coordinate payment & drop-off.
+                  </p>
+
                   <button
                     onClick={handleResetCheckout}
-                    className="w-full py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
+                    className="w-full py-3 border border-[#1a1a1a] text-[#1a1a1a] text-[11px] font-bold tracking-widest uppercase hover:bg-[#1a1a1a] hover:text-white transition-colors"
                   >
                     RETURN TO STORE
                   </button>
@@ -496,9 +543,12 @@ export default function CartDrawer() {
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
+                        className="flex-1 py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors flex items-center justify-center gap-1.5"
                       >
-                        CONFIRM ORDER (Rs {grandTotal.toFixed(0)})
+                        <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
+                        <span>
+                          ORDER VIA WHATSAPP (Rs {grandTotal.toFixed(0)})
+                        </span>
                       </button>
                     </div>
                   </form>

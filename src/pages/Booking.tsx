@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react"
 import { useStore } from "@/store/StoreContext"
-import { BookingItem } from "@/store/seedData"
-import { CheckIcon } from "@/components/Icons"
+import { CheckIcon, WhatsAppIcon } from "@/components/Icons"
+import {
+  formatBookingWhatsAppMessage,
+  getWhatsAppUrl,
+  openWhatsApp,
+} from "@/lib/whatsapp"
 
 const timeSlots = [
   "09:00",
@@ -70,6 +74,20 @@ export default function Booking() {
 
     setConfirmedBooking(newBooking)
     setStep(4)
+
+    // Automatically dispatch booking details via WhatsApp
+    const waText = formatBookingWhatsAppMessage({
+      id: newBooking.id,
+      customer: newBooking.customer,
+      phone: newBooking.phone,
+      email: newBooking.email,
+      serviceName: newBooking.serviceName,
+      price: newBooking.price,
+      date: newBooking.date,
+      time: newBooking.time,
+      notes: newBooking.notes,
+    })
+    openWhatsApp(waText)
   }
 
   return (
@@ -433,14 +451,25 @@ export default function Booking() {
               </div>
               <div className="flex flex-wrap justify-center gap-3">
                 <a
-                  href={`https://wa.me/23055132614?text=${encodeURIComponent(
-                    `Hi Zimthread, I booked ${serviceObj?.title} for ${details.name} (Ref: ${confirmedBooking?.id || "BK"}). Sending my shoe photo here!`,
-                  )}`}
+                  href={getWhatsAppUrl(
+                    formatBookingWhatsAppMessage({
+                      id: confirmedBooking?.id || "BK-CONFIRMED",
+                      customer: details.name,
+                      phone: details.phone,
+                      email: details.email,
+                      serviceName: serviceObj?.title || "",
+                      price: serviceObj?.price || "",
+                      date: selectedDate,
+                      time: selectedTime,
+                      notes: details.notes,
+                    }),
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-6 py-3.5 bg-[#1a1a1a] text-white text-[11px] font-bold tracking-widest uppercase hover:bg-black transition-colors"
+                  className="px-6 py-3.5 bg-[#25D366] hover:bg-[#1EBE5D] text-black text-xs font-bold tracking-wider uppercase transition-colors inline-flex items-center gap-2 shadow-sm"
                 >
-                  SEND PHOTO ON WHATSAPP
+                  <WhatsAppIcon className="w-4 h-4 text-black" />
+                  <span>SEND BOOKING ON WHATSAPP</span>
                 </a>
                 <button
                   onClick={() => {
@@ -450,7 +479,7 @@ export default function Booking() {
                     setSelectedTime("")
                     setConfirmedBooking(null)
                   }}
-                  className="px-6 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
+                  className="px-6 py-3.5 bg-[#1a1a1a] text-[#f5f2ec] text-xs font-bold tracking-wider uppercase hover:bg-black transition-colors"
                 >
                   BOOK ANOTHER SESSION
                 </button>
@@ -478,9 +507,16 @@ export default function Booking() {
                 }
               }}
               disabled={!canNext()}
-              className="flex-[1.5] sm:flex-none px-7 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center shadow-xs"
+              className="flex-[1.5] sm:flex-none px-7 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center shadow-xs inline-flex items-center justify-center gap-1.5"
             >
-              {step === 3 ? "CONFIRM BOOKING" : "CONTINUE"}
+              {step === 3 ? (
+                <>
+                  <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
+                  <span>CONFIRM & BOOK VIA WHATSAPP</span>
+                </>
+              ) : (
+                <span>CONTINUE</span>
+              )}
             </button>
           </div>
         )}

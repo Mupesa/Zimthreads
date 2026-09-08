@@ -25,6 +25,7 @@ import {
   MenuIcon,
   CheckIcon,
   SparklesIcon,
+  WhatsAppIcon,
 } from "@/components/Icons"
 import ImageUploader from "@/components/ImageUploader"
 import {
@@ -32,6 +33,7 @@ import {
   saveCloudinaryConfig,
   testCloudinaryConnection,
 } from "@/lib/cloudinary"
+import { getWhatsAppUrl } from "@/lib/whatsapp"
 
 type Section = "dashboard" | "bookings" | "orders" | "services" | "products" | "blog" | "customers" | "inquiries" | "settings" | "media"
 
@@ -993,9 +995,26 @@ export default function Dashboard() {
                               <p className="font-semibold text-white">
                                 {b.customer}
                               </p>
-                              <p className="text-[10px] text-[#9ca3af]">
-                                {b.phone} · {b.email}
-                              </p>
+                              <div className="flex items-center gap-1.5 flex-wrap text-[10px] text-[#9ca3af]">
+                                <span>
+                                  {b.phone} · {b.email}
+                                </span>
+                                {b.phone && (
+                                  <a
+                                    href={getWhatsAppUrl(
+                                      `Hi ${b.customer}, this is Zimthreads regarding your booking for ${b.serviceName} on ${b.date}!`,
+                                      b.phone,
+                                    )}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] rounded-xs font-semibold"
+                                    title="Message customer on WhatsApp"
+                                  >
+                                    <WhatsAppIcon className="w-2.5 h-2.5 text-[#25D366]" />
+                                    <span>WhatsApp</span>
+                                  </a>
+                                )}
+                              </div>
                               {b.notes && (
                                 <p className="text-[10px] text-[#6b7280] italic mt-0.5 max-w-xs truncate">
                                   "{b.notes}"
@@ -1184,9 +1203,26 @@ export default function Dashboard() {
                               <p className="font-semibold text-white">
                                 {o.customer}
                               </p>
-                              <p className="text-[10px] text-[#9ca3af]">
-                                {o.city} · {o.phone}
-                              </p>
+                              <div className="flex items-center gap-1.5 flex-wrap text-[10px] text-[#9ca3af]">
+                                <span>
+                                  {o.city} · {o.phone}
+                                </span>
+                                {o.phone && (
+                                  <a
+                                    href={getWhatsAppUrl(
+                                      `Hi ${o.customer}, this is Zimthreads regarding your order #${o.id}!`,
+                                      o.phone,
+                                    )}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] rounded-xs font-semibold"
+                                    title="Message customer on WhatsApp"
+                                  >
+                                    <WhatsAppIcon className="w-2.5 h-2.5 text-[#25D366]" />
+                                    <span>WhatsApp</span>
+                                  </a>
+                                )}
+                              </div>
                               <p className="text-[10px] text-[#6b7280]">
                                 {o.address}
                               </p>
@@ -2670,6 +2706,22 @@ export default function Dashboard() {
                 <p className="text-[#86a84e] font-bold mt-1">
                   Payment Method: {viewOrder.paymentMethod}
                 </p>
+                {viewOrder.phone && (
+                  <div className="mt-2 pt-2 border-t border-[#374151]/50">
+                    <a
+                      href={getWhatsAppUrl(
+                        `Hi ${viewOrder.customer}, this is Zimthreads following up on your order #${viewOrder.id}!`,
+                        viewOrder.phone,
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366] hover:bg-[#1EBE5D] text-black text-[11px] font-bold uppercase rounded-xs transition-colors"
+                    >
+                      <WhatsAppIcon className="w-3.5 h-3.5 text-black" />
+                      <span>Chat with Customer on WhatsApp</span>
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div>

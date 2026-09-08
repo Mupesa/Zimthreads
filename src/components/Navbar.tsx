@@ -143,35 +143,37 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Mobile Bottom Quick Bar for instant access */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#f5f2ec]/95 backdrop-blur-md border-t border-[#e5e1d8] px-3 py-2 flex items-center justify-between gap-2 shadow-lg">
-        <a
-          href="https://wa.me/23055132614"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 py-2.5 px-2 bg-white border border-[#1a1a1a] text-[#1a1a1a] text-[10px] font-extrabold tracking-wider uppercase text-center flex items-center justify-center gap-1 shadow-xs"
-        >
-          <span>WHATSAPP</span>
-        </a>
-        <Link
-          to="/booking"
-          className="flex-[1.6] py-2.5 px-3 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-extrabold tracking-widest uppercase text-center shadow-xs flex items-center justify-center gap-1"
-        >
-          <span>BOOK A CLEAN</span>
-        </Link>
-        <button
-          onClick={() => setIsCartOpen(true)}
-          className="relative py-2 px-3 bg-white border border-[#e5e1d8] text-[#1a1a1a] flex items-center justify-center shadow-xs"
-          aria-label="Shopping Bag"
-        >
-          <BagIcon className="w-4 h-4 text-[#1a1a1a]" />
-          {cartCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#4a5c2d] text-white text-[9px] font-bold flex items-center justify-center">
-              {cartCount}
-            </span>
-          )}
-        </button>
-      </div>
+      {/* Mobile Bottom Quick Bar for instant access (hidden on /booking to prevent clash with booking controller) */}
+      {location.pathname !== "/booking" && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#f5f2ec]/95 backdrop-blur-md border-t border-[#e5e1d8] px-3 py-2 flex items-center justify-between gap-2 shadow-lg">
+          <a
+            href="https://wa.me/23055132614"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 py-2.5 px-2 bg-white border border-[#1a1a1a] text-[#1a1a1a] text-[10px] font-extrabold tracking-wider uppercase text-center flex items-center justify-center gap-1 shadow-xs"
+          >
+            <span>WHATSAPP</span>
+          </a>
+          <Link
+            to="/booking"
+            className="flex-[1.6] py-2.5 px-3 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-extrabold tracking-widest uppercase text-center shadow-xs flex items-center justify-center gap-1"
+          >
+            <span>BOOK A CLEAN</span>
+          </Link>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative py-2 px-3 bg-white border border-[#e5e1d8] text-[#1a1a1a] flex items-center justify-center shadow-xs"
+            aria-label="Shopping Bag"
+          >
+            <BagIcon className="w-4 h-4 text-[#1a1a1a]" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#4a5c2d] text-white text-[9px] font-bold flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
     </nav>
   )
 }

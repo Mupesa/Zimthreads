@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useStore } from "@/store/StoreContext"
+import { BookingItem } from "@/store/seedData"
 import { CheckIcon, WhatsAppIcon } from "@/components/Icons"
 import {
   formatBookingWhatsAppMessage,
@@ -36,6 +37,11 @@ export default function Booking() {
     null,
   )
 
+  // UX Navigation Refs for auto-scroll & focus management
+  const formTopRef = useRef<HTMLDivElement>(null)
+  const detailsRef = useRef<HTMLDivElement>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
   // If user navigated from Services page with a prefilled service
   useEffect(() => {
     if (prefilledServiceId) {
@@ -43,6 +49,27 @@ export default function Booking() {
       setPrefilledServiceId(null)
     }
   }, [prefilledServiceId, setPrefilledServiceId])
+
+  // Viewport auto-alignment on step transitions
+  useEffect(() => {
+    if (formTopRef.current) {
+      const navHeight = 72
+      const elementTop = formTopRef.current.getBoundingClientRect().top
+      const targetScroll = elementTop + window.pageYOffset - navHeight
+      window.scrollTo({
+        top: Math.max(0, targetScroll),
+        behavior: "smooth",
+      })
+    }
+
+    // On Step 1 (Client Details), autofocus the name field smoothly without jumping
+    if (step === 1) {
+      const timer = setTimeout(() => {
+        nameInputRef.current?.focus({ preventScroll: true })
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [step])
 
   const activeServices = services.filter((s) => s.active !== false)
 
@@ -55,6 +82,25 @@ export default function Booking() {
   }
 
   const serviceObj = services.find((s) => s.id === selectedService)
+
+  const handleSelectService = (id: string) => {
+    setSelectedService(id)
+    // Smooth micro-scroll to reveal treatment features breakdown and continue options
+    setTimeout(() => {
+      detailsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      })
+    }, 60)
+  }
+
+  const handleNext = () => {
+    if (step === 3) {
+      handleConfirmBooking()
+    } else if (canNext()) {
+      setStep((s) => s + 1)
+    }
+  }
 
   const handleConfirmBooking = () => {
     if (!serviceObj) return
@@ -91,30 +137,32 @@ export default function Booking() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f2ec] py-12 px-4 sm:px-6">
+    <main className="min-h-screen bg-[#f5f2ec] pt-8 pb-32 sm:py-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
         {/* Breadcrumb */}
         <p className="text-xs text-[#6b7280] mb-4">Home / Booking</p>
 
-        <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase text-[#1a1a1a] mb-8">
-          BOOK YOUR SESSION
-        </h1>
+        <div ref={formTopRef} className="scroll-mt-24">
+          <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase text-[#1a1a1a] mb-6 sm:mb-8">
+            BOOK YOUR SESSION
+          </h1>
 
-        {/* Mobile Step Bar */}
-        <div className="sm:hidden mb-6 bg-white border border-[#e5e1d8] p-4 shadow-xs">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d]">
-              STEP {step + 1} OF {steps.length}
-            </span>
-            <span className="text-xs font-bold uppercase text-[#1a1a1a]">
-              {steps[step]}
-            </span>
-          </div>
-          <div className="w-full bg-[#e5e1d8] h-1.5 rounded-full overflow-hidden">
-            <div
-              className="bg-[#4a5c2d] h-full transition-all duration-300 rounded-full"
-              style={{ width: `${((step + 1) / steps.length) * 100}%` }}
-            />
+          {/* Mobile Step Bar */}
+          <div className="sm:hidden mb-6 bg-white border border-[#e5e1d8] p-4 shadow-xs">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d]">
+                STEP {step + 1} OF {steps.length}
+              </span>
+              <span className="text-xs font-bold uppercase text-[#1a1a1a]">
+                {steps[step]}
+              </span>
+            </div>
+            <div className="w-full bg-[#e5e1d8] h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-[#4a5c2d] h-full transition-all duration-300 rounded-full"
+                style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
 
@@ -123,17 +171,20 @@ export default function Booking() {
           {steps.map((s, i) => (
             <div key={s} className="flex items-center flex-shrink-0">
               <div className="flex flex-col items-center">
-                <div
+                <button
+                  type="button"
+                  onClick={() => i < step && setStep(i)}
+                  disabled={i >= step}
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
                     i < step
-                      ? "bg-[#4a5c2d] border-[#4a5c2d] text-[#f5f2ec]"
+                      ? "bg-[#4a5c2d] border-[#4a5c2d] text-[#f5f2ec] cursor-pointer hover:bg-[#5a7038]"
                       : i === step
                         ? "bg-[#1a1a1a] border-[#1a1a1a] text-[#f5f2ec]"
-                        : "bg-transparent border-[#d1cdc4] text-[#9ca3af]"
+                        : "bg-transparent border-[#d1cdc4] text-[#9ca3af] cursor-not-allowed"
                   }`}
                 >
                   {i < step ? <CheckIcon className="w-3.5 h-3.5" /> : i + 1}
-                </div>
+                </button>
                 <span
                   className={`text-[10px] font-semibold tracking-widest uppercase mt-1 ${
                     i === step ? "text-[#1a1a1a]" : "text-[#9ca3af]"
@@ -154,7 +205,7 @@ export default function Booking() {
         </div>
 
         {/* Step content */}
-        <div className="bg-white border border-[#e5e1d8] p-5 sm:p-8">
+        <div className="bg-white border border-[#e5e1d8] p-5 sm:p-8 shadow-xs">
           {/* Step 0: Choose Service */}
           {step === 0 && (
             <div>
@@ -174,11 +225,11 @@ export default function Booking() {
                 {activeServices.map((s) => (
                   <button
                     key={s.id}
-                    onClick={() => setSelectedService(s.id)}
-                    className={`border-2 p-4 text-left transition-colors relative flex flex-col justify-between ${
+                    onClick={() => handleSelectService(s.id)}
+                    className={`border-2 p-4 text-left transition-all relative flex flex-col justify-between ${
                       selectedService === s.id
-                        ? "border-[#4a5c2d] bg-[#4a5c2d]/5"
-                        : "border-[#e5e1d8] hover:border-[#4a5c2d]"
+                        ? "border-[#4a5c2d] bg-[#4a5c2d]/10 ring-2 ring-[#4a5c2d]/20 shadow-xs"
+                        : "border-[#e5e1d8] bg-white hover:border-[#4a5c2d]"
                     }`}
                   >
                     {s.badge && (
@@ -220,7 +271,10 @@ export default function Booking() {
 
               {/* Service Details on Booking Selection */}
               {selectedService && serviceObj && (
-                <div className="mt-6 p-4 sm:p-5 bg-[#f5f2ec] border border-[#4a5c2d]/30 animate-slide-down">
+                <div
+                  ref={detailsRef}
+                  className="mt-6 p-4 sm:p-5 bg-[#f5f2ec] border border-[#4a5c2d]/30 animate-slide-down scroll-mt-20"
+                >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e5e1d8] gap-1">
                     <div>
                       <span className="text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d]">
@@ -299,13 +353,14 @@ export default function Booking() {
                       {label}
                     </label>
                     <input
+                      ref={key === "name" ? nameInputRef : undefined}
                       type={type}
                       required
                       value={details[(key as keyof typeof details)]}
                       onChange={(e) =>
                         setDetails({ ...details, [key]: e.target.value })
                       }
-                      className="w-full border border-[#e5e1d8] bg-[#f5f2ec] px-4 py-3 text-sm text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
+                      className="w-full border border-[#e5e1d8] bg-[#f5f2ec] px-4 py-3 text-base sm:text-sm text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d] transition-colors"
                       placeholder={placeholder}
                     />
                   </div>
@@ -488,26 +543,20 @@ export default function Booking() {
           )}
         </div>
 
-        {/* Navigation buttons */}
+        {/* Desktop Navigation buttons */}
         {step < 4 && (
-          <div className="flex items-center justify-between gap-3 mt-6">
+          <div className="hidden sm:flex items-center justify-between gap-3 mt-6">
             <button
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               disabled={step === 0}
-              className="flex-1 sm:flex-none px-6 py-3.5 border border-[#e5e1d8] text-[#6b7280] text-[11px] font-bold tracking-widest uppercase hover:border-[#1a1a1a] hover:text-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center"
+              className="px-6 py-3.5 border border-[#e5e1d8] text-[#6b7280] text-[11px] font-bold tracking-widest uppercase hover:border-[#1a1a1a] hover:text-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center"
             >
               BACK
             </button>
             <button
-              onClick={() => {
-                if (step === 3) {
-                  handleConfirmBooking()
-                } else if (canNext()) {
-                  setStep((s) => s + 1)
-                }
-              }}
+              onClick={handleNext}
               disabled={!canNext()}
-              className="flex-[1.5] sm:flex-none px-7 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center shadow-xs inline-flex items-center justify-center gap-1.5"
+              className="px-7 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center shadow-xs inline-flex items-center justify-center gap-1.5"
             >
               {step === 3 ? (
                 <>
@@ -521,6 +570,80 @@ export default function Booking() {
           </div>
         )}
       </div>
+
+      {/* Floating Mobile Step Controller (Thumb Zone UX) */}
+      {step < 4 && (
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1a1a1a]/95 backdrop-blur-md border-t border-[#333] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.35)] animate-slide-up">
+          {/* Step 0: Service Selection status & quick continue */}
+          {step === 0 ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0 pr-2">
+                {selectedService && serviceObj ? (
+                  <div className="animate-fade-in">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="w-2 h-2 rounded-full bg-[#86a84e] animate-pulse"></span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-[#86a84e] truncate">
+                        Selected
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-white uppercase truncate">
+                      {serviceObj.title} · {serviceObj.price}
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-[#9ca3af]">
+                      Step 1 of 5
+                    </p>
+                    <p className="text-xs text-white/80 font-medium truncate">
+                      Tap a treatment above
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={handleNext}
+                disabled={!selectedService}
+                className={`px-5 py-2.5 text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 shrink-0 rounded-xs ${
+                  selectedService
+                    ? "bg-[#4a5c2d] hover:bg-[#5a7038] text-[#f5f2ec] shadow-lg shadow-[#4a5c2d]/40 active:scale-95 animate-scale-up"
+                    : "bg-[#2a2a2a] text-[#6b7280] cursor-not-allowed opacity-60"
+                }`}
+              >
+                <span>CONTINUE</span>
+                <span className="text-sm">→</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-2.5">
+              <button
+                onClick={() => setStep((s) => Math.max(0, s - 1))}
+                className="px-4 py-2.5 border border-[#444] text-[#d1d5db] text-xs font-bold tracking-wider uppercase hover:border-white transition-colors"
+              >
+                BACK
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!canNext()}
+                className="flex-1 py-2.5 px-4 bg-[#4a5c2d] hover:bg-[#5a7038] text-[#f5f2ec] text-xs font-bold tracking-wider uppercase disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg flex items-center justify-center gap-1.5 active:scale-95 rounded-xs"
+              >
+                {step === 3 ? (
+                  <>
+                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
+                    <span>BOOK VIA WHATSAPP</span>
+                  </>
+                ) : (
+                  <>
+                    <span>CONTINUE</span>
+                    <span className="text-sm">→</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </main>
   )
 }

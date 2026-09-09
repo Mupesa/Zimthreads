@@ -6,6 +6,7 @@ interface TeamMember {
   role: string
   img?: string
   alt: string
+  badge?: string
   isFounder?: boolean
   isSuspense?: boolean
   suspenseTeaser?: string
@@ -18,7 +19,7 @@ const team: TeamMember[] = [
     role: "Founder & Head Cleaner",
     img: "https://res.cloudinary.com/pwranjbq/image/upload/c_fill,g_face,w_800,h_800,f_auto,q_auto/v1788984689/zimthreads/team/p5ppnv5cr9epaxjzikpj.jpg",
     alt: "Shepherd Chara - Founder & Head Cleaner of Zimthreads Collective",
-    isFounder: true,
+    badge: "FOUNDER",
     tagline: "Master Craftsman & Sneaker Restoration Lead",
   },
   {
@@ -31,13 +32,12 @@ const team: TeamMember[] = [
     tagline: "Bespoke Cut & Sew & Streetwear Design",
   },
   {
-    name: "Anesu",
-    role: "Personalization Artist",
-    alt: "Anesu - Personalization Artist",
-    isSuspense: true,
-    suspenseTeaser:
-      "Studio session scheduled. Craft portfolio & portrait dropping soon.",
-    tagline: "Hand-Painted Finishes & Patina Artistry",
+    name: "Anesu M",
+    role: "Head of Personalization",
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/c_fill,g_face,w_800,h_800,f_auto,q_auto/v1788986181/zimthreads/team/ictyuukl3i3kycwzv4ti.jpg",
+    alt: "Anesu M - Head of Personalization of Zimthreads Collective",
+    badge: "HEAD OF ARTISTRY",
+    tagline: "Hand-Painted Finishes & Leather Patina Artistry",
   },
 ]
 
@@ -140,20 +140,22 @@ export default function About() {
                 className="group bg-white/70 backdrop-blur-xs border border-[#e5e1d8] p-6 sm:p-8 text-center transition-all duration-300 hover:border-[#4a5c2d]/50 hover:shadow-md flex flex-col justify-between"
               >
                 <div>
-                  {m.isFounder ? (
-                    /* Founder Verified Portrait */
+                  {!m.isSuspense && m.img ? (
+                    /* Verified Portrait */
                     <div className="relative w-40 h-40 sm:w-44 sm:h-44 mx-auto mb-6 rounded-full p-1 bg-gradient-to-tr from-[#4a5c2d] via-[#86a84e] to-[#4a5c2d] shadow-lg group-hover:scale-[1.03] transition-transform duration-300">
                       <div className="w-full h-full rounded-full overflow-hidden bg-white shadow-inner">
                         <img
                           src={m.img}
                           alt={m.alt}
-                          className="w-full h-full object-cover object-[center_18%] transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full object-cover object-[center_16%] transition-transform duration-500 group-hover:scale-105"
                         />
                       </div>
-                      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] font-extrabold uppercase px-3 py-0.5 tracking-widest whitespace-nowrap shadow-xs border border-[#86a84e] flex items-center gap-1">
-                        <SparklesIcon className="w-2.5 h-2.5 text-[#c5d4a8]" />
-                        <span>FOUNDER</span>
-                      </span>
+                      {m.badge && (
+                        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] font-extrabold uppercase px-3 py-0.5 tracking-widest whitespace-nowrap shadow-xs border border-[#86a84e] flex items-center gap-1">
+                          <SparklesIcon className="w-2.5 h-2.5 text-[#c5d4a8]" />
+                          <span>{m.badge}</span>
+                        </span>
+                      )}
                     </div>
                   ) : (
                     /* Suspense Team Portrait */
@@ -177,9 +179,9 @@ export default function About() {
 
                   <h3 className="font-display text-xl font-bold uppercase text-[#1a1a1a] flex items-center justify-center gap-1.5">
                     <span>{m.name}</span>
-                    {m.isFounder && (
+                    {!m.isSuspense && (
                       <span
-                        title="Verified Founder"
+                        title="Verified Team Member"
                         className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#4a5c2d] text-white text-[9px]"
                       >
                         ✓

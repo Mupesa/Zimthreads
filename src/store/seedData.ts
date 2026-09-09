@@ -411,7 +411,7 @@ Key aesthetic trends we are producing this season:
     img: "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=800&h=500&fit=crop&auto=format",
     alt: "Custom apparel on display",
     readTime: "5 min read",
-    author: "Anesu",
+    author: "Anesu M",
   },
   {
     id: "post-4",

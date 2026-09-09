@@ -14,26 +14,26 @@ interface TeamMember {
 
 const team: TeamMember[] = [
   {
-    name: "Tinashe Moyo",
+    name: "Shepherd Chara",
     role: "Founder & Head Cleaner",
     img: "https://res.cloudinary.com/pwranjbq/image/upload/c_fill,g_face,w_800,h_800,f_auto,q_auto/v1788984689/zimthreads/team/p5ppnv5cr9epaxjzikpj.jpg",
-    alt: "Tinashe Moyo - Founder & Head Cleaner of Zimthreads Collective",
+    alt: "Shepherd Chara - Founder & Head Cleaner of Zimthreads Collective",
     isFounder: true,
     tagline: "Master Craftsman & Sneaker Restoration Lead",
   },
   {
-    name: "Rutendo Chikwanda",
+    name: "Davis",
     role: "Custom Apparel Lead",
-    alt: "Rutendo Chikwanda - Custom Apparel Lead",
+    alt: "Davis - Custom Apparel Lead",
     isSuspense: true,
     suspenseTeaser:
       "Portrait in darkroom production. Official reveal arriving soon.",
     tagline: "Bespoke Cut & Sew & Streetwear Design",
   },
   {
-    name: "Brandon Mutasa",
+    name: "Anesu",
     role: "Personalization Artist",
-    alt: "Brandon Mutasa - Personalization Artist",
+    alt: "Anesu - Personalization Artist",
     isSuspense: true,
     suspenseTeaser:
       "Studio session scheduled. Craft portfolio & portrait dropping soon.",

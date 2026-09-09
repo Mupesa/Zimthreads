@@ -375,7 +375,7 @@ Never submerge suede in water! Use our brass-bristle brush dry, followed by a de
     img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=500&fit=crop&auto=format",
     alt: "White sneakers being cleaned",
     readTime: "4 min read",
-    author: "Tinashe Moyo",
+    author: "Shepherd Chara",
   },
   {
     id: "post-2",
@@ -393,7 +393,7 @@ Never submerge suede in water! Use our brass-bristle brush dry, followed by a de
     img: "https://images.unsplash.com/photo-1583778176476-4a8b02a64c01?w=800&h=500&fit=crop&auto=format",
     alt: "Sneaker care products lined up",
     readTime: "6 min read",
-    author: "Rutendo Chikwanda",
+    author: "Davis",
   },
   {
     id: "post-3",
@@ -411,7 +411,7 @@ Key aesthetic trends we are producing this season:
     img: "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=800&h=500&fit=crop&auto=format",
     alt: "Custom apparel on display",
     readTime: "5 min read",
-    author: "Brandon Mutasa",
+    author: "Anesu",
   },
   {
     id: "post-4",
@@ -429,7 +429,7 @@ When restoring suede at Zimthread:
     img: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=800&h=500&fit=crop&auto=format",
     alt: "Suede shoe cleaning",
     readTime: "7 min read",
-    author: "Tinashe Moyo",
+    author: "Shepherd Chara",
   },
 ]
 

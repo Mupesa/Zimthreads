@@ -160,7 +160,7 @@ export default function Dashboard() {
   const [blogForm, setBlogForm] = useState({
     title: "",
     category: "Shoe Care",
-    author: "Tinashe Moyo",
+    author: "Shepherd Chara",
     readTime: "5 min read",
     img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=500&fit=crop&auto=format",
     alt: "Article banner",

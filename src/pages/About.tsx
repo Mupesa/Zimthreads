@@ -1,5 +1,5 @@
 import { Link } from "@/router"
-import { LockIcon, SparklesIcon, CheckIcon } from "@/components/Icons"
+import { LockIcon, SparklesIcon } from "@/components/Icons"
 
 interface TeamMember {
   name: string
@@ -177,16 +177,8 @@ export default function About() {
                     </div>
                   )}
 
-                  <h3 className="font-display text-xl font-bold uppercase text-[#1a1a1a] flex items-center justify-center gap-1.5">
-                    <span>{m.name}</span>
-                    {!m.isSuspense && (
-                      <span
-                        title="Verified Team Member"
-                        className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#4a5c2d] text-white text-[9px]"
-                      >
-                        ✓
-                      </span>
-                    )}
+                  <h3 className="font-display text-xl font-bold uppercase text-[#1a1a1a]">
+                    {m.name}
                   </h3>
 
                   <p className="text-xs font-bold uppercase tracking-wider text-[#4a5c2d] mt-1">

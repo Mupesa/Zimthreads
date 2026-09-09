@@ -1,23 +1,43 @@
 import { Link } from "@/router"
+import { LockIcon, SparklesIcon, CheckIcon } from "@/components/Icons"
 
-const team = [
+interface TeamMember {
+  name: string
+  role: string
+  img?: string
+  alt: string
+  isFounder?: boolean
+  isSuspense?: boolean
+  suspenseTeaser?: string
+  tagline?: string
+}
+
+const team: TeamMember[] = [
   {
     name: "Tinashe Moyo",
     role: "Founder & Head Cleaner",
-    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format",
-    alt: "Tinashe Moyo founder",
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/c_fill,g_face,w_800,h_800,f_auto,q_auto/v1788984689/zimthreads/team/p5ppnv5cr9epaxjzikpj.jpg",
+    alt: "Tinashe Moyo - Founder & Head Cleaner of Zimthreads Collective",
+    isFounder: true,
+    tagline: "Master Craftsman & Sneaker Restoration Lead",
   },
   {
     name: "Rutendo Chikwanda",
     role: "Custom Apparel Lead",
-    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&auto=format",
-    alt: "Rutendo Chikwanda",
+    alt: "Rutendo Chikwanda - Custom Apparel Lead",
+    isSuspense: true,
+    suspenseTeaser:
+      "Portrait in darkroom production. Official reveal arriving soon.",
+    tagline: "Bespoke Cut & Sew & Streetwear Design",
   },
   {
     name: "Brandon Mutasa",
     role: "Personalization Artist",
-    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&auto=format",
-    alt: "Brandon Mutasa",
+    alt: "Brandon Mutasa - Personalization Artist",
+    isSuspense: true,
+    suspenseTeaser:
+      "Studio session scheduled. Craft portfolio & portrait dropping soon.",
+    tagline: "Hand-Painted Finishes & Patina Artistry",
   },
 ]
 
@@ -100,23 +120,93 @@ export default function About() {
       {/* Team */}
       <section className="bg-[#f5f2ec] border-t border-[#e5e1d8] py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <h2 className="font-display text-[clamp(2rem,4vw,3rem)] font-extrabold uppercase text-[#1a1a1a] mb-12 text-center">
-            MEET THE TEAM
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-[10px] font-bold tracking-[0.25em] uppercase text-[#4a5c2d] block mb-2">
+              Craft, Community & Artistry
+            </span>
+            <h2 className="font-display text-[clamp(2rem,4vw,3rem)] font-extrabold uppercase text-[#1a1a1a] mb-3">
+              MEET THE TEAM
+            </h2>
+            <p className="text-xs text-[#6b7280] leading-relaxed">
+              The sneaker restoration craftsmen and custom apparel designers
+              dedicated to elevating footwear culture in Mauritius.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {team.map((m) => (
-              <div key={m.name} className="text-center">
-                <div className="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full bg-[#e5e1d8]">
-                  <img
-                    src={m.img}
-                    alt={m.alt}
-                    className="w-full h-full object-cover"
-                  />
+              <div
+                key={m.name}
+                className="group bg-white/70 backdrop-blur-xs border border-[#e5e1d8] p-6 sm:p-8 text-center transition-all duration-300 hover:border-[#4a5c2d]/50 hover:shadow-md flex flex-col justify-between"
+              >
+                <div>
+                  {m.isFounder ? (
+                    /* Founder Verified Portrait */
+                    <div className="relative w-40 h-40 sm:w-44 sm:h-44 mx-auto mb-6 rounded-full p-1 bg-gradient-to-tr from-[#4a5c2d] via-[#86a84e] to-[#4a5c2d] shadow-lg group-hover:scale-[1.03] transition-transform duration-300">
+                      <div className="w-full h-full rounded-full overflow-hidden bg-white shadow-inner">
+                        <img
+                          src={m.img}
+                          alt={m.alt}
+                          className="w-full h-full object-cover object-[center_18%] transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] font-extrabold uppercase px-3 py-0.5 tracking-widest whitespace-nowrap shadow-xs border border-[#86a84e] flex items-center gap-1">
+                        <SparklesIcon className="w-2.5 h-2.5 text-[#c5d4a8]" />
+                        <span>FOUNDER</span>
+                      </span>
+                    </div>
+                  ) : (
+                    /* Suspense Team Portrait */
+                    <div className="relative w-40 h-40 sm:w-44 sm:h-44 mx-auto mb-6 rounded-full p-1 bg-gradient-to-tr from-[#2a2a2a] via-[#374151] to-[#1f2937] shadow-lg group-hover:scale-[1.03] transition-transform duration-300">
+                      <div className="w-full h-full rounded-full overflow-hidden bg-[#111827] flex flex-col items-center justify-center relative border border-[#374151]">
+                        {/* Ambient scanline glow */}
+                        <div className="absolute inset-0 bg-radial from-[#4a5c2d]/20 to-transparent animate-pulse" />
+                        <div className="w-12 h-12 rounded-full bg-[#1f2937] border border-[#374151] flex items-center justify-center text-[#86a84e] mb-1.5 shadow-inner z-10">
+                          <LockIcon className="w-5 h-5 text-[#86a84e]" />
+                        </div>
+                        <span className="text-[9px] font-mono tracking-widest text-[#9ca3af] uppercase z-10">
+                          PORTRAIT LOCKED
+                        </span>
+                      </div>
+                      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#1f2937] text-[#c5d4a8] text-[9px] font-extrabold uppercase px-3 py-0.5 tracking-widest whitespace-nowrap shadow-xs border border-[#374151] flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                        <span>REVEALING SOON</span>
+                      </span>
+                    </div>
+                  )}
+
+                  <h3 className="font-display text-xl font-bold uppercase text-[#1a1a1a] flex items-center justify-center gap-1.5">
+                    <span>{m.name}</span>
+                    {m.isFounder && (
+                      <span
+                        title="Verified Founder"
+                        className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#4a5c2d] text-white text-[9px]"
+                      >
+                        ✓
+                      </span>
+                    )}
+                  </h3>
+
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#4a5c2d] mt-1">
+                    {m.role}
+                  </p>
+
+                  {m.tagline && (
+                    <p className="text-[11px] text-[#6b7280] font-medium mt-1">
+                      {m.tagline}
+                    </p>
+                  )}
                 </div>
-                <h3 className="font-display text-xl font-bold uppercase text-[#1a1a1a]">
-                  {m.name}
-                </h3>
-                <p className="text-sm text-[#6b7280] mt-1">{m.role}</p>
+
+                {m.isSuspense && m.suspenseTeaser && (
+                  <div className="mt-5 pt-3 border-t border-dashed border-[#e5e1d8]">
+                    <div className="px-3 py-2 bg-[#f5f2ec] border border-[#e5e1d8] rounded-xs">
+                      <p className="text-[10px] text-[#6b7280] italic leading-tight">
+                        "{m.suspenseTeaser}"
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

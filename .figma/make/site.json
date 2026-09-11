@@ -6,7 +6,10 @@
     "index": true
   },
   "icons": {
-    "icon": "/favicon.svg"
+    "icon": "/favicon.png"
+  },
+  "openGraph": {
+    "image": "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789151249/zimthreads/branding/wqa78jmvcynmfo5bhukh.jpg"
   },
   "accessibility": {
     "addBypassLinks": false,

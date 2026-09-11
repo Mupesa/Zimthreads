@@ -32,7 +32,7 @@ export default function Services() {
         </h1>
         <p className="text-[#6b7280] text-sm max-w-xl mx-auto mt-3">
           Cleaner shoes. A stronger you. From quick touch-ups to intensive stain
-          treatment and full restorations.
+          treatment and full shoe restorations across Mauritius.
         </p>
       </div>
 

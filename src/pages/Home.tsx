@@ -82,6 +82,11 @@ export default function Home() {
               <br />
               <span className="text-[#4a5c2d]">A STRONGER YOU.</span>
             </h1>
+            <p className="mt-4 text-sm sm:text-base text-[#6b7280] max-w-md leading-relaxed">
+              Mauritius&apos; premier sneaker laundry, restoration, and custom
+              streetwear studio. Professional deep shoe cleaning, sole
+              un-yellowing, repainting, and island-wide drop-off points.
+            </p>
           </div>
 
           <div className="flex justify-center mt-4 lg:mt-0">

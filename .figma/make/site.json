@@ -1,7 +1,12 @@
 {
-  "description": "Zimthreads offers a mobile-responsive platform for users to book services while providing admins with a dashboard to monitor user activities and bookings.",
+  "title": "Zimthreads | Premium Sneaker Care & Custom Streetwear Mauritius",
+  "description": "Mauritius' premier sneaker laundry, restoration, and custom streetwear studio. Professional shoe deep cleaning, un-yellowing, repainting & bespoke apparel.",
+  "language": "en",
   "robots": {
-    "index": false
+    "index": true
+  },
+  "icons": {
+    "icon": "/favicon.svg"
   },
   "accessibility": {
     "addBypassLinks": false,

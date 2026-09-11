@@ -1,0 +1,10 @@
+# Allow Google and all search engine crawlers to index public pages
+User-agent: *
+Allow: /
+
+# Exclude private admin dashboard and internal routes
+Disallow: /admin
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://zimthreads.online/sitemap.xml

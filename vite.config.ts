@@ -90,7 +90,7 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
     return html.replace(`<!-- ${slotName} -->`, content)
   }
 
-  const title = config.title ?? "Zim Collectives"
+  const title = config.title ?? "Zimthreads Collective"
   const description = config.description ?? ""
   const favicon = config.icons?.icon ?? ""
   const socialImage = config.openGraph?.image ?? ""

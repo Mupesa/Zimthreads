@@ -22,49 +22,49 @@ const routeSeo: Record<string, {
 }> = {
   "/": {
     title:
-      "Zim Collectives | Premium Sneaker Care & Custom Streetwear Mauritius",
+      "Zimthreads Collective | Premium Sneaker Care & Custom Streetwear Mauritius",
     description:
       "Mauritius' premier sneaker laundry, restoration, and custom streetwear studio. Professional shoe deep cleaning, un-yellowing, repainting & bespoke apparel.",
     canonical: "https://zimthreads.online/",
   },
   "/services": {
     title:
-      "Sneaker Cleaning & Restoration Services Mauritius | Zim Collectives",
+      "Sneaker Cleaning & Restoration Services Mauritius | Zimthreads Collective",
     description:
       "Explore our professional sneaker services in Mauritius: Standard Clean (Rs 300), Deep Clean (Rs 400), and Restore & Repaint (Rs 600+). Drop-off points across Mauritius.",
     canonical: "https://zimthreads.online/services",
   },
   "/shop": {
     title:
-      "Shop Custom Streetwear & Sneaker Care Products | Zim Collectives Mauritius",
+      "Shop Custom Streetwear & Sneaker Care Products | Zimthreads Collective Mauritius",
     description:
-      "Browse bespoke Zim Collectives streetwear, premium heavyweight hoodies, and specialty sneaker cleaning supplies crafted in Mauritius.",
+      "Browse bespoke Zimthreads Collective streetwear, premium heavyweight hoodies, and specialty sneaker cleaning supplies crafted in Mauritius.",
     canonical: "https://zimthreads.online/shop",
   },
   "/booking": {
-    title: "Book Sneaker Cleaning Session | Zim Collectives Mauritius",
+    title: "Book Sneaker Cleaning Session | Zimthreads Collective Mauritius",
     description:
       "Book your sneaker cleaning, deep wash, or un-yellowing session online. Select your service, schedule drop-off, and track your restore progress in Mauritius.",
     canonical: "https://zimthreads.online/booking",
   },
   "/blog": {
     title:
-      "Zim Collectives Journal | Sneaker Care Tips & Streetwear Culture Mauritius",
+      "Zimthreads Collective Journal | Sneaker Care Tips & Streetwear Culture Mauritius",
     description:
-      "Expert shoe care advice, suede protection guides, midsole un-yellowing tips, and sneaker culture articles from the Zim Collectives team in Mauritius.",
+      "Expert shoe care advice, suede protection guides, midsole un-yellowing tips, and sneaker culture articles from the Zimthreads Collective team in Mauritius.",
     canonical: "https://zimthreads.online/blog",
   },
   "/about": {
     title:
-      "About Zim Collectives Mauritius | Sneaker Restoration & Atelier Craft",
+      "About Zimthreads Collective Mauritius | Sneaker Restoration & Atelier Craft",
     description:
-      "Learn about Zim Collectives, founded by Shepherd Chara. Dedicated to shoe longevity, sustainable sneaker restoration, and custom streetwear culture in Mauritius.",
+      "Learn about Zimthreads Collective, founded by Shepherd Chara. Dedicated to shoe longevity, sustainable sneaker restoration, and custom streetwear culture in Mauritius.",
     canonical: "https://zimthreads.online/about",
   },
   "/contact": {
-    title: "Contact & Drop-Off Locations Mauritius | Zim Collectives",
+    title: "Contact & Drop-Off Locations Mauritius | Zimthreads Collective",
     description:
-      "Get in touch with Zim Collectives Mauritius. Call or WhatsApp +230 5513 2614, arrange drop-off and collection across Mauritius, or inquire about custom apparel.",
+      "Get in touch with Zimthreads Collective Mauritius. Call or WhatsApp +230 5513 2614, arrange drop-off and collection across Mauritius, or inquire about custom apparel.",
     canonical: "https://zimthreads.online/contact",
   },
 }
@@ -79,8 +79,8 @@ function AppRoutes() {
     return (
       <>
         <SEOHead
-          title="Admin Dashboard | Zim Collectives"
-          description="Internal management dashboard for Zim Collectives"
+          title="Admin Dashboard | Zimthreads Collective"
+          description="Internal management dashboard for Zimthreads Collective"
           noindex={true}
         />
         <Dashboard />

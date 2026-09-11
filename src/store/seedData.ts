@@ -434,7 +434,7 @@ When restoring suede at Zimthread:
 ]
 
 export const initialSettings: StoreSettings = {
-  storeName: "Zim Collectives",
+  storeName: "Zimthreads Collective",
   tagline: "We Clean. You Shine.",
   email: "zimthreadmu@gmail.com",
   phone: "+23055132614",

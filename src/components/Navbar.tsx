@@ -24,10 +24,10 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" className="flex flex-col leading-none">
           <span className="font-display text-2xl font-bold tracking-widest text-[#1a1a1a] uppercase">
-            ZIMTHREAD
+            ZIM
           </span>
           <span className="text-[10px] tracking-[0.3em] text-[#6b7280] uppercase">
-            Collective
+            Collectives
           </span>
         </Link>
 

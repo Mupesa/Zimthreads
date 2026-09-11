@@ -7,10 +7,10 @@ export default function Footer() {
         <div>
           <div className="mb-4">
             <div className="font-display text-2xl font-bold tracking-widest uppercase text-white">
-              ZIMTHREAD
+              ZIM
             </div>
             <div className="text-[10px] tracking-[0.3em] text-[#9ca3af] uppercase">
-              Collective
+              Collectives
             </div>
           </div>
           <p className="text-sm text-[#9ca3af] leading-relaxed">
@@ -113,7 +113,7 @@ export default function Footer() {
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 border-t border-[#2e3744] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <span className="text-xs text-[#6b7280]">
-          © 2026 Zimthread Collective. All rights reserved.
+          © 2026 Zim Collectives. All rights reserved.
         </span>
         <span className="text-xs text-[#6b7280]">
           Mauritius · Clothes · Sneakers · Community

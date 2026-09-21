@@ -298,15 +298,16 @@ export const initialProducts: Product[] = [
   },
   {
     id: "prod-5",
-    name: "Collective Vintage Wash Tee",
+    name: "Zimthread 'LLICYLAND' Graphic Boxy Tee",
     category: "Apparel",
     price: 650,
     stock: 35,
-    img: "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?w=500&h=500&fit=crop&auto=format",
-    alt: "Branded t-shirt",
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789976413/zimthreads/products/jnfkstiyqubyzn4xslia.jpg",
+    alt: "Zimthread LLICYLAND Graphic Boxy Tee",
     description:
-      "Acid-washed oversized cotton tee featuring screen-printed typography on the back and subtle chest crest.",
+      "Heavyweight combed cotton boxy-fit graphic tee with signature red dice LLICYLAND artwork and custom Zimthread atelier tag.",
     sizes: ["S", "M", "L", "XL"],
+    featured: true,
   },
   {
     id: "prod-6",

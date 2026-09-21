@@ -128,14 +128,14 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 const STORAGE_KEYS = {
-  PRODUCTS: "zimthread_products_v6",
-  SERVICES: "zimthread_services_v6",
-  BOOKINGS: "zimthread_bookings_v6",
-  ORDERS: "zimthread_orders_v6",
-  BLOG_POSTS: "zimthread_blog_posts_v6",
-  INQUIRIES: "zimthread_inquiries_v6",
-  SETTINGS: "zimthread_settings_v6",
-  CART: "zimthread_cart_v6",
+  PRODUCTS: "zimthread_products_v7",
+  SERVICES: "zimthread_services_v7",
+  BOOKINGS: "zimthread_bookings_v7",
+  ORDERS: "zimthread_orders_v7",
+  BLOG_POSTS: "zimthread_blog_posts_v7",
+  INQUIRIES: "zimthread_inquiries_v7",
+  SETTINGS: "zimthread_settings_v7",
+  CART: "zimthread_cart_v7",
 }
 
 function getStored<T>(key: string, fallback: T): T {
@@ -156,6 +156,24 @@ function setStored<T>(key: string, data: T) {
   }
 }
 
+const syncToCloud = async (key: string, data: any) => {
+  try {
+    await fetch("/api/store", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        key,
+        data,
+        adminToken: "Zimthreads200",
+      }),
+    })
+  } catch (err) {
+    console.warn(`Failed to sync ${key} to cloud:`, err)
+  }
+}
+
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
@@ -171,6 +189,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         return {
           ...p,
           img: "https://res.cloudinary.com/qyuoyjju/image/upload/f_auto,q_auto/v1788884997/zimthreads/products/zcb9ju1mhzsuaizw668l.jpg",
+        }
+      }
+      if (
+        p.id === "prod-5" &&
+        (!p.img || p.img.includes("photo-1521572267360-ee0c2909d518"))
+      ) {
+        return {
+          ...p,
+          name: "Zimthread 'LLICYLAND' Graphic Boxy Tee",
+          img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789976413/zimthreads/products/jnfkstiyqubyzn4xslia.jpg",
         }
       }
       return p
@@ -240,6 +268,50 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     setStored(STORAGE_KEYS.CART, cart)
   }, [cart])
+
+  // Revalidate with Neon cloud store on mount
+  useEffect(() => {
+    let isMounted = true
+    const fetchCloudData = async () => {
+      try {
+        const res = await fetch("/api/store")
+        if (!res.ok) return
+        const result = await res.json()
+        if (!result.success || !result.data || !isMounted) return
+
+        const {
+          products: cloudProducts,
+          services: cloudServices,
+          blog_posts: cloudBlogPosts,
+          settings: cloudSettings,
+        } = result.data
+
+        if (Array.isArray(cloudProducts) && cloudProducts.length > 0) {
+          setProducts(cloudProducts)
+        }
+        if (Array.isArray(cloudServices) && cloudServices.length > 0) {
+          setServices(cloudServices)
+        }
+        if (Array.isArray(cloudBlogPosts) && cloudBlogPosts.length > 0) {
+          setBlogPosts(cloudBlogPosts)
+        }
+        if (
+          cloudSettings &&
+          typeof cloudSettings === "object" &&
+          Object.keys(cloudSettings).length > 0
+        ) {
+          setSettings((prev) => ({ ...prev, ...cloudSettings }))
+        }
+      } catch (err) {
+        console.warn("Could not fetch store data from cloud:", err)
+      }
+    }
+
+    fetchCloudData()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   // Toast Helpers
   const showToast = (
@@ -422,20 +494,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addService = (serviceData: Omit<Service, "id">): Service => {
     const id = serviceData.title.toLowerCase().replace(/[^a-z0-9]/g, "-")
     const newService: Service = { ...serviceData, id }
-    setServices((prev) => [...prev, newService])
+    setServices((prev) => {
+      const next = [...prev, newService]
+      syncToCloud("services", next)
+      return next
+    })
     showToast("Service Added", `Service "${newService.title}" created.`)
     return newService
   }
 
   const updateService = (id: string, updated: Partial<Service>) => {
-    setServices((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updated } : s)),
-    )
+    setServices((prev) => {
+      const next = prev.map((s) => (s.id === id ? { ...s, ...updated } : s))
+      syncToCloud("services", next)
+      return next
+    })
     showToast("Service Saved", "Service details updated.")
   }
 
   const deleteService = (id: string) => {
-    setServices((prev) => prev.filter((s) => s.id !== id))
+    setServices((prev) => {
+      const next = prev.filter((s) => s.id !== id)
+      syncToCloud("services", next)
+      return next
+    })
     showToast("Service Removed", "Service deleted.", "info")
   }
 
@@ -443,20 +525,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addProduct = (prodData: Omit<Product, "id">): Product => {
     const id = `prod-${Date.now().toString().slice(-4)}`
     const newProduct: Product = { ...prodData, id }
-    setProducts((prev) => [newProduct, ...prev])
+    setProducts((prev) => {
+      const next = [newProduct, ...prev]
+      syncToCloud("products", next)
+      return next
+    })
     showToast("Product Added", `Product "${newProduct.name}" added to catalog.`)
     return newProduct
   }
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updated } : p)),
-    )
+    setProducts((prev) => {
+      const next = prev.map((p) => (p.id === id ? { ...p, ...updated } : p))
+      syncToCloud("products", next)
+      return next
+    })
     showToast("Product Updated", "Product catalog entry updated.")
   }
 
   const deleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id))
+    setProducts((prev) => {
+      const next = prev.filter((p) => p.id !== id)
+      syncToCloud("products", next)
+      return next
+    })
     showToast("Product Deleted", "Product removed from catalog.", "info")
   }
 
@@ -464,20 +556,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addBlogPost = (postData: Omit<BlogPost, "id">): BlogPost => {
     const id = `post-${Date.now().toString().slice(-4)}`
     const newPost: BlogPost = { ...postData, id }
-    setBlogPosts((prev) => [newPost, ...prev])
+    setBlogPosts((prev) => {
+      const next = [newPost, ...prev]
+      syncToCloud("blog_posts", next)
+      return next
+    })
     showToast("Blog Published", `Article "${newPost.title}" published.`)
     return newPost
   }
 
   const updateBlogPost = (id: string, updated: Partial<BlogPost>) => {
-    setBlogPosts((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, ...updated } : b)),
-    )
+    setBlogPosts((prev) => {
+      const next = prev.map((b) => (b.id === id ? { ...b, ...updated } : b))
+      syncToCloud("blog_posts", next)
+      return next
+    })
     showToast("Article Saved", "Blog post updated.")
   }
 
   const deleteBlogPost = (id: string) => {
-    setBlogPosts((prev) => prev.filter((b) => b.id !== id))
+    setBlogPosts((prev) => {
+      const next = prev.filter((b) => b.id !== id)
+      syncToCloud("blog_posts", next)
+      return next
+    })
     showToast("Article Deleted", "Post removed.", "info")
   }
 
@@ -514,7 +616,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
 
   // Settings
   const updateSettings = (newSettings: Partial<StoreSettings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }))
+    setSettings((prev) => {
+      const next = { ...prev, ...newSettings }
+      syncToCloud("settings", next)
+      return next
+    })
     showToast("Settings Saved", "Store configuration updated.")
   }
 

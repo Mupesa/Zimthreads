@@ -1,8 +1,8 @@
 const NEON_CONNECTION_STRING =
   process.env.NEON_DATABASE_URL ||
-  "postgresql://neondb_owner:npg_Z6FdwE2OjcUx@ep-morning-firefly-ay13w5o8-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require"
+  "postgresql://neondb_owner:npg_DR0tIYcQyeX8@ep-icy-brook-b4bmxdh6-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require"
 
-const NEON_HOST = "ep-morning-firefly-ay13w5o8-pooler.c-5.us-east-2.aws.neon.tech"
+const NEON_HOST = "ep-icy-brook-b4bmxdh6-pooler.c-6.us-east-2.aws.neon.tech"
 
 async function executeSql(query: string, params: any[] = []) {
   const response = await fetch(`https://${NEON_HOST}/sql`, {

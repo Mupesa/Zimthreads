@@ -2,11 +2,12 @@ import { useState } from "react"
 import { useStore } from "@/store/StoreContext"
 import { Product } from "@/store/seedData"
 import ProductModal from "@/components/ProductModal"
+import FeaturedDropHero from "@/components/FeaturedDropHero"
 
 const categories = ["All", "Cleaning", "Apparel", "Accessories"]
 
 export default function Shop() {
-  const { products, addToCart } = useStore()
+  const { products, addToCart, settings } = useStore()
   const [activeCategory, setActiveCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -29,6 +30,13 @@ export default function Shop() {
     }
   }
 
+  const handleSelectFeaturedProduct = (productId: string) => {
+    const prod = products.find((p) => p.id === productId)
+    if (prod) {
+      setSelectedProduct(prod)
+    }
+  }
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
       <div className="mb-10 text-center">
@@ -43,6 +51,13 @@ export default function Shop() {
           streetwear essentials.
         </p>
       </div>
+
+      {/* Featured Drop Hero Showcase */}
+      <FeaturedDropHero
+        banner={settings.featuredDrop}
+        onSelectProduct={handleSelectFeaturedProduct}
+        whatsappPhone={settings.phone}
+      />
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">

@@ -231,9 +231,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const [inquiries, setInquiries] = useState<Inquiry[]>(() =>
     getStored(STORAGE_KEYS.INQUIRIES, initialInquiries),
   )
-  const [settings, setSettings] = useState<StoreSettings>(() =>
-    getStored(STORAGE_KEYS.SETTINGS, initialSettings),
-  )
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    const loaded = getStored(STORAGE_KEYS.SETTINGS, initialSettings)
+    return {
+      ...initialSettings,
+      ...loaded,
+      featuredDrop: loaded.featuredDrop || initialSettings.featuredDrop,
+    }
+  })
   const [cart, setCart] = useState<CartItem[]>(() =>
     getStored(STORAGE_KEYS.CART, []),
   )
@@ -300,7 +305,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           typeof cloudSettings === "object" &&
           Object.keys(cloudSettings).length > 0
         ) {
-          setSettings((prev) => ({ ...prev, ...cloudSettings }))
+          setSettings((prev) => ({
+            ...prev,
+            ...cloudSettings,
+            featuredDrop:
+              cloudSettings.featuredDrop ||
+              prev.featuredDrop ||
+              initialSettings.featuredDrop,
+          }))
         }
       } catch (err) {
         console.warn("Could not fetch store data from cloud:", err)

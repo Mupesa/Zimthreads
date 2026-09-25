@@ -91,6 +91,20 @@ export interface Inquiry {
   read: boolean
 }
 
+export interface FeaturedDropBanner {
+  enabled: boolean
+  badge: string
+  title: string
+  subtitle: string
+  description: string
+  imageUrl: string
+  productId?: string
+  priceText?: string
+  ctaText?: string
+  secondaryCtaText?: string
+  tag?: string
+}
+
 export interface StoreSettings {
   storeName: string
   tagline: string
@@ -101,6 +115,7 @@ export interface StoreSettings {
   currency: string
   deliveryFee: number
   freeDeliveryThreshold: number
+  featuredDrop?: FeaturedDropBanner
 }
 
 export const initialServices: Service[] = [
@@ -444,4 +459,19 @@ export const initialSettings: StoreSettings = {
   currency: "Rs",
   deliveryFee: 100,
   freeDeliveryThreshold: 1500,
+  featuredDrop: {
+    enabled: true,
+    badge: "NEW DROP · LIMITED RELEASE",
+    title: 'THE "LLICYLAND" BOXY TEE',
+    subtitle: "260 GSM Heavyweight Streetwear Cut",
+    description:
+      "Crafted from heavyweight combed cotton with drop-shoulder silhouette, iconic red dice LLICYLAND typography, and woven Zimthread atelier tag.",
+    imageUrl:
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790345314/zimthreads/banners/mhaqhzz1ijwqn25gslkp.jpg",
+    productId: "prod-5",
+    priceText: "Rs 650",
+    ctaText: "Shop This Drop",
+    secondaryCtaText: "Inquire via WhatsApp",
+    tag: "Atelier Exclusive",
+  },
 }

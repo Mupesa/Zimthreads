@@ -52,11 +52,10 @@ export default function Shop() {
         </p>
       </div>
 
-      {/* Featured Drop Hero Showcase */}
+      {/* Featured Drop Hero Image */}
       <FeaturedDropHero
         banner={settings.featuredDrop}
         onSelectProduct={handleSelectFeaturedProduct}
-        whatsappPhone={settings.phone}
       />
 
       {/* Filter and Search Bar */}

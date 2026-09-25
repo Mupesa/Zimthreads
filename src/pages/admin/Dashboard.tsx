@@ -1829,115 +1829,13 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Badge and Title */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Badge Text
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. NEW DROP · LIMITED RELEASE"
-                      value={settingsForm.featuredDrop?.badge || ""}
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            badge: e.target.value,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Drop Headline / Title
-                    </label>
-                    <input
-                      type="text"
-                      placeholder='e.g. THE "LLICYLAND" BOXY TEE'
-                      value={settingsForm.featuredDrop?.title || ""}
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            title: e.target.value,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    />
-                  </div>
-                </div>
-
-                {/* Subtitle & Price */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Subtitle / Fit Specs
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 260 GSM Heavyweight Streetwear Cut"
-                      value={settingsForm.featuredDrop?.subtitle || ""}
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            subtitle: e.target.value,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Price Tag / Display
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Rs 650"
-                      value={settingsForm.featuredDrop?.priceText || ""}
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            priceText: e.target.value,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
+                {/* Linked Product */}
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                    Drop Description / Story
+                    Link to Catalog Product (Optional - opens product on click)
                   </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Provide details about fabric, aesthetic, and collection..."
-                    value={settingsForm.featuredDrop?.description || ""}
+                  <select
+                    value={settingsForm.featuredDrop?.productId || ""}
                     onChange={(e) => {
                       const current =
                         settingsForm.featuredDrop ||
@@ -1946,156 +1844,35 @@ export default function Dashboard() {
                         ...settingsForm,
                         featuredDrop: {
                           ...current,
-                          description: e.target.value,
+                          productId: e.target.value,
                         },
                       })
                     }}
                     className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                  />
-                </div>
-
-                {/* Linked Product & Floating Tag */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Link to Catalog Product (for 1-click buy)
-                    </label>
-                    <select
-                      value={settingsForm.featuredDrop?.productId || ""}
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        const selectedProd = products.find(
-                          (p) => p.id === e.target.value,
-                        )
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            productId: e.target.value,
-                            priceText: selectedProd
-                              ? `Rs ${selectedProd.price}`
-                              : current.priceText,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    >
-                      <option value="">-- No linked product --</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} (Rs {p.price})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Floating Artwork Tag
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. ATELIER EXCLUSIVE"
-                      value={settingsForm.featuredDrop?.tag || ""}
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            tag: e.target.value,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    />
-                  </div>
-                </div>
-
-                {/* CTA Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Primary CTA Button Text
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        settingsForm.featuredDrop?.ctaText || "SHOP THIS DROP"
-                      }
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            ctaText: e.target.value,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Secondary WhatsApp CTA Text
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        settingsForm.featuredDrop?.secondaryCtaText ||
-                        "INQUIRE ON WHATSAPP"
-                      }
-                      onChange={(e) => {
-                        const current =
-                          settingsForm.featuredDrop ||
-                          initialSettings.featuredDrop!
-                        setSettingsForm({
-                          ...settingsForm,
-                          featuredDrop: {
-                            ...current,
-                            secondaryCtaText: e.target.value,
-                          },
-                        })
-                      }}
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
-                    />
-                  </div>
+                  >
+                    <option value="">
+                      -- No linked product (Image banner only) --
+                    </option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (Rs {p.price})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Mini Preview Box */}
                 {settingsForm.featuredDrop?.imageUrl && (
-                  <div className="p-4 bg-[#111827] border border-[#374151] rounded-none">
+                  <div className="p-4 bg-[#111827] border border-[#374151]">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] mb-2">
                       Live Shop Banner Preview
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center border border-[#374151] bg-[#141715] p-3">
-                      <div className="md:col-span-2 space-y-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#86a84e]">
-                          {settingsForm.featuredDrop.badge}
-                        </span>
-                        <h4 className="font-display text-sm font-bold uppercase text-white truncate">
-                          {settingsForm.featuredDrop.title}
-                        </h4>
-                        <p className="text-[11px] text-[#9ca3af] line-clamp-2">
-                          {settingsForm.featuredDrop.description}
-                        </p>
-                        <div className="text-[10px] font-bold text-[#86a84e] pt-1">
-                          {settingsForm.featuredDrop.priceText}
-                        </div>
-                      </div>
-                      <div className="aspect-[16/9] overflow-hidden bg-black/40 border border-white/10">
-                        <img
-                          src={settingsForm.featuredDrop.imageUrl}
-                          alt="Drop Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                    <div className="w-full max-h-48 overflow-hidden border border-[#374151] bg-[#141715]">
+                      <img
+                        src={settingsForm.featuredDrop.imageUrl}
+                        alt="Drop Preview"
+                        className="w-full h-auto max-h-48 object-cover"
+                      />
                     </div>
                   </div>
                 )}

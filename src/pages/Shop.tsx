@@ -39,17 +39,13 @@ export default function Shop() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
-      <div className="mb-10 text-center">
-        <p className="text-[11px] font-semibold tracking-[0.3em] uppercase text-[#4a5c2d] mb-3">
+      <div className="mb-8 text-center">
+        <p className="text-[11px] font-semibold tracking-[0.3em] uppercase text-[#4a5c2d] mb-2">
           Products & Gear
         </p>
         <h1 className="font-display text-[clamp(2.5rem,6vw,5rem)] font-extrabold uppercase text-[#1a1a1a]">
           ZIMTHREAD SHOP
         </h1>
-        <p className="text-[#6b7280] text-sm max-w-lg mx-auto mt-2">
-          Professional grade sneaker cleaning formulations, tools, and bespoke
-          streetwear essentials.
-        </p>
       </div>
 
       {/* Featured Drop Hero Image */}

@@ -25,10 +25,9 @@ const team: TeamMember[] = [
   {
     name: "Davis",
     role: "Custom Apparel Lead",
-    alt: "Davis - Custom Apparel Lead",
-    isSuspense: true,
-    suspenseTeaser:
-      "Portrait in darkroom production. Official reveal arriving soon.",
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/c_fill,g_face,w_800,h_800,f_auto,q_auto/v1790427493/zimthreads/team/movpgn5f2etvxhwzwbul.jpg",
+    alt: "Davis - Custom Apparel Lead & Designer of Zimthreads Collective",
+    badge: "HEAD DESIGNER",
     tagline: "Bespoke Cut & Sew & Streetwear Design",
   },
   {

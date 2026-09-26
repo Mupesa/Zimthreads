@@ -23,10 +23,10 @@ const team: TeamMember[] = [
     tagline: "Master Craftsman & Sneaker Restoration Lead",
   },
   {
-    name: "Davis",
+    name: "Davies L .M",
     role: "Custom Apparel Lead",
     img: "https://res.cloudinary.com/pwranjbq/image/upload/c_fill,g_face,w_800,h_800,f_auto,q_auto/v1790427493/zimthreads/team/movpgn5f2etvxhwzwbul.jpg",
-    alt: "Davis - Custom Apparel Lead & Designer of Zimthreads Collective",
+    alt: "Davies L .M - Custom Apparel Lead & Designer of Zimthreads Collective",
     badge: "HEAD DESIGNER",
     tagline: "Bespoke Cut & Sew & Streetwear Design",
   },

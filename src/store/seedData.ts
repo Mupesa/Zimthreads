@@ -409,7 +409,7 @@ Never submerge suede in water! Use our brass-bristle brush dry, followed by a de
     img: "https://images.unsplash.com/photo-1583778176476-4a8b02a64c01?w=800&h=500&fit=crop&auto=format",
     alt: "Sneaker care products lined up",
     readTime: "6 min read",
-    author: "Davis",
+    author: "Davies L .M",
   },
   {
     id: "post-3",

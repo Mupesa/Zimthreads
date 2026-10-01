@@ -1,3 +1,8 @@
+export interface ProductView {
+  label: string
+  url: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -5,10 +10,14 @@ export interface Product {
   price: number
   stock: number
   img: string
+  images?: string[]
+  views?: ProductView[]
   alt: string
   description: string
   sizes?: string[]
   featured?: boolean
+  isPreorder?: boolean
+  preorderDeadline?: string
 }
 
 export interface Service {
@@ -263,6 +272,35 @@ export const initialServices: Service[] = [
 ]
 
 export const initialProducts: Product[] = [
+  {
+    id: "prod-zim-02",
+    name: "Zimthread Zimbabwe '02' Heritage Jersey",
+    category: "Apparel",
+    price: 750,
+    stock: 50,
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
+    images: [
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842917/zimthreads/products/fhxh4msyd0asmpbolrot.png",
+    ],
+    views: [
+      {
+        label: "Front View",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
+      },
+      {
+        label: "Back View",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842917/zimthreads/products/fhxh4msyd0asmpbolrot.png",
+      },
+    ],
+    alt: "Zimthread Zimbabwe 02 Heritage Jersey Front and Back",
+    description:
+      "Official Zimthread Limited Pre-Order Kit. Premium performance jersey featuring the iconic Zimbabwe National bird crest on the chest, subtle right-chest Zimthread branding, and classic 'ZIMBABWE 02' lettering on the back in national green and gold. Orders strictly close Sunday evening.",
+    sizes: ["S", "M", "L", "XL", "XXL"],
+    featured: true,
+    isPreorder: true,
+    preorderDeadline: "Closes Sunday Evening",
+  },
   {
     id: "prod-1",
     name: "Zimthread Foaming Shoe Cleaner 250ml",

@@ -104,18 +104,44 @@ export default function Shop() {
             >
               <div>
                 <div className="aspect-square overflow-hidden bg-[#f5f2ec] relative">
-                  <img
-                    src={p.img}
-                    alt={p.alt}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  {p.stock <= 5 && p.stock > 0 && (
-                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5">
+                  {p.images && p.images.length > 1 ? (
+                    <>
+                      <img
+                        src={p.images[0]}
+                        alt={p.alt}
+                        className="w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0"
+                      />
+                      <img
+                        src={p.images[1]}
+                        alt={`${p.name} Back View`}
+                        className="w-full h-full object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      />
+                      <span className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-white text-[8px] font-bold uppercase px-1.5 py-0.5 tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                        Back View
+                      </span>
+                    </>
+                  ) : (
+                    <img
+                      src={p.img}
+                      alt={p.alt}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  )}
+
+                  {p.isPreorder && (
+                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#4a5c2d] text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 shadow-sm flex items-center gap-1 z-10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping" />
+                      <span>PRE-ORDER</span>
+                    </span>
+                  )}
+
+                  {!p.isPreorder && p.stock <= 5 && p.stock > 0 && (
+                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
                       Low Stock
                     </span>
                   )}
-                  {p.stock === 0 && (
-                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5">
+                  {!p.isPreorder && p.stock === 0 && (
+                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
                       Sold Out
                     </span>
                   )}
@@ -148,7 +174,7 @@ export default function Shop() {
                     disabled={p.stock <= 0}
                     className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center"
                   >
-                    + ADD
+                    {p.isPreorder ? "PRE-ORDER" : "+ ADD"}
                   </button>
                 </div>
               </div>

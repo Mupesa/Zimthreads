@@ -498,6 +498,37 @@ export const initialInquiries: Inquiry[] = []
 
 export const initialBlogPosts: BlogPost[] = [
   {
+    id: "post-llicyland-dice-collab",
+    title: 'OWN THE DRIP: THE "LLICYLAND" DICE ROLL STREETWEAR COLLABORATION',
+    excerpt:
+      "Zimthread Collective teams up with Designer Llicious to unveil the LLICYLAND Boxy Tee — heavyweight combed cotton, signature red dice graphics, and relaxed oversized silhouette.",
+    content: `Streetwear is a language of bold statements, cultural heritage, and uncompromising quality. Zimthread Collective is proud to officially unveil the **LLICYLAND Collection** — an exclusive collaboration with **Designer Llicious** celebrating luck, risk, and raw urban aesthetic.
+
+### The Dice Edition: Symbol of Luck & Culture
+The centerpiece of the drop is the signature **LLICYLAND Boxy Tee**, showcasing glossy 3D-rendered red dice spelling out LLICYLAND across the chest. The dice motif is a tribute to taking chances, street culture resilience, and rolling high stakes with every drop.
+
+### Crafted for the Streets, Designed for Everyday
+Engineered for those who demand both structural integrity and effortless drape:
+- **260+ GSM Heavyweight Combed Cotton**: Thick, structured, and pre-shrunk to retain its silhouette through repeated wears and washes.
+- **Relaxed Drop-Shoulder Oversized Silhouette**: Cut with roomy sleeves, dropped shoulder seams, and a snug ribbed crew collar that won't sag.
+- **High-Definition Direct-To-Film (DTF) Graphics**: Vivid crimson red dice typography with high-gloss finish and stretch-resistant durability.
+- **Signature Atelier Woven Label**: Hand-stitched Zimthread Collective hem tag certifying genuine small-batch atelier craftsmanship.
+
+### Style Guide: How to Rock the Drop
+Pair the LLICYLAND Boxy Tee with relaxed neutral cargo trousers, minimal silver chain jewellery, and fresh all-black or triple-white kicks restored by the Zimthread cleaning lab.
+
+### Limited Drop Availability
+The LLICYLAND Collection is strictly limited in quantity. Available now exclusively through the Zimthread Collective online shop with islandwide delivery across Mauritius and international collection orders.
+
+*Own the drip. Built for the culture. Made to last.*`,
+    category: "Apparel",
+    date: "Oct 2, 2026",
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790959536/zimthreads/blog/oqpojiputsm4qndzgstg.jpg",
+    alt: "Zimthread Collective x LLICYLAND Dice Roll Streetwear Collection 2025 poster featuring the oversized white graphic tee and editorial model",
+    readTime: "4 min read",
+    author: "Designer Llicious",
+  },
+  {
     id: "post-1",
     title: "How Often Should You Clean Your Shoes?",
     excerpt:

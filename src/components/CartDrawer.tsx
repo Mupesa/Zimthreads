@@ -169,14 +169,14 @@ export default function CartDrawer() {
           ) : (
             cart.map((item) => (
               <div
-                key={`${item.productId}-${item.size || "default"}`}
+                key={`${item.productId}-${item.size || "default"}-${item.customName || "none"}`}
                 className="flex gap-3.5 p-3 bg-white border border-[#e5e1d8] hover:border-[#4a5c2d] transition-colors"
               >
-                <div className="w-20 h-20 bg-[#f5f2ec] overflow-hidden flex-shrink-0">
+                <div className="w-20 h-20 bg-[#f5f2ec] overflow-hidden flex-shrink-0 flex items-center justify-center">
                   <img
                     src={item.img}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-1"
                   />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -187,19 +187,31 @@ export default function CartDrawer() {
                       </h4>
                       <button
                         onClick={() =>
-                          removeFromCart(item.productId, item.size)
+                          removeFromCart(
+                            item.productId,
+                            item.size,
+                            item.customName,
+                          )
                         }
-                        className="text-[#9ca3af] hover:text-red-600 transition-colors p-1"
+                        className="text-[#9ca3af] hover:text-red-600 transition-colors p-1 cursor-pointer"
                         title="Remove item"
                       >
                         <CloseIcon className="w-3 h-3" />
                       </button>
                     </div>
-                    {item.size && (
-                      <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d] bg-[#4a5c2d]/10 px-1.5 py-0.5 mt-1">
-                        Size: {item.size}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {item.size && (
+                        <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d] bg-[#4a5c2d]/10 px-1.5 py-0.5">
+                          Size: {item.size}
+                        </span>
+                      )}
+                      {item.customName && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-extrabold tracking-wider uppercase text-amber-900 bg-amber-100 border border-amber-300 px-1.5 py-0.5">
+                          <span>✨ Custom:</span>
+                          <strong>&quot;{item.customName}&quot;</strong>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
@@ -210,9 +222,10 @@ export default function CartDrawer() {
                             item.productId,
                             item.quantity - 1,
                             item.size,
+                            item.customName,
                           )
                         }
-                        className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation"
+                        className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation cursor-pointer"
                       >
                         -
                       </button>
@@ -225,9 +238,10 @@ export default function CartDrawer() {
                             item.productId,
                             item.quantity + 1,
                             item.size,
+                            item.customName,
                           )
                         }
-                        className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation"
+                        className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation cursor-pointer"
                       >
                         +
                       </button>

@@ -24,6 +24,7 @@ export interface OrderWhatsAppPayload {
     quantity: number
     price: number
     size?: string
+    customName?: string
   }>
   totalAmount: number
   deliveryFee?: number
@@ -52,6 +53,8 @@ export function formatOrderWhatsAppMessage(
       (item) =>
         `• ${item.quantity}x ${item.name}${
           item.size ? ` (Size: ${item.size})` : ""
+        }${
+          item.customName ? ` [Custom Name: "${item.customName}"]` : ""
         } - Rs ${(item.price * item.quantity).toFixed(0)}`,
     )
     .join("\n")

@@ -14,12 +14,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [quantity, setQuantity] = useState<number>(1)
   const [activeImageIdx, setActiveImageIdx] = useState<number>(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [isCustomizing, setIsCustomizing] = useState<boolean>(false)
+  const [customName, setCustomName] = useState<string>("")
 
-  // Reset active image index and size when product changes
+  // Reset active image index, size and custom options when product changes
   useEffect(() => {
     setActiveImageIdx(0)
     setSelectedSize("")
     setQuantity(1)
+    setIsCustomizing(false)
+    setCustomName("")
   }, [product?.id])
 
   // Derive gallery views
@@ -39,10 +43,17 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   if (!product) return null
 
+  const customPrice = product.customNamePrice ?? 50
+  const isCustomActive = isCustomizing && customName.trim().length > 0
+  const isCustomRequiredButEmpty = isCustomizing && !customName.trim()
+  const unitPrice = product.price + (isCustomActive ? customPrice : 0)
+
   const currentSize =
     selectedSize || (product.sizes ? product.sizes[0] : undefined)
 
   const handleAdd = () => {
+    if (isCustomRequiredButEmpty) return
+
     const isMultiStyle =
       gallery.length > 1 &&
       activeImage.label &&
@@ -55,7 +66,12 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         : product.name,
       img: activeImage.url,
     }
-    addToCart(itemToAdd, quantity, currentSize)
+    addToCart(
+      itemToAdd,
+      quantity,
+      currentSize,
+      isCustomActive ? customName.trim().toUpperCase() : undefined,
+    )
     onClose()
   }
 
@@ -247,9 +263,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             )}
 
             {/* Price */}
-            <p className="font-display text-2xl font-bold text-[#4a5c2d] mb-4">
-              Rs {product.price}
-            </p>
+            <div className="flex items-baseline gap-2 mb-4 flex-wrap">
+              <p className="font-display text-2xl font-bold text-[#4a5c2d]">
+                Rs {unitPrice}
+              </p>
+              {isCustomActive && (
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5">
+                  ✨ Includes Custom Name (+Rs {customPrice})
+                </span>
+              )}
+            </div>
 
             {/* Pre-order / Presale Alert Box */}
             {(product.isPresale || product.isPreorder) && (
@@ -313,6 +336,114 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
               </div>
             )}
+
+            {/* Custom Name Personalization Option */}
+            {product.allowCustomName && (
+              <div className="mb-5 p-3.5 bg-gradient-to-br from-amber-500/10 via-[#4a5c2d]/5 to-transparent border border-[#4a5c2d]/30">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isCustomizing}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        setIsCustomizing(checked)
+                        if (checked) {
+                          const backIdx = gallery.findIndex((g) =>
+                            g.label.toLowerCase().includes("back"),
+                          )
+                          if (backIdx !== -1) setActiveImageIdx(backIdx)
+                        }
+                      }}
+                      className="w-4 h-4 accent-[#4a5c2d] cursor-pointer rounded-xs"
+                    />
+                    <div>
+                      <span className="text-xs font-black uppercase tracking-wider text-[#1a1a1a] flex items-center gap-1.5">
+                        <span>✨ Add Custom Name Print</span>
+                        <span className="text-[#4a5c2d]">
+                          (+Rs {customPrice})
+                        </span>
+                      </span>
+                      <p className="text-[10px] text-[#6b7280]">
+                        Get your personalized name printed on the back above
+                        &apos;02&apos;
+                      </p>
+                    </div>
+                  </label>
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-[#4a5c2d] text-white shrink-0">
+                    POPULAR
+                  </span>
+                </div>
+
+                {isCustomizing && (
+                  <div className="mt-3 pt-3 border-t border-[#4a5c2d]/20 space-y-2.5 animate-fade-in">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#1a1a1a]">
+                          Custom Name (Max 12 Letters)
+                        </label>
+                        <span className="text-[10px] font-mono font-bold text-[#6b7280]">
+                          {customName.length}/12
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        maxLength={12}
+                        value={customName}
+                        onChange={(e) =>
+                          setCustomName(
+                            e.target.value
+                              .toUpperCase()
+                              .replace(/[^A-Z0-9 .'-]/g, ""),
+                          )
+                        }
+                        placeholder="ENTER NAME (E.G. MUPESA)"
+                        className="w-full px-3 py-2 bg-white border border-[#4a5c2d]/40 focus:border-[#4a5c2d] focus:ring-1 focus:ring-[#4a5c2d] outline-hidden text-xs sm:text-sm font-black uppercase tracking-widest text-[#1a1a1a] placeholder:text-gray-400 placeholder:font-normal"
+                        autoFocus
+                      />
+                      {isCustomRequiredButEmpty && (
+                        <p className="text-[10px] text-amber-700 font-bold mt-1">
+                          ⚠️ Please enter the name you want on the jersey to
+                          continue.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Live Back Print Visual Card */}
+                    <div
+                      onClick={() => {
+                        const backIdx = gallery.findIndex((g) =>
+                          g.label.toLowerCase().includes("back"),
+                        )
+                        if (backIdx !== -1) setActiveImageIdx(backIdx)
+                      }}
+                      className="bg-[#142610] p-3 border border-[#4a5c2d] text-center relative overflow-hidden shadow-inner cursor-pointer group"
+                      title="Click to view Back of Jersey in image slider"
+                    >
+                      <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-wider text-[#f5f2ec]/60 mb-1">
+                        <span>Official Back Print Preview</span>
+                        <span className="group-hover:text-white transition-colors underline">
+                          View Jersey Back ↗
+                        </span>
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#d4af37]">
+                        ZIMBABWE
+                      </p>
+                      <div className="py-1 px-3 my-1 inline-block border border-dashed border-[#d4af37]/60 bg-black/40 min-w-[130px]">
+                        <p className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-white drop-shadow-xs">
+                          {customName.trim()
+                            ? customName.trim().toUpperCase()
+                            : "YOUR NAME"}
+                        </p>
+                      </div>
+                      <p className="font-display text-2xl font-black text-[#d4af37] leading-none mt-0.5 drop-shadow-xs">
+                        02
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action Row */}
@@ -345,18 +476,22 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             <button
               type="button"
               onClick={handleAdd}
-              disabled={product.stock <= 0}
+              disabled={product.stock <= 0 || isCustomRequiredButEmpty}
               className={`w-full py-3.5 text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-md ${
                 product.isPresale || product.isPreorder
                   ? "bg-[#4a5c2d] hover:bg-[#5a7038]"
                   : "bg-[#1a1a1a] hover:bg-black"
               }`}
             >
-              {product.isPresale
-                ? `SECURE PRESALE (Rs ${(product.price * quantity).toFixed(0)})`
-                : product.isPreorder
-                  ? `PRE-ORDER NOW (Rs ${(product.price * quantity).toFixed(0)})`
-                  : `ADD TO BAG (Rs ${(product.price * quantity).toFixed(0)})`}
+              {isCustomRequiredButEmpty
+                ? "ENTER CUSTOM NAME TO PROCEED"
+                : product.isPresale
+                  ? `SECURE PRESALE (Rs ${(unitPrice * quantity).toFixed(0)})`
+                  : product.isPreorder
+                    ? `PRE-ORDER NOW (Rs ${(unitPrice * quantity).toFixed(0)})${
+                        isCustomActive ? " · CUSTOM" : ""
+                      }`
+                    : `ADD TO BAG (Rs ${(unitPrice * quantity).toFixed(0)})`}
             </button>
           </div>
         </div>

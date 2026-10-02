@@ -21,6 +21,8 @@ export interface Product {
   isPresale?: boolean
   tag?: string
   badge?: string
+  allowCustomName?: boolean
+  customNamePrice?: number
 }
 
 export interface Service {
@@ -75,6 +77,7 @@ export interface CartItem {
   quantity: number
   size?: string
   img: string
+  customName?: string
 }
 
 export interface OrderItem {
@@ -381,11 +384,13 @@ export const initialProducts: Product[] = [
     ],
     alt: "Zimthread Zimbabwe 02 Heritage Jersey Front and Back",
     description:
-      "Official Zimthread Limited Pre-Order Kit. Premium performance jersey featuring the iconic Zimbabwe National bird crest on the chest, subtle right-chest Zimthread branding, and classic 'ZIMBABWE 02' lettering on the back in national green and gold. Orders strictly close Sunday evening.",
+      "Official Zimthread Limited Pre-Order Kit. Premium performance jersey featuring the iconic Zimbabwe National bird crest on the chest, subtle right-chest Zimthread branding, and classic 'ZIMBABWE 02' lettering on the back in national green and gold. Orders strictly close Sunday evening.\n\nPersonalize with your Custom Name printed on the back above '02' for +Rs 50.",
     sizes: ["S", "M", "L", "XL", "XXL"],
     featured: true,
     isPreorder: true,
     preorderDeadline: "Closes Sunday Evening",
+    allowCustomName: true,
+    customNamePrice: 50,
   },
   {
     id: "prod-1",

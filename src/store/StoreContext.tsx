@@ -62,12 +62,22 @@ interface StoreContextType {
 
   // Cart actions
   setIsCartOpen: (open: boolean) => void
-  addToCart: (product: Product, quantity?: number, size?: string) => void
-  removeFromCart: (productId: string, size?: string) => void
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    size?: string,
+    customName?: string,
+  ) => void
+  removeFromCart: (
+    productId: string,
+    size?: string,
+    customName?: string,
+  ) => void
   updateCartQuantity: (
     productId: string,
     quantity: number,
     size?: string,
+    customName?: string,
   ) => void
   clearCart: () => void
   cartTotal: number
@@ -343,10 +353,24 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   // Cart operations
-  const addToCart = (product: Product, quantity = 1, size?: string) => {
+  const addToCart = (
+    product: Product,
+    quantity = 1,
+    size?: string,
+    customName?: string,
+  ) => {
+    const formattedCustomName = customName?.trim()
+      ? customName.trim().toUpperCase()
+      : undefined
+    const extraPrice = formattedCustomName ? product.customNamePrice || 50 : 0
+    const finalPrice = product.price + extraPrice
+
     setCart((prev) => {
       const existingIndex = prev.findIndex(
-        (item) => item.productId === product.id && item.size === size,
+        (item) =>
+          item.productId === product.id &&
+          (item.size || "") === (size || "") &&
+          (item.customName || "") === (formattedCustomName || ""),
       )
       if (existingIndex > -1) {
         const next = [...prev]
@@ -358,24 +382,39 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           {
             productId: product.id,
             name: product.name,
-            price: product.price,
+            price: finalPrice,
             quantity,
             size,
             img: product.img,
+            customName: formattedCustomName,
           },
         ]
       }
     })
     showToast(
       "Added to Cart",
-      `${product.name} ${size ? `(${size})` : ""} was added.`,
+      `${product.name} ${size ? `(${size})` : ""}${
+        formattedCustomName ? ` [Custom: "${formattedCustomName}"]` : ""
+      } was added.`,
     )
   }
 
-  const removeFromCart = (productId: string, size?: string) => {
+  const removeFromCart = (
+    productId: string,
+    size?: string,
+    customName?: string,
+  ) => {
+    const formattedCustomName = customName?.trim()
+      ? customName.trim().toUpperCase()
+      : undefined
     setCart((prev) =>
       prev.filter(
-        (item) => !(item.productId === productId && item.size === size),
+        (item) =>
+          !(
+            item.productId === productId &&
+            (item.size || "") === (size || "") &&
+            (item.customName || "") === (formattedCustomName || "")
+          ),
       ),
     )
   }
@@ -384,14 +423,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     productId: string,
     quantity: number,
     size?: string,
+    customName?: string,
   ) => {
     if (quantity <= 0) {
-      removeFromCart(productId, size)
+      removeFromCart(productId, size, customName)
       return
     }
+    const formattedCustomName = customName?.trim()
+      ? customName.trim().toUpperCase()
+      : undefined
     setCart((prev) =>
       prev.map((item) =>
-        item.productId === productId && item.size === size
+        item.productId === productId &&
+        (item.size || "") === (size || "") &&
+        (item.customName || "") === (formattedCustomName || "")
           ? { ...item, quantity }
           : item,
       ),

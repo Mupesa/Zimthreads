@@ -125,39 +125,54 @@ async function main() {
   const nonBracelets = currentProducts.filter(p => !p.id.startsWith("brace-"));
   
   // Clean products array: Zimbabwe jersey first, then the unified bracelet collection card, then apparel
-  const mergedProducts = [
-    nonBracelets.find(p => p.id === "prod-zim-02") || {
-      id: "prod-zim-02",
-      name: "Zimthread Zimbabwe '02' Heritage Jersey",
-      category: "Apparel",
-      price: 750,
-      stock: 50,
-      img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
-      images: [
-        "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
-        "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842917/zimthreads/products/fhxh4msyd0asmpbolrot.png",
-      ],
-      views: [
-        {
-          label: "Front View",
-          url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
-        },
-        {
-          label: "Back View",
-          url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842917/zimthreads/products/fhxh4msyd0asmpbolrot.png",
-        },
-      ],
-      alt: "Zimthread Zimbabwe 02 Heritage Jersey Front and Back",
-      description:
-        "Official Zimthread Limited Pre-Order Kit. Premium performance jersey featuring the iconic Zimbabwe National bird crest on the chest, subtle right-chest Zimthread branding, and classic 'ZIMBABWE 02' lettering on the back in national green and gold. Orders strictly close Sunday evening.",
-      sizes: ["S", "M", "L", "XL", "XXL"],
-      featured: true,
-      isPreorder: true,
-      preorderDeadline: "Closes Sunday Evening",
-    },
+  const existingJersey = nonBracelets.find(p => p.id === "prod-zim-02");
+  const jerseyProduct = {
+    ...(existingJersey || {}),
+    id: "prod-zim-02",
+    name: "Zimthread Zimbabwe '02' Heritage Jersey",
+    category: "Apparel",
+    price: 750,
+    stock: 50,
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
+    images: [
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842917/zimthreads/products/fhxh4msyd0asmpbolrot.png",
+    ],
+    views: [
+      {
+        label: "Front View",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842891/zimthreads/products/d7oauktons2oaunl3nnp.png",
+      },
+      {
+        label: "Back View",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790842917/zimthreads/products/fhxh4msyd0asmpbolrot.png",
+      },
+    ],
+    alt: "Zimthread Zimbabwe 02 Heritage Jersey Front and Back",
+    description:
+      "Official Zimthread Limited Pre-Order Kit. Premium performance jersey featuring the iconic Zimbabwe National bird crest on the chest, subtle right-chest Zimthread branding, and classic 'ZIMBABWE 02' lettering on the back in national green and gold. Orders strictly close Sunday evening.\n\nPersonalize with your Custom Name printed on the back above '02' for +Rs 50.",
+    sizes: ["S", "M", "L", "XL", "XXL"],
+    featured: true,
+    isPreorder: true,
+    preorderDeadline: "Closes Sunday Evening",
+    allowCustomName: true,
+    customNamePrice: 50,
+  };
+
+  // Clean products array: Zimbabwe jersey first, then the unified bracelet collection card, then apparel
+  const allCatalog = [
+    jerseyProduct,
     singleBraceletProduct,
-    ...nonBracelets.filter(p => p.id !== "prod-zim-02")
+    ...nonBracelets.filter(p => p.id !== "prod-zim-02" && p.id !== "prod-brace-heritage")
   ];
+
+  // Ensure unique by ID
+  const seenIds = new Set();
+  const mergedProducts = allCatalog.filter(p => {
+    if (seenIds.has(p.id)) return false;
+    seenIds.add(p.id);
+    return true;
+  });
 
   console.log(`Writing ${mergedProducts.length} catalog products to Neon public.zimthreads_store...`);
 

@@ -11,8 +11,8 @@ export interface SEOProps {
 export default function SEOHead({
   title,
   description,
-  canonicalUrl = "https://zimthreads.online/",
-  ogImage = "https://zimthreads.online/images/products/hoodie-front.png",
+  canonicalUrl = "https://www.zimthreads.online/",
+  ogImage = "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789151249/zimthreads/branding/wqa78jmvcynmfo5bhukh.jpg",
   noindex = false,
 }: SEOProps) {
   useEffect(() => {

@@ -24,48 +24,48 @@ const routeSeo: Record<string, {
     title:
       "Zimthreads Collective | Premium Sneaker Care & Custom Streetwear Mauritius",
     description:
-      "Mauritius' premier sneaker laundry, restoration, and custom streetwear studio. Professional shoe deep cleaning, un-yellowing, repainting & bespoke apparel.",
-    canonical: "https://zimthreads.online/",
+      "Mauritius' premier sneaker laundry, restoration studio, and bespoke streetwear brand. Professional shoe deep cleaning, un-yellowing, repainting, and custom apparel.",
+    canonical: "https://www.zimthreads.online/",
   },
   "/services": {
     title:
       "Sneaker Cleaning & Restoration Services Mauritius | Zimthreads Collective",
     description:
-      "Explore our professional sneaker services in Mauritius: Standard Clean (Rs 300), Deep Clean (Rs 400), and Restore & Repaint (Rs 600+). Drop-off points across Mauritius.",
-    canonical: "https://zimthreads.online/services",
+      "Explore our professional sneaker cleaning in Mauritius: Standard Clean (Rs 300), Deep Clean (Rs 400), and Restore & Repaint (Rs 600+). Drop-off points across Mauritius.",
+    canonical: "https://www.zimthreads.online/services",
   },
   "/shop": {
     title:
-      "Shop Custom Streetwear & Sneaker Care Products | Zimthreads Collective Mauritius",
+      "Shop Streetwear Drops, Zimbabwe Jersey & Bracelets | Zimthreads Collective",
     description:
-      "Browse bespoke Zimthreads Collective streetwear, premium heavyweight hoodies, and specialty sneaker cleaning supplies crafted in Mauritius.",
-    canonical: "https://zimthreads.online/shop",
+      "Browse official Zimthreads drops: Zimbabwe '02' Heritage Jersey, African Heritage Beaded Bracelets, and premium streetwear designed in Mauritius.",
+    canonical: "https://www.zimthreads.online/shop",
   },
   "/booking": {
     title: "Book Sneaker Cleaning Session | Zimthreads Collective Mauritius",
     description:
-      "Book your sneaker cleaning, deep wash, or un-yellowing session online. Select your service, schedule drop-off, and track your restore progress in Mauritius.",
-    canonical: "https://zimthreads.online/booking",
+      "Book your sneaker cleaning, deep wash, or sole un-yellowing session online with Zimthreads. Choose your drop-off point and track progress in Mauritius.",
+    canonical: "https://www.zimthreads.online/booking",
   },
   "/blog": {
     title:
       "Zimthreads Collective Journal | Sneaker Care Tips & Streetwear Culture Mauritius",
     description:
-      "Expert shoe care advice, suede protection guides, midsole un-yellowing tips, and sneaker culture articles from the Zimthreads Collective team in Mauritius.",
-    canonical: "https://zimthreads.online/blog",
+      "Expert shoe care guides, suede revival advice, midsole un-yellowing techniques, and streetwear culture insights from the Zimthreads Collective team.",
+    canonical: "https://www.zimthreads.online/blog",
   },
   "/about": {
     title:
-      "About Zimthreads Collective Mauritius | Sneaker Restoration & Atelier Craft",
+      "About Zimthreads Collective | Sneaker Restoration & Atelier Craft Mauritius",
     description:
-      "Learn about Zimthreads Collective, founded by Shepherd Chara. Dedicated to shoe longevity, sustainable sneaker restoration, and custom streetwear culture in Mauritius.",
-    canonical: "https://zimthreads.online/about",
+      "Learn about Zimthreads Collective, founded by Shepherd Chara. Dedicated to shoe longevity, sustainable sneaker restoration, and custom streetwear culture.",
+    canonical: "https://www.zimthreads.online/about",
   },
   "/contact": {
     title: "Contact & Drop-Off Locations Mauritius | Zimthreads Collective",
     description:
-      "Get in touch with Zimthreads Collective Mauritius. Call or WhatsApp +230 5513 2614, arrange drop-off and collection across Mauritius, or inquire about custom apparel.",
-    canonical: "https://zimthreads.online/contact",
+      "Get in touch with Zimthreads Collective Mauritius. Call or WhatsApp +230 5513 2614, arrange drop-off and collection, or inquire about bespoke orders.",
+    canonical: "https://www.zimthreads.online/contact",
   },
 }
 

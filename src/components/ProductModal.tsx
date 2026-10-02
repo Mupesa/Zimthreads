@@ -43,7 +43,19 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     selectedSize || (product.sizes ? product.sizes[0] : undefined)
 
   const handleAdd = () => {
-    addToCart(product, quantity, currentSize)
+    const isMultiStyle =
+      gallery.length > 1 &&
+      activeImage.label &&
+      !activeImage.label.toLowerCase().includes("view")
+
+    const itemToAdd: Product = {
+      ...product,
+      name: isMultiStyle
+        ? `${product.name} - ${activeImage.label}`
+        : product.name,
+      img: activeImage.url,
+    }
+    addToCart(itemToAdd, quantity, currentSize)
     onClose()
   }
 
@@ -92,7 +104,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         <div className="md:col-span-6 bg-[#f5f2ec] flex flex-col justify-between relative border-b md:border-b-0 md:border-r border-[#e5e1d8] select-none">
           {/* Top Bar: View Switcher Tabs & Pre-order Badge */}
           <div className="p-3 sm:p-4 flex items-center justify-between gap-2 z-20">
-            {gallery.length > 1 ? (
+            {gallery.length > 1 && gallery.length <= 3 ? (
               <div className="inline-flex bg-white/90 backdrop-blur-xs border border-[#e5e1d8] p-0.5 shadow-xs">
                 {gallery.map((view, idx) => (
                   <button
@@ -108,6 +120,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     {view.label}
                   </button>
                 ))}
+              </div>
+            ) : gallery.length > 3 ? (
+              <div className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-xs border border-[#e5e1d8] px-2.5 py-1 shadow-xs">
+                <span className="text-[9px] font-extrabold text-[#4a5c2d] uppercase tracking-wider">
+                  Option {activeImageIdx + 1}/{gallery.length}
+                </span>
+                <span className="text-[#d1d5db]">|</span>
+                <span className="text-[9px] font-bold text-[#1a1a1a] uppercase truncate max-w-[130px] sm:max-w-[180px]">
+                  {gallery[activeImageIdx]?.label}
+                </span>
               </div>
             ) : (
               <div />
@@ -162,24 +184,24 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
           {/* Bottom Thumbnails Strip */}
           {gallery.length > 1 && (
-            <div className="p-3 bg-white/60 border-t border-[#e5e1d8] flex items-center justify-center gap-3">
+            <div className="p-2 sm:p-2.5 bg-white/80 border-t border-[#e5e1d8] flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {gallery.map((view, idx) => (
                 <button
-                  key={view.label}
+                  key={view.label + idx}
                   type="button"
                   onClick={() => setActiveImageIdx(idx)}
-                  className={`flex items-center gap-1.5 px-2 py-1 border transition-all cursor-pointer bg-white ${
+                  className={`flex items-center gap-1.5 px-2 py-1 border transition-all cursor-pointer bg-white shrink-0 ${
                     activeImageIdx === idx
                       ? "border-[#1a1a1a] ring-2 ring-[#1a1a1a]/20 shadow-xs"
-                      : "border-[#e5e1d8] opacity-70 hover:opacity-100"
+                      : "border-[#e5e1d8] opacity-65 hover:opacity-100"
                   }`}
                 >
                   <img
                     src={view.url}
                     alt={view.label}
-                    className="w-7 h-7 object-contain bg-[#f5f2ec]"
+                    className="w-6 h-6 sm:w-7 sm:h-7 object-contain bg-[#f5f2ec]"
                   />
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#1a1a1a]">
+                  <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-[#1a1a1a] whitespace-nowrap">
                     {view.label}
                   </span>
                 </button>
@@ -211,6 +233,18 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             <h3 className="font-display text-xl sm:text-2xl font-extrabold uppercase text-[#1a1a1a] leading-tight mb-2">
               {product.name}
             </h3>
+
+            {/* Active Style Indicator if multi-option */}
+            {gallery.length > 1 && (
+              <div className="mb-3 px-3 py-2 bg-[#fbf9f6] border border-[#e5e1d8] flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b7280]">
+                  Option Selected:
+                </span>
+                <span className="text-xs font-extrabold uppercase text-[#1a1a1a] tracking-wide">
+                  {activeImage.label}
+                </span>
+              </div>
+            )}
 
             {/* Price */}
             <p className="font-display text-2xl font-bold text-[#4a5c2d] mb-4">

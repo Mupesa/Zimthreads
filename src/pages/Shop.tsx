@@ -3,7 +3,6 @@ import { useStore } from "@/store/StoreContext"
 import { Product } from "@/store/seedData"
 import ProductModal from "@/components/ProductModal"
 import FeaturedDropHero from "@/components/FeaturedDropHero"
-import BraceletSideScroll from "@/components/BraceletSideScroll"
 
 const categories = ["All", "Cleaning", "Apparel", "Accessories"]
 
@@ -12,12 +11,6 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-
-  const braceletItems = products.filter(
-    (p) =>
-      p.category === "Accessories" &&
-      (p.isPresale || p.id.startsWith("brace-")),
-  )
 
   const filtered = products.filter((p) => {
     const matchesCategory =
@@ -30,7 +23,7 @@ export default function Shop() {
 
   const handleQuickAdd = (e: React.MouseEvent, p: Product) => {
     e.stopPropagation()
-    if (p.sizes && p.sizes.length > 1) {
+    if ((p.sizes && p.sizes.length > 1) || (p.views && p.views.length > 1)) {
       setSelectedProduct(p)
     } else {
       addToCart(p, 1, p.sizes ? p.sizes[0] : undefined)
@@ -60,16 +53,6 @@ export default function Shop() {
         banner={settings.featuredDrop}
         onSelectProduct={handleSelectFeaturedProduct}
       />
-
-      {/* Presale Beaded Bracelets Horizontal Side-Scroll */}
-      {(activeCategory === "All" || activeCategory === "Accessories") &&
-        searchQuery.trim() === "" &&
-        braceletItems.length > 0 && (
-          <BraceletSideScroll
-            bracelets={braceletItems}
-            onSelectProduct={setSelectedProduct}
-          />
-        )}
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
@@ -126,15 +109,25 @@ export default function Shop() {
                       <img
                         src={p.images[0]}
                         alt={p.alt}
-                        className="w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0"
+                        className={`w-full h-full ${
+                          p.category === "Accessories"
+                            ? "object-contain p-3.5"
+                            : "object-cover"
+                        } transition-opacity duration-500 group-hover:opacity-0`}
                       />
                       <img
                         src={p.images[1]}
-                        alt={`${p.name} Back View`}
-                        className="w-full h-full object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        alt={`${p.name} Alternate View`}
+                        className={`w-full h-full ${
+                          p.category === "Accessories"
+                            ? "object-contain p-3.5"
+                            : "object-cover"
+                        } absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                       />
-                      <span className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-white text-[8px] font-bold uppercase px-1.5 py-0.5 tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                        Back View
+                      <span className="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[8px] font-bold uppercase px-2 py-0.5 tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                        {p.views && p.views.length > 2
+                          ? `${p.views.length} Styles · Slide`
+                          : "Back View"}
                       </span>
                     </>
                   ) : (
@@ -175,12 +168,16 @@ export default function Shop() {
                     <p className="text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-[#4a5c2d]">
                       {p.category}
                     </p>
-                    {p.sizes && (
+                    {p.views && p.views.length > 2 ? (
+                      <span className="text-[8px] sm:text-[9px] text-[#4a5c2d] font-bold">
+                        {p.views.length} Styles
+                      </span>
+                    ) : p.sizes ? (
                       <span className="text-[8px] sm:text-[9px] text-[#9ca3af]">
                         {p.sizes.length}{" "}
                         {p.sizes.length === 1 ? "Option" : "Sizes"}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                   <h3 className="font-semibold text-xs sm:text-sm text-[#1a1a1a] mb-1.5 leading-snug group-hover:text-[#4a5c2d] transition-colors line-clamp-2">
                     {p.name}

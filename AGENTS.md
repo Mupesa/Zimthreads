@@ -1,3 +1,29 @@
+# STRICT ACCOUNT & RESOURCE USAGE RULES (MANDATORY FOR ALL AI AGENTS)
+
+> **CRITICAL RULE FOR ALL AI ASSISTANTS & COLLABORATORS (Antigravity, Claude, Codex, Cursor, Windsurf, Copilot, etc.)**:
+>
+> 1. **STRICT IDENTITY & EMAIL REQUIREMENT**:
+>    - ALL tools, cloud databases, external integrations, API keys, and accounts used in this repository MUST strictly belong to and be associated ONLY with:
+>      **Email**: `anesumupesa@gmail.com`
+>      **GitHub Username / Owner**: `Mupesa`
+>
+> 2. **NEON DATABASE STRICT RULES**:
+>    - Only operate on the Neon project and databases registered under `anesumupesa@gmail.com`.
+>    - Target Neon Project ID: `rapid-hill-42448439` ("Zimthreads Collective").
+>    - NEVER query, modify, or sync against any database belonging to any other account.
+>
+> 3. **GITHUB & GIT STRICT RULES**:
+>    - Local repo git commits MUST use `user.name = "Mupesa"` and `user.email = "anesumupesa@gmail.com"`.
+>    - Before any push to GitHub (`https://github.com/Mupesa/Zimthreads.git`), verify active authentication:
+>      Run: `gh auth switch --user Mupesa`
+>      Push: `git push origin main`
+>      (Switch back to `anesu-metabox` afterwards if on a shared machine, but ALWAYS push using `Mupesa`).
+>
+> 4. **PRE-ACTION VERIFICATION CHECK**:
+>    - Before invoking ANY tool that uses authentication, credentials, email, Neon database, Cloudinary, Vercel, or GitHub, the AI MUST explicitly check and verify that the target account is `anesumupesa@gmail.com` / `Mupesa`.
+
+---
+
 # figma-make-app
 
 React + Vite + Tailwind CSS project running inside Figma Make.

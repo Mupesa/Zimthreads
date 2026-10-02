@@ -113,10 +113,10 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               <div />
             )}
 
-            {product.isPreorder && (
+            {(product.isPresale || product.isPreorder) && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#4a5c2d] text-white text-[9px] font-extrabold uppercase tracking-wider shadow-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping" />
-                <span>PRE-ORDER</span>
+                <span>{product.isPresale ? "PRESALE" : "PRE-ORDER"}</span>
               </span>
             )}
           </div>
@@ -197,11 +197,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 {product.category}
               </span>
               <span className="text-xs text-[#6b7280]">
-                {product.isPreorder
-                  ? "Limited Pre-Order"
-                  : product.stock > 0
-                    ? `${product.stock} in stock`
-                    : "Out of Stock"}
+                {product.isPresale
+                  ? "Limited Presale Drop"
+                  : product.isPreorder
+                    ? "Limited Pre-Order"
+                    : product.stock > 0
+                      ? `${product.stock} in stock`
+                      : "Out of Stock"}
               </span>
             </div>
 
@@ -215,19 +217,35 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               Rs {product.price}
             </p>
 
-            {/* Pre-order Alert Box */}
-            {product.isPreorder && (
+            {/* Pre-order / Presale Alert Box */}
+            {(product.isPresale || product.isPreorder) && (
               <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 text-amber-900 rounded-none">
                 <div className="flex items-center gap-1.5 font-bold text-[10px] sm:text-[11px] uppercase tracking-wider text-amber-800 mb-1">
-                  <span>⏳ PRE-ORDER WINDOW OPEN</span>
+                  <span>
+                    ⏳{" "}
+                    {product.isPresale
+                      ? "EXCLUSIVE PRESALE OPEN"
+                      : "PRE-ORDER WINDOW OPEN"}
+                  </span>
                 </div>
                 <p className="text-[11px] text-amber-800/90 leading-relaxed">
-                  Orders strictly close{" "}
-                  <strong>
-                    {product.preorderDeadline || "Sunday evening"}
-                  </strong>
-                  . Secure yours now. Dispatches begin once the batch window
-                  closes.
+                  {product.isPresale ? (
+                    <>
+                      Special Presale pricing at{" "}
+                      <strong>Rs {product.price}</strong>. Reserve your
+                      handcrafted artisan piece now during the presale window.
+                      Dispatches commence once production batch completes.
+                    </>
+                  ) : (
+                    <>
+                      Orders strictly close{" "}
+                      <strong>
+                        {product.preorderDeadline || "Sunday evening"}
+                      </strong>
+                      . Secure yours now. Dispatches begin once the batch window
+                      closes.
+                    </>
+                  )}
                 </p>
               </div>
             )}
@@ -295,14 +313,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               onClick={handleAdd}
               disabled={product.stock <= 0}
               className={`w-full py-3.5 text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-md ${
-                product.isPreorder
+                product.isPresale || product.isPreorder
                   ? "bg-[#4a5c2d] hover:bg-[#5a7038]"
                   : "bg-[#1a1a1a] hover:bg-black"
               }`}
             >
-              {product.isPreorder
-                ? `PRE-ORDER NOW (Rs ${(product.price * quantity).toFixed(0)})`
-                : `ADD TO BAG (Rs ${(product.price * quantity).toFixed(0)})`}
+              {product.isPresale
+                ? `SECURE PRESALE (Rs ${(product.price * quantity).toFixed(0)})`
+                : product.isPreorder
+                  ? `PRE-ORDER NOW (Rs ${(product.price * quantity).toFixed(0)})`
+                  : `ADD TO BAG (Rs ${(product.price * quantity).toFixed(0)})`}
             </button>
           </div>
         </div>

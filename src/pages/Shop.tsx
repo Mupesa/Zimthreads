@@ -3,6 +3,7 @@ import { useStore } from "@/store/StoreContext"
 import { Product } from "@/store/seedData"
 import ProductModal from "@/components/ProductModal"
 import FeaturedDropHero from "@/components/FeaturedDropHero"
+import BraceletSideScroll from "@/components/BraceletSideScroll"
 
 const categories = ["All", "Cleaning", "Apparel", "Accessories"]
 
@@ -11,6 +12,12 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+
+  const braceletItems = products.filter(
+    (p) =>
+      p.category === "Accessories" &&
+      (p.isPresale || p.id.startsWith("brace-")),
+  )
 
   const filtered = products.filter((p) => {
     const matchesCategory =
@@ -53,6 +60,16 @@ export default function Shop() {
         banner={settings.featuredDrop}
         onSelectProduct={handleSelectFeaturedProduct}
       />
+
+      {/* Presale Beaded Bracelets Horizontal Side-Scroll */}
+      {(activeCategory === "All" || activeCategory === "Accessories") &&
+        searchQuery.trim() === "" &&
+        braceletItems.length > 0 && (
+          <BraceletSideScroll
+            bracelets={braceletItems}
+            onSelectProduct={setSelectedProduct}
+          />
+        )}
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
@@ -124,23 +141,30 @@ export default function Shop() {
                     <img
                       src={p.img}
                       alt={p.alt}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className={`w-full h-full ${
+                        p.category === "Accessories"
+                          ? "object-contain p-3.5"
+                          : "object-cover"
+                      } group-hover:scale-105 transition-transform duration-500`}
                     />
                   )}
 
-                  {p.isPreorder && (
+                  {(p.isPresale || p.isPreorder) && (
                     <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#4a5c2d] text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 shadow-sm flex items-center gap-1 z-10">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping" />
-                      <span>PRE-ORDER</span>
+                      <span>{p.isPresale ? "PRESALE" : "PRE-ORDER"}</span>
                     </span>
                   )}
 
-                  {!p.isPreorder && p.stock <= 5 && p.stock > 0 && (
-                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
-                      Low Stock
-                    </span>
-                  )}
-                  {!p.isPreorder && p.stock === 0 && (
+                  {!p.isPresale &&
+                    !p.isPreorder &&
+                    p.stock <= 5 &&
+                    p.stock > 0 && (
+                      <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
+                        Low Stock
+                      </span>
+                    )}
+                  {!p.isPresale && !p.isPreorder && p.stock === 0 && (
                     <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
                       Sold Out
                     </span>
@@ -172,9 +196,13 @@ export default function Shop() {
                   <button
                     onClick={(e) => handleQuickAdd(e, p)}
                     disabled={p.stock <= 0}
-                    className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center"
+                    className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center cursor-pointer"
                   >
-                    {p.isPreorder ? "PRE-ORDER" : "+ ADD"}
+                    {p.isPresale
+                      ? "PRESALE"
+                      : p.isPreorder
+                        ? "PRE-ORDER"
+                        : "+ ADD"}
                   </button>
                 </div>
               </div>

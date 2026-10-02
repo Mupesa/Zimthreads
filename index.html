@@ -34,7 +34,7 @@
     <meta name="twitter:description" content="Mauritius' premier sneaker laundry, restoration studio, and bespoke streetwear brand. Professional shoe deep cleaning, un-yellowing, repainting, and custom apparel." />
     <meta name="twitter:image" content="https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789151249/zimthreads/branding/wqa78jmvcynmfo5bhukh.jpg" />
 
-    <!-- Schema.org WebSite & Brand Structured Data -->
+    <!-- Schema.org WebSite, LocalBusiness & Breadcrumb Structured Data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -44,7 +44,11 @@
           "@id": "https://www.zimthreads.online/#website",
           "url": "https://www.zimthreads.online/",
           "name": "Zimthreads",
-          "alternateName": ["Zimthreads Collective", "Zim Threads", "zimthreads.online"],
+          "alternateName": [
+            "Zimthreads Collective",
+            "Zim Threads",
+            "zimthreads.online"
+          ],
           "description": "Mauritius' premier sneaker laundry, restoration studio, and bespoke streetwear brand.",
           "inLanguage": "en-US",
           "publisher": {
@@ -52,14 +56,19 @@
           }
         },
         {
-          "@type": ["LocalBusiness", "DryCleaningOrLaundry", "ClothingStore"],
+          "@type": "LocalBusiness",
           "@id": "https://www.zimthreads.online/#organization",
           "name": "Zimthreads Collective",
           "alternateName": "Zimthreads",
           "url": "https://www.zimthreads.online/",
-          "logo": "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789151249/zimthreads/branding/wqa78jmvcynmfo5bhukh.jpg",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789151249/zimthreads/branding/wqa78jmvcynmfo5bhukh.jpg",
+            "width": 512,
+            "height": 512
+          },
           "image": "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789151249/zimthreads/branding/wqa78jmvcynmfo5bhukh.jpg",
-          "description": "Mauritius' premier sneaker laundry, restoration studio, and bespoke streetwear brand. Professional shoe deep cleaning, un-yellowing, repainting, and custom apparel.",
+          "description": "Mauritius' premier sneaker laundry, footwear restoration studio, and bespoke streetwear brand. Professional shoe deep cleaning, un-yellowing, repainting, and custom apparel.",
           "telephone": "+23055132614",
           "email": "zimthreadmu@gmail.com",
           "priceRange": "Rs 300 - Rs 1500+",
@@ -67,9 +76,10 @@
           "paymentAccepted": "Cash, Juice MCB, Bank Transfer",
           "address": {
             "@type": "PostalAddress",
-            "addressCountry": "MU",
-            "addressLocality": "Mauritius",
-            "streetAddress": "Drop Off & Collection Points Across Mauritius"
+            "streetAddress": "Drop Off & Collection Points Across Mauritius",
+            "addressLocality": "Port Louis",
+            "addressRegion": "Port Louis",
+            "addressCountry": "MU"
           },
           "geo": {
             "@type": "GeoCoordinates",
@@ -79,78 +89,39 @@
           "openingHoursSpecification": [
             {
               "@type": "OpeningHoursSpecification",
-              "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday"
+              ],
               "opens": "08:00",
               "closes": "18:00"
             }
           ],
           "areaServed": [
-            { "@type": "Country", "name": "Mauritius" },
-            { "@type": "City", "name": "Port Louis" },
-            { "@type": "City", "name": "Grand Baie" },
-            { "@type": "City", "name": "Curepipe" },
-            { "@type": "City", "name": "Flic en Flac" },
-            { "@type": "City", "name": "Ébène" }
+            {
+              "@type": "Country",
+              "name": "Mauritius"
+            }
           ],
           "sameAs": [
             "https://instagram.com/zimthread.collective"
-          ],
-          "hasOfferCatalog": {
-            "@type": "OfferCatalog",
-            "name": "Sneaker Cleaning, Restoration & Streetwear Drops",
-            "itemListElement": [
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Service",
-                  "name": "Standard Clean",
-                  "description": "Midsole scrubbing, upper wipe down, lace freshening, and light deodorizing."
-                },
-                "price": "300",
-                "priceCurrency": "MUR"
-              },
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Service",
-                  "name": "Deep Clean",
-                  "description": "Complete breakdown, deep insole & liner soak, detailed sole de-gunking, stain lift, and full deodorize."
-                },
-                "price": "400",
-                "priceCurrency": "MUR"
-              },
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Service",
-                  "name": "Restore & Repaint",
-                  "description": "Midsole un-yellowing, color touch-up, suede revival, deep restorative cleaning, and repainting."
-                },
-                "price": "600",
-                "priceCurrency": "MUR"
-              },
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Product",
-                  "name": "Zimthread Zimbabwe '02' Heritage Jersey",
-                  "description": "Official Zimthread Limited Pre-Order Kit with custom name print."
-                },
-                "price": "750",
-                "priceCurrency": "MUR"
-              },
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Product",
-                  "name": "Zimthread African Heritage Beaded Bracelet",
-                  "description": "Hand-strung artisan beaded bracelet collection celebrating African national flags and cultural heritage."
-                },
-                "price": "320",
-                "priceCurrency": "MUR"
-              }
-            ]
-          }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://www.zimthreads.online/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.zimthreads.online/"
+            }
+          ]
         }
       ]
     }

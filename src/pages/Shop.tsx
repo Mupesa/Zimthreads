@@ -4,9 +4,19 @@ import { Product, racingJacketsCollection } from "@/store/seedData"
 import ProductModal from "@/components/ProductModal"
 import FeaturedDropHero from "@/components/FeaturedDropHero"
 import MotorsportCollectiveShowcase from "@/components/MotorsportCollectiveShowcase"
-import CollectivePortalCard from "@/components/CollectivePortalCard"
 
-const categories = ["All", "Cleaning", "Apparel", "Accessories", "Collectives"]
+const categories = [
+  { id: "all", label: "All Products" },
+  {
+    id: "racing-jackets",
+    label: "Retro Motorsport Collection",
+    badge: "14 Pieces",
+    isCollection: true,
+  },
+  { id: "Apparel", label: "Apparel" },
+  { id: "Cleaning", label: "Cleaning" },
+  { id: "Accessories", label: "Accessories" },
+]
 
 export default function Shop() {
   const { products, addToCart, settings } = useStore()
@@ -15,22 +25,41 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const search = window.location.search
-      if (search.includes("collection=racing-jackets") || search.includes("collectives")) {
-        return "Collectives"
+      if (
+        search.includes("collection=racing-jackets") ||
+        search.includes("collection") ||
+        search.includes("jackets")
+      ) {
+        return "racing-jackets"
       }
     }
-    return "All"
+    return "all"
   })
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [viewCollectiveItemsSeparately, setViewCollectiveItemsSeparately] = useState(false)
 
-  // Sync category changes with URL query string if desired
+  // Listen to popstate / url changes
+  useEffect(() => {
+    const handleUrlCheck = () => {
+      const search = window.location.search
+      if (
+        search.includes("collection=racing-jackets") ||
+        search.includes("collection") ||
+        search.includes("jackets")
+      ) {
+        setActiveCategory("racing-jackets")
+      }
+    }
+    window.addEventListener("popstate", handleUrlCheck)
+    return () => window.removeEventListener("popstate", handleUrlCheck)
+  }, [])
+
+  // Sync category changes with URL query string
   useEffect(() => {
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href)
-      if (activeCategory === "Collectives") {
+      if (activeCategory === "racing-jackets") {
         url.searchParams.set("collection", "racing-jackets")
       } else {
         url.searchParams.delete("collection")
@@ -39,26 +68,25 @@ export default function Shop() {
     }
   }, [activeCategory])
 
-  // Filter products
+  // Filter products for standard catalog view (excluding collection jackets from general views)
   const filtered = products.filter((p) => {
-    // If viewing regular categories, exclude collective items unless search is active or toggle is ON
     const isCollectiveProduct =
       p.collectionId === "racing-jackets" ||
-      racingJacketsCollection.productIds.includes(p.id)
+      racingJacketsCollection.productIds.includes(p.id) ||
+      p.id.startsWith("prod-jacket-")
 
-    if (
-      !searchQuery.trim() &&
-      !viewCollectiveItemsSeparately &&
-      activeCategory !== "Collectives" &&
-      isCollectiveProduct
-    ) {
+    // Jackets only appear if explicitly in collection mode or searched
+    if (activeCategory === "racing-jackets") {
+      return isCollectiveProduct
+    }
+
+    // In all regular catalog views (All, Apparel, Cleaning, Accessories), exclude the collection jackets
+    if (!searchQuery.trim() && isCollectiveProduct) {
       return false
     }
 
     const matchesCategory =
-      activeCategory === "All" ||
-      (activeCategory === "Collectives" && isCollectiveProduct) ||
-      (activeCategory !== "Collectives" && p.category === activeCategory)
+      activeCategory === "all" || p.category === activeCategory
 
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,7 +106,7 @@ export default function Shop() {
 
   const handleSelectFeaturedProduct = (productId: string) => {
     if (productId === "racing-jackets") {
-      setActiveCategory("Collectives")
+      setActiveCategory("racing-jackets")
       return
     }
     const prod = products.find((p) => p.id === productId)
@@ -104,28 +132,28 @@ export default function Shop() {
         onSelectProduct={handleSelectFeaturedProduct}
       />
 
-      {/* Filter and Search Bar */}
+      {/* Category Tabs and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((c) => {
-            const isSelected = activeCategory === c
+            const isSelected = activeCategory === c.id
             return (
               <button
-                key={c}
+                key={c.id}
                 onClick={() => {
-                  setActiveCategory(c)
-                  if (c === "Collectives") {
+                  setActiveCategory(c.id)
+                  if (c.id === "racing-jackets") {
                     window.scrollTo({ top: 120, behavior: "smooth" })
                   }
                 }}
-                className={`px-4 py-2 text-[10px] sm:text-[11px] font-bold tracking-widest uppercase border whitespace-nowrap transition-colors shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                className={`px-4 py-2 text-[10px] sm:text-[11px] font-bold tracking-widest uppercase border whitespace-nowrap transition-colors shrink-0 cursor-pointer flex items-center gap-2 ${
                   isSelected
                     ? "bg-[#1a1a1a] text-[#f5f2ec] border-[#1a1a1a]"
                     : "border-[#e5e1d8] text-[#6b7280] hover:border-[#1a1a1a] hover:text-[#1a1a1a] bg-white"
                 }`}
               >
-                <span>{c}</span>
-                {c === "Collectives" && (
+                <span>{c.label}</span>
+                {c.badge && (
                   <span
                     className={`text-[8px] font-mono px-1.5 py-0.2 rounded-xs uppercase tracking-normal ${
                       isSelected
@@ -133,7 +161,7 @@ export default function Shop() {
                         : "bg-[#4a5c2d] text-white"
                     }`}
                   >
-                    14 New
+                    {c.badge}
                   </span>
                 )}
               </button>
@@ -147,20 +175,20 @@ export default function Shop() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search products or jackets..."
+            placeholder="Search products..."
             className="w-full border border-[#e5e1d8] bg-white px-4 py-2.5 sm:py-2 text-xs text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d]"
           />
         </div>
       </div>
 
-      {/* If "Collectives" category is active, render the dedicated Collective Showcase */}
-      {activeCategory === "Collectives" && !searchQuery.trim() ? (
+      {/* ===================== VIEW 1: COLLECTION SHOWCASE ===================== */}
+      {activeCategory === "racing-jackets" && !searchQuery.trim() ? (
         <MotorsportCollectiveShowcase
           products={products}
-          onBackToShop={() => setActiveCategory("All")}
+          onBackToShop={() => setActiveCategory("all")}
         />
       ) : (
-        /* Regular Catalog Grid */
+        /* ===================== VIEW 2: REGULAR CATALOG GRID ===================== */
         <>
           {filtered.length === 0 ? (
             <div className="text-center py-16 sm:py-20 bg-white border border-[#e5e1d8]">
@@ -173,19 +201,6 @@ export default function Shop() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-              {/* Insert Collective Portal Card at top of catalog when in "All" or "Apparel" mode and no active search */}
-              {(activeCategory === "All" || activeCategory === "Apparel") &&
-                !searchQuery.trim() &&
-                !viewCollectiveItemsSeparately && (
-                  <CollectivePortalCard
-                    products={products}
-                    onOpenCollective={() => {
-                      setActiveCategory("Collectives")
-                      window.scrollTo({ top: 120, behavior: "smooth" })
-                    }}
-                  />
-                )}
-
               {filtered.map((p) => (
                 <div
                   key={p.id}
@@ -262,7 +277,7 @@ export default function Shop() {
                     <div className="p-3 sm:p-4">
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-[#4a5c2d]">
-                          {p.collectionName || p.category}
+                          {p.category}
                         </p>
                         {p.views && p.views.length > 2 ? (
                           <span className="text-[8px] sm:text-[9px] text-[#4a5c2d] font-bold">

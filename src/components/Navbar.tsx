@@ -7,6 +7,7 @@ const navLinks = [
   { label: "HOME", to: "/" },
   { label: "SERVICES", to: "/services" },
   { label: "SHOP", to: "/shop" },
+  { label: "COLLECTION", to: "/shop?collection=racing-jackets" },
   { label: "BOOKING", to: "/booking" },
   { label: "BLOG", to: "/blog" },
   { label: "ABOUT", to: "/about" },
@@ -33,19 +34,30 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center gap-6">
-          {navLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className={`text-[11px] font-semibold tracking-widest uppercase transition-colors ${
-                location.pathname === l.to
-                  ? "text-[#4a5c2d] border-b-2 border-[#4a5c2d] pb-0.5"
-                  : "text-[#1a1a1a] hover:text-[#4a5c2d]"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {navLinks.map((l) => {
+            const currentFull =
+              typeof window !== "undefined"
+                ? window.location.pathname + window.location.search
+                : location.pathname
+            const isMatch =
+              l.to.includes("?")
+                ? currentFull === l.to
+                : location.pathname === l.to && (!window.location.search || !window.location.search.includes("collection"))
+
+            return (
+              <Link
+                key={l.to}
+                to={l.to}
+                className={`text-[11px] font-semibold tracking-widest uppercase transition-colors ${
+                  isMatch
+                    ? "text-[#4a5c2d] border-b-2 border-[#4a5c2d] pb-0.5"
+                    : "text-[#1a1a1a] hover:text-[#4a5c2d]"
+                }`}
+              >
+                {l.label}
+              </Link>
+            )
+          })}
         </div>
 
         {/* CTA + Cart + Hamburger */}
@@ -106,23 +118,34 @@ export default function Navbar() {
       {/* Mobile menu drawer */}
       {open && (
         <div className="relative z-40 lg:hidden bg-[#f5f2ec] border-t border-[#e5e1d8] px-5 py-6 flex flex-col gap-2 animate-slide-down shadow-xl">
-          {navLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              onClick={() => setOpen(false)}
-              className={`text-xs font-bold tracking-widest uppercase py-3 px-3 rounded-xs transition-colors flex items-center justify-between ${
-                location.pathname === l.to
-                  ? "bg-[#4a5c2d]/10 text-[#4a5c2d]"
-                  : "text-[#1a1a1a] hover:bg-black/5"
-              }`}
-            >
-              <span>{l.label}</span>
-              {location.pathname === l.to && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4a5c2d]" />
-              )}
-            </Link>
-          ))}
+          {navLinks.map((l) => {
+            const currentFull =
+              typeof window !== "undefined"
+                ? window.location.pathname + window.location.search
+                : location.pathname
+            const isMatch =
+              l.to.includes("?")
+                ? currentFull === l.to
+                : location.pathname === l.to && (!window.location.search || !window.location.search.includes("collection"))
+
+            return (
+              <Link
+                key={l.to}
+                to={l.to}
+                onClick={() => setOpen(false)}
+                className={`text-xs font-bold tracking-widest uppercase py-3 px-3 rounded-xs transition-colors flex items-center justify-between ${
+                  isMatch
+                    ? "bg-[#4a5c2d]/10 text-[#4a5c2d]"
+                    : "text-[#1a1a1a] hover:bg-black/5"
+                }`}
+              >
+                <span>{l.label}</span>
+                {isMatch && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4a5c2d]" />
+                )}
+              </Link>
+            )
+          })}
           <div className="pt-4 mt-2 border-t border-[#e5e1d8] space-y-2">
             <Link
               to="/booking"

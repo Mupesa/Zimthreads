@@ -110,6 +110,9 @@ interface StoreContextType {
   // Product actions
   addProduct: (product: Omit<Product, "id">) => Product
   updateProduct: (id: string, product: Partial<Product>) => void
+  updateProductsBatch: (
+    updates: { id: string; changes: Partial<Product> }[],
+  ) => void
   deleteProduct: (id: string) => void
 
   // Blog actions
@@ -189,7 +192,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [products, setProducts] = useState<Product[]>(() => {
     const loaded = getStored(STORAGE_KEYS.PRODUCTS, initialProducts)
-    return loaded.map((p) => {
+    const loadedMap = new Map(loaded.map((p) => [p.id, p]))
+    const merged = initialProducts.map((initProd) => {
+      const existing = loadedMap.get(initProd.id)
+      return existing ? { ...initProd, ...existing } : initProd
+    })
+    const initialIds = new Set(initialProducts.map((p) => p.id))
+    const extraCustom = loaded.filter((p) => !initialIds.has(p.id))
+    const combined = [...merged, ...extraCustom]
+
+    return combined.map((p) => {
       if (
         p.id === "prod-4" &&
         (!p.img ||
@@ -600,6 +612,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     showToast("Product Updated", "Product catalog entry updated.")
   }
 
+  const updateProductsBatch = (
+    updates: { id: string; changes: Partial<Product> }[],
+  ) => {
+    setProducts((prev) => {
+      const map = new Map(updates.map((u) => [u.id, u.changes]))
+      const next = prev.map((p) => {
+        const changes = map.get(p.id)
+        return changes ? { ...p, ...changes } : p
+      })
+      syncToCloud("products", next)
+      return next
+    })
+    showToast("Batch Updated", "Product prices & inventory updated successfully.")
+  }
+
   const deleteProduct = (id: string) => {
     setProducts((prev) => {
       const next = prev.filter((p) => p.id !== id)
@@ -793,6 +820,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         deleteService,
         addProduct,
         updateProduct,
+        updateProductsBatch,
         deleteProduct,
         addBlogPost,
         updateBlogPost,

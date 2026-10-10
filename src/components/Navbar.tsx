@@ -7,7 +7,6 @@ const navLinks = [
   { label: "HOME", to: "/" },
   { label: "SERVICES", to: "/services" },
   { label: "SHOP", to: "/shop" },
-  { label: "COLLECTION", to: "/shop?collection=racing-jackets" },
   { label: "BOOKING", to: "/booking" },
   { label: "BLOG", to: "/blog" },
   { label: "ABOUT", to: "/about" },
@@ -35,14 +34,7 @@ export default function Navbar() {
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center gap-6">
           {navLinks.map((l) => {
-            const currentFull =
-              typeof window !== "undefined"
-                ? window.location.pathname + window.location.search
-                : location.pathname
-            const isMatch =
-              l.to.includes("?")
-                ? currentFull === l.to
-                : location.pathname === l.to && (!window.location.search || !window.location.search.includes("collection"))
+            const isMatch = location.pathname === l.to
 
             return (
               <Link
@@ -119,14 +111,7 @@ export default function Navbar() {
       {open && (
         <div className="relative z-40 lg:hidden bg-[#f5f2ec] border-t border-[#e5e1d8] px-5 py-6 flex flex-col gap-2 animate-slide-down shadow-xl">
           {navLinks.map((l) => {
-            const currentFull =
-              typeof window !== "undefined"
-                ? window.location.pathname + window.location.search
-                : location.pathname
-            const isMatch =
-              l.to.includes("?")
-                ? currentFull === l.to
-                : location.pathname === l.to && (!window.location.search || !window.location.search.includes("collection"))
+            const isMatch = location.pathname === l.to
 
             return (
               <Link

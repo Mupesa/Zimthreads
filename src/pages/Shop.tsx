@@ -1,18 +1,12 @@
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
+import { Link, useRouter } from "@/router"
 import { useStore } from "@/store/StoreContext"
 import { Product, racingJacketsCollection } from "@/store/seedData"
 import ProductModal from "@/components/ProductModal"
 import FeaturedDropHero from "@/components/FeaturedDropHero"
-import MotorsportCollectiveShowcase from "@/components/MotorsportCollectiveShowcase"
 
 const categories = [
   { id: "all", label: "All Products" },
-  {
-    id: "racing-jackets",
-    label: "Retro Motorsport Collection",
-    badge: "14 Pieces",
-    isCollection: true,
-  },
   { id: "Apparel", label: "Apparel" },
   { id: "Cleaning", label: "Cleaning" },
   { id: "Accessories", label: "Accessories" },
@@ -20,80 +14,70 @@ const categories = [
 
 export default function Shop() {
   const { products, addToCart, settings } = useStore()
+  const { navigate } = useRouter()
 
-  // Support URL query param e.g. /shop?collection=racing-jackets
-  const [activeCategory, setActiveCategory] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      const search = window.location.search
-      if (
-        search.includes("collection=racing-jackets") ||
-        search.includes("collection") ||
-        search.includes("jackets")
-      ) {
-        return "racing-jackets"
-      }
-    }
-    return "all"
-  })
-
+  const [activeCategory, setActiveCategory] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
-  // Listen to popstate / url changes
+  // Redirect legacy ?collection=racing-jackets queries to /collection/racing-jackets
   useEffect(() => {
-    const handleUrlCheck = () => {
+    if (typeof window !== "undefined") {
       const search = window.location.search
       if (
         search.includes("collection=racing-jackets") ||
         search.includes("collection") ||
         search.includes("jackets")
       ) {
-        setActiveCategory("racing-jackets")
+        navigate("/collection/racing-jackets")
       }
     }
-    window.addEventListener("popstate", handleUrlCheck)
-    return () => window.removeEventListener("popstate", handleUrlCheck)
-  }, [])
+  }, [navigate])
 
-  // Sync category changes with URL query string
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href)
-      if (activeCategory === "racing-jackets") {
-        url.searchParams.set("collection", "racing-jackets")
-      } else {
-        url.searchParams.delete("collection")
+  // Compute minimum jacket price dynamically from store
+  const minJacketPrice = useMemo(() => {
+    const jacketProds = products.filter(
+      (p) =>
+        p.collectionId === "racing-jackets" ||
+        racingJacketsCollection.productIds.includes(p.id) ||
+        p.id.startsWith("prod-jacket-"),
+    )
+    if (jacketProds.length === 0) return 1750
+    return Math.min(...jacketProds.map((p) => p.price))
+  }, [products])
+
+  // Filter products for standard catalog view (excluding collection jackets from loose grid)
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      const isCollectiveProduct =
+        p.collectionId === "racing-jackets" ||
+        racingJacketsCollection.productIds.includes(p.id) ||
+        p.id.startsWith("prod-jacket-")
+
+      // Exclude all 14 individual jackets from standard shop catalog
+      if (isCollectiveProduct) {
+        return false
       }
-      window.history.replaceState(null, "", url.toString())
-    }
-  }, [activeCategory])
 
-  // Filter products for standard catalog view (excluding collection jackets from general views)
-  const filtered = products.filter((p) => {
-    const isCollectiveProduct =
-      p.collectionId === "racing-jackets" ||
-      racingJacketsCollection.productIds.includes(p.id) ||
-      p.id.startsWith("prod-jacket-")
+      const matchesCategory =
+        activeCategory === "all" || p.category === activeCategory
 
-    // Jackets only appear if explicitly in collection mode or searched
-    if (activeCategory === "racing-jackets") {
-      return isCollectiveProduct
-    }
+      const matchesSearch =
+        !searchQuery.trim() ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase())
 
-    // In all regular catalog views (All, Apparel, Cleaning, Accessories), exclude the collection jackets
-    if (!searchQuery.trim() && isCollectiveProduct) {
-      return false
-    }
+      return matchesCategory && matchesSearch
+    })
+  }, [products, activeCategory, searchQuery])
 
-    const matchesCategory =
-      activeCategory === "all" || p.category === activeCategory
-
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchQuery.toLowerCase())
-
-    return matchesCategory && matchesSearch
-  })
+  // Whether to render the Collection Card in the grid
+  const showCollectionCard =
+    (activeCategory === "all" || activeCategory === "Apparel") &&
+    (!searchQuery.trim() ||
+      "the paddock archive racing jackets retro vintage motorsport jacket"
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase().trim()))
 
   const handleQuickAdd = (e: React.MouseEvent, p: Product) => {
     e.stopPropagation()
@@ -106,7 +90,7 @@ export default function Shop() {
 
   const handleSelectFeaturedProduct = (productId: string) => {
     if (productId === "racing-jackets") {
-      setActiveCategory("racing-jackets")
+      navigate("/collection/racing-jackets")
       return
     }
     const prod = products.find((p) => p.id === productId)
@@ -140,30 +124,14 @@ export default function Shop() {
             return (
               <button
                 key={c.id}
-                onClick={() => {
-                  setActiveCategory(c.id)
-                  if (c.id === "racing-jackets") {
-                    window.scrollTo({ top: 120, behavior: "smooth" })
-                  }
-                }}
-                className={`px-4 py-2 text-[10px] sm:text-[11px] font-bold tracking-widest uppercase border whitespace-nowrap transition-colors shrink-0 cursor-pointer flex items-center gap-2 ${
+                onClick={() => setActiveCategory(c.id)}
+                className={`px-4 py-2 text-[10px] sm:text-[11px] font-bold tracking-widest uppercase border whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
                   isSelected
                     ? "bg-[#1a1a1a] text-[#f5f2ec] border-[#1a1a1a]"
                     : "border-[#e5e1d8] text-[#6b7280] hover:border-[#1a1a1a] hover:text-[#1a1a1a] bg-white"
                 }`}
               >
-                <span>{c.label}</span>
-                {c.badge && (
-                  <span
-                    className={`text-[8px] font-mono px-1.5 py-0.2 rounded-xs uppercase tracking-normal ${
-                      isSelected
-                        ? "bg-[#86a84e] text-black font-extrabold"
-                        : "bg-[#4a5c2d] text-white"
-                    }`}
-                  >
-                    {c.badge}
-                  </span>
-                )}
+                {c.label}
               </button>
             )
           })}
@@ -181,144 +149,197 @@ export default function Shop() {
         </div>
       </div>
 
-      {/* ===================== VIEW 1: COLLECTION SHOWCASE ===================== */}
-      {activeCategory === "racing-jackets" && !searchQuery.trim() ? (
-        <MotorsportCollectiveShowcase
-          products={products}
-          onBackToShop={() => setActiveCategory("all")}
-        />
+      {/* Product Grid */}
+      {filtered.length === 0 && !showCollectionCard ? (
+        <div className="text-center py-16 sm:py-20 bg-white border border-[#e5e1d8]">
+          <p className="font-display text-lg font-bold uppercase text-[#1a1a1a] mb-1">
+            No Products Found
+          </p>
+          <p className="text-xs text-[#6b7280]">
+            Try adjusting your search criteria or category filter.
+          </p>
+        </div>
       ) : (
-        /* ===================== VIEW 2: REGULAR CATALOG GRID ===================== */
-        <>
-          {filtered.length === 0 ? (
-            <div className="text-center py-16 sm:py-20 bg-white border border-[#e5e1d8]">
-              <p className="font-display text-lg font-bold uppercase text-[#1a1a1a] mb-1">
-                No Products Found
-              </p>
-              <p className="text-xs text-[#6b7280]">
-                Try adjusting your search criteria or category filter.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-              {filtered.map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => setSelectedProduct(p)}
-                  className="group border border-[#e5e1d8] bg-white overflow-hidden hover:border-[#4a5c2d] transition-colors cursor-pointer flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="aspect-square overflow-hidden bg-[#f5f2ec] relative">
-                      {p.images && p.images.length > 1 ? (
-                        <>
-                          <img
-                            src={p.images[0]}
-                            alt={p.alt}
-                            className={`w-full h-full ${
-                              p.category === "Accessories"
-                                ? "object-contain p-3.5"
-                                : "object-cover"
-                            } transition-opacity duration-500 group-hover:opacity-0`}
-                          />
-                          <img
-                            src={p.images[1]}
-                            alt={`${p.name} Alternate View`}
-                            className={`w-full h-full ${
-                              p.category === "Accessories"
-                                ? "object-contain p-3.5"
-                                : "object-cover"
-                            } absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                          />
-                          <span className="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[8px] font-bold uppercase px-2 py-0.5 tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                            {p.views && p.views.length > 2
-                              ? `${p.views.length} Styles · Slide`
-                              : "Back View"}
-                          </span>
-                        </>
-                      ) : (
-                        <img
-                          src={p.img}
-                          alt={p.alt}
-                          className={`w-full h-full ${
-                            p.category === "Accessories"
-                              ? "object-contain p-3.5"
-                              : "object-cover"
-                          } group-hover:scale-105 transition-transform duration-500`}
-                        />
-                      )}
-
-                      {(p.isPresale || p.isPreorder) && (
-                        <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#4a5c2d] text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 shadow-sm flex items-center gap-1 z-10">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping" />
-                          <span>{p.isPresale ? "PRESALE" : "PRE-ORDER"}</span>
-                        </span>
-                      )}
-
-                      {p.badge && !p.isPresale && !p.isPreorder && (
-                        <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#1a1a1a] text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 shadow-sm z-10">
-                          {p.badge}
-                        </span>
-                      )}
-
-                      {!p.isPresale &&
-                        !p.isPreorder &&
-                        p.stock <= 5 &&
-                        p.stock > 0 && (
-                          <span className="absolute bottom-2 left-2 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
-                            Low Stock
-                          </span>
-                        )}
-                      {!p.isPresale && !p.isPreorder && p.stock === 0 && (
-                        <span className="absolute bottom-2 left-2 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
-                          Sold Out
-                        </span>
-                      )}
-                    </div>
-                    <div className="p-3 sm:p-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-[#4a5c2d]">
-                          {p.category}
-                        </p>
-                        {p.views && p.views.length > 2 ? (
-                          <span className="text-[8px] sm:text-[9px] text-[#4a5c2d] font-bold">
-                            {p.views.length} Styles
-                          </span>
-                        ) : p.sizes ? (
-                          <span className="text-[8px] sm:text-[9px] text-[#9ca3af]">
-                            {p.sizes.length}{" "}
-                            {p.sizes.length === 1 ? "Option" : "Sizes"}
-                          </span>
-                        ) : null}
-                      </div>
-                      <h3 className="font-semibold text-xs sm:text-sm text-[#1a1a1a] mb-1.5 leading-snug group-hover:text-[#4a5c2d] transition-colors line-clamp-2">
-                        {p.name}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div className="p-3 sm:p-4 pt-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-2 border-t border-[#f5f2ec]">
-                      <span className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
-                        Rs {p.price}
-                      </span>
-                      <button
-                        onClick={(e) => handleQuickAdd(e, p)}
-                        disabled={p.stock <= 0}
-                        className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center cursor-pointer"
-                      >
-                        {p.isPresale
-                          ? "PRESALE"
-                          : p.isPreorder
-                            ? "PRE-ORDER"
-                            : "+ ADD"}
-                      </button>
-                    </div>
-                  </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+          {/* ===================== THE PADDOCK ARCHIVE COLLECTION CARD ===================== */}
+          {showCollectionCard && (
+            <div
+              onClick={() => navigate("/collection/racing-jackets")}
+              className="group border border-[#1a1a1a] bg-[#111827] text-white overflow-hidden hover:border-[#86a84e] transition-all cursor-pointer flex flex-col justify-between shadow-sm relative"
+            >
+              <div>
+                <div className="aspect-square overflow-hidden bg-black relative">
+                  <img
+                    src={racingJacketsCollection.heroImage}
+                    alt={racingJacketsCollection.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+                  />
+                  {/* Badge */}
+                  <span className="absolute top-2 left-2 bg-[#86a84e] text-black text-[8px] sm:text-[9px] font-black uppercase px-2 py-0.5 tracking-wider shadow-sm flex items-center gap-1.5 z-10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                    <span>COLLECTION · 14 PIECES</span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-transparent opacity-80" />
                 </div>
-              ))}
+
+                <div className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[9px] sm:text-[10px] font-bold tracking-[0.25em] uppercase text-[#86a84e]">
+                      Curated Capsule
+                    </p>
+                    <span className="text-[8px] sm:text-[9px] font-mono text-[#9ca3af] uppercase">
+                      Limited Drop
+                    </span>
+                  </div>
+                  <h3 className="font-display font-bold text-xs sm:text-sm text-white mb-1 leading-snug group-hover:text-[#86a84e] transition-colors line-clamp-2">
+                    {racingJacketsCollection.title}
+                  </h3>
+                  <p className="text-[10px] sm:text-[11px] text-[#9ca3af] line-clamp-2 leading-relaxed">
+                    {racingJacketsCollection.subtitle}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 sm:p-4 pt-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-2 border-t border-[#374151]">
+                  <div>
+                    <span className="block text-[8px] font-mono uppercase text-[#9ca3af] tracking-wider">
+                      Starting At
+                    </span>
+                    <span className="font-display text-base sm:text-lg font-bold text-white">
+                      From Rs {minJacketPrice}
+                    </span>
+                  </div>
+                  <Link
+                    to="/collection/racing-jackets"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#86a84e] text-black text-[9px] sm:text-[10px] font-black tracking-widest uppercase hover:bg-[#9cc45e] transition-colors text-center inline-flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>VIEW COLLECTION</span>
+                    <span>→</span>
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
-        </>
+
+          {/* Standard Catalog Products */}
+          {filtered.map((p) => (
+            <div
+              key={p.id}
+              onClick={() => setSelectedProduct(p)}
+              className="group border border-[#e5e1d8] bg-white overflow-hidden hover:border-[#4a5c2d] transition-colors cursor-pointer flex flex-col justify-between"
+            >
+              <div>
+                <div className="aspect-square overflow-hidden bg-[#f5f2ec] relative">
+                  {p.images && p.images.length > 1 ? (
+                    <>
+                      <img
+                        src={p.images[0]}
+                        alt={p.alt}
+                        className={`w-full h-full ${
+                          p.category === "Accessories"
+                            ? "object-contain p-3.5"
+                            : "object-cover"
+                        } transition-opacity duration-500 group-hover:opacity-0`}
+                      />
+                      <img
+                        src={p.images[1]}
+                        alt={`${p.name} Alternate View`}
+                        className={`w-full h-full ${
+                          p.category === "Accessories"
+                            ? "object-contain p-3.5"
+                            : "object-cover"
+                        } absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                      />
+                      <span className="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-white text-[8px] font-bold uppercase px-2 py-0.5 tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                        {p.views && p.views.length > 2
+                          ? `${p.views.length} Styles · Slide`
+                          : "Back View"}
+                      </span>
+                    </>
+                  ) : (
+                    <img
+                      src={p.img}
+                      alt={p.alt}
+                      className={`w-full h-full ${
+                        p.category === "Accessories"
+                          ? "object-contain p-3.5"
+                          : "object-cover"
+                      } group-hover:scale-105 transition-transform duration-500`}
+                    />
+                  )}
+
+                  {(p.isPresale || p.isPreorder) && (
+                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#4a5c2d] text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 shadow-sm flex items-center gap-1 z-10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping" />
+                      <span>{p.isPresale ? "PRESALE" : "PRE-ORDER"}</span>
+                    </span>
+                  )}
+
+                  {p.badge && !p.isPresale && !p.isPreorder && (
+                    <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-[#1a1a1a] text-white text-[8px] sm:text-[9px] font-extrabold uppercase px-2 py-0.5 shadow-sm z-10">
+                      {p.badge}
+                    </span>
+                  )}
+
+                  {!p.isPresale &&
+                    !p.isPreorder &&
+                    p.stock <= 5 &&
+                    p.stock > 0 && (
+                      <span className="absolute bottom-2 left-2 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
+                        Low Stock
+                      </span>
+                    )}
+                  {!p.isPresale && !p.isPreorder && p.stock === 0 && (
+                    <span className="absolute bottom-2 left-2 bg-red-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 z-10">
+                      Sold Out
+                    </span>
+                  )}
+                </div>
+                <div className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-[#4a5c2d]">
+                      {p.category}
+                    </p>
+                    {p.views && p.views.length > 2 ? (
+                      <span className="text-[8px] sm:text-[9px] text-[#4a5c2d] font-bold">
+                        {p.views.length} Styles
+                      </span>
+                    ) : p.sizes ? (
+                      <span className="text-[8px] sm:text-[9px] text-[#9ca3af]">
+                        {p.sizes.length}{" "}
+                        {p.sizes.length === 1 ? "Option" : "Sizes"}
+                      </span>
+                    ) : null}
+                  </div>
+                  <h3 className="font-semibold text-xs sm:text-sm text-[#1a1a1a] mb-1.5 leading-snug group-hover:text-[#4a5c2d] transition-colors line-clamp-2">
+                    {p.name}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="p-3 sm:p-4 pt-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-2 border-t border-[#f5f2ec]">
+                  <span className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
+                    Rs {p.price}
+                  </span>
+                  <button
+                    onClick={(e) => handleQuickAdd(e, p)}
+                    disabled={p.stock <= 0}
+                    className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center cursor-pointer"
+                  >
+                    {p.isPresale
+                      ? "PRESALE"
+                      : p.isPreorder
+                        ? "PRE-ORDER"
+                        : "+ ADD"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Quick View Modal */}

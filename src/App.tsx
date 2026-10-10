@@ -12,6 +12,7 @@ import Blog from "./pages/Blog"
 import About from "./pages/About"
 import Contact from "./pages/Contact"
 import Dashboard from "./pages/admin/Dashboard"
+import JacketsCollectionPage from "./pages/JacketsCollectionPage"
 
 import SEOHead from "./components/SEOHead"
 
@@ -20,6 +21,13 @@ const routeSeo: Record<string, {
   description: string
   canonical: string
 }> = {
+  "/collection/racing-jackets": {
+    title:
+      "The Paddock Archive: Vintage Racing Jackets | Zimthreads Collective",
+    description:
+      "Explore 14 iconic vintage motorsport & retro racing jackets. Archival 90s boxy silhouettes, heavy embroidered leather & technical paddock jackets.",
+    canonical: "https://www.zimthreads.online/collection/racing-jackets",
+  },
   "/": {
     title:
       "Zimthreads Collective | Premium Sneaker Care & Custom Streetwear Mauritius",
@@ -103,6 +111,7 @@ function AppRoutes() {
         {cleanPath === "/" && <Home />}
         {cleanPath === "/services" && <Services />}
         {cleanPath === "/shop" && <Shop />}
+        {cleanPath === "/collection/racing-jackets" && <JacketsCollectionPage />}
         {cleanPath === "/booking" && <Booking />}
         {cleanPath === "/blog" && <Blog />}
         {cleanPath === "/about" && <About />}

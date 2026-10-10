@@ -25,6 +25,7 @@ export interface Product {
   customNamePrice?: number
   collectionId?: string
   collectionName?: string
+  hidden?: boolean
 }
 
 export interface CollectiveCollection {

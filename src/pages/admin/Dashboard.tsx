@@ -148,6 +148,7 @@ export default function Dashboard() {
     description: "",
     sizes: "",
     featured: false,
+    hidden: false,
   })
 
   const [serviceForm, setServiceForm] = useState({
@@ -376,6 +377,7 @@ export default function Dashboard() {
       description: productForm.description,
       sizes: sizesArray,
       featured: productForm.featured,
+      hidden: productForm.hidden,
     })
     setNewProductModal(false)
   }
@@ -1424,6 +1426,8 @@ export default function Dashboard() {
               if (!matchesSearch) return false
 
               if (productCategoryFilter === "All") return true
+              if (productCategoryFilter === "Active") return !p.hidden
+              if (productCategoryFilter === "Hidden") return p.hidden === true
               if (productCategoryFilter === "Motorsport")
                 return (
                   p.collectionId === "racing-jackets" ||
@@ -1547,6 +1551,7 @@ export default function Dashboard() {
                             <th className="py-2.5 px-3">Piece</th>
                             <th className="py-2.5 px-3">Jacket Name & Line</th>
                             <th className="py-2.5 px-3">Badge</th>
+                            <th className="py-2.5 px-3">Visibility</th>
                             <th className="py-2.5 px-3">Price (Rs)</th>
                             <th className="py-2.5 px-3">Stock (Qty)</th>
                             <th className="py-2.5 px-3 text-right">Actions</th>
@@ -1589,6 +1594,20 @@ export default function Dashboard() {
                                   <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 bg-[#1f2937] border border-[#374151] text-[#86a84e]">
                                     {j.badge || "COLLECTIVE"}
                                   </span>
+                                </td>
+                                <td className="py-2 px-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateProduct(j.id, { hidden: !j.hidden })}
+                                    className={`px-2 py-0.5 text-[9px] font-bold uppercase border transition-colors cursor-pointer ${
+                                      j.hidden
+                                        ? "bg-amber-950/80 text-amber-300 border-amber-600/60 hover:bg-amber-900"
+                                        : "bg-emerald-950/80 text-emerald-300 border-emerald-600/60 hover:bg-emerald-900"
+                                    }`}
+                                    title={j.hidden ? "Currently hidden from shop. Click to show." : "Currently live on shop. Click to hide."}
+                                  >
+                                    {j.hidden ? "👁️ Hidden" : "✓ Live"}
+                                  </button>
                                 </td>
                                 <td className="py-2 px-3">
                                   <div className="flex items-center gap-1.5">
@@ -1672,14 +1691,22 @@ export default function Dashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex flex-wrap gap-1.5">
                     {[
-                      { id: "All", label: `All Products (${products.length})` },
+                      { id: "All", label: `All (${products.length})` },
+                      {
+                        id: "Active",
+                        label: `Active (${products.filter((p) => !p.hidden).length})`,
+                      },
+                      {
+                        id: "Hidden",
+                        label: `👁️ Hidden (${products.filter((p) => p.hidden).length})`,
+                      },
                       {
                         id: "Motorsport",
-                        label: `🏎️ Motorsport Collective (${jacketProducts.length})`,
+                        label: `🏎️ Motorsport (${jacketProducts.length})`,
                       },
                       {
                         id: "Core",
-                        label: `Core Store (${coreProducts.length})`,
+                        label: `Core (${coreProducts.length})`,
                       },
                       { id: "Cleaning", label: "Cleaning" },
                       { id: "Apparel", label: "Apparel" },
@@ -1744,6 +1771,11 @@ export default function Dashboard() {
                                   {p.badge || "COLLECTIVE"}
                                 </span>
                               )}
+                              {p.hidden && (
+                                <span className="absolute bottom-2 left-2 bg-amber-500 text-black text-[8px] font-black uppercase px-2 py-0.5 shadow-md z-10">
+                                  HIDDEN FROM SHOP
+                                </span>
+                              )}
                             </div>
                             <div className="flex justify-between items-center mb-1">
                               <span className="text-[10px] font-bold text-[#86a84e] uppercase tracking-wider">
@@ -1775,7 +1807,19 @@ export default function Dashboard() {
                                 className="w-14 bg-[#111827] border border-[#374151] px-1.5 py-0.5 text-xs text-white text-center font-mono"
                               />
                             </div>
-                            <div className="space-x-2">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateProduct(p.id, { hidden: !p.hidden })}
+                                className={`text-xs font-bold cursor-pointer transition-colors ${
+                                  p.hidden
+                                    ? "text-amber-400 hover:text-amber-300 underline"
+                                    : "text-[#9ca3af] hover:text-white"
+                                }`}
+                                title={p.hidden ? "Unhide on storefront" : "Hide from storefront without deleting"}
+                              >
+                                {p.hidden ? "Unhide" : "Hide"}
+                              </button>
                               <button
                                 onClick={() => setEditProduct(p)}
                                 className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
@@ -2890,6 +2934,26 @@ export default function Dashboard() {
                   rows={2}
                 />
               </div>
+              <div className="flex items-center gap-2 p-2.5 bg-[#111827] border border-[#374151] rounded-sm">
+                <input
+                  type="checkbox"
+                  id="productFormHidden"
+                  checked={productForm.hidden || false}
+                  onChange={(e) =>
+                    setProductForm({
+                      ...productForm,
+                      hidden: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 accent-[#4a5c2d] cursor-pointer"
+                />
+                <label
+                  htmlFor="productFormHidden"
+                  className="text-xs text-gray-300 font-mono cursor-pointer select-none"
+                >
+                  Hide from shop (Keep in CMS as draft)
+                </label>
+              </div>
               <button
                 type="submit"
                 className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2"
@@ -2992,6 +3056,26 @@ export default function Dashboard() {
                   className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white resize-none"
                   rows={2}
                 />
+              </div>
+              <div className="flex items-center gap-2 p-2.5 bg-[#111827] border border-[#374151] rounded-sm">
+                <input
+                  type="checkbox"
+                  id="editProductHidden"
+                  checked={editProduct.hidden || false}
+                  onChange={(e) =>
+                    setEditProduct({
+                      ...editProduct,
+                      hidden: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 accent-[#4a5c2d] cursor-pointer"
+                />
+                <label
+                  htmlFor="editProductHidden"
+                  className="text-xs text-gray-300 font-mono cursor-pointer select-none"
+                >
+                  Hide from shop (Keep in CMS without showing to customers)
+                </label>
               </div>
               <button
                 type="submit"

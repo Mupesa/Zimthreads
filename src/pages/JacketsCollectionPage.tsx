@@ -9,13 +9,14 @@ export default function JacketsCollectionPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({})
 
-  // Retrieve all products belonging to this collection
+  // Retrieve all products belonging to this collection (excluding hidden pieces)
   const jacketProducts = useMemo(() => {
     return products.filter(
       (p) =>
-        p.collectionId === "racing-jackets" ||
+        !p.hidden &&
+        (p.collectionId === "racing-jackets" ||
         racingJacketsCollection.productIds.includes(p.id) ||
-        p.id.startsWith("prod-jacket-"),
+        p.id.startsWith("prod-jacket-")),
     )
   }, [products])
 

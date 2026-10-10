@@ -34,27 +34,36 @@ export default function Shop() {
     }
   }, [navigate])
 
-  // Compute minimum jacket price dynamically from store
-  const minJacketPrice = useMemo(() => {
-    const jacketProds = products.filter(
+  // Compute minimum jacket price dynamically from store (excluding hidden jackets)
+  const activeJacketProds = useMemo(() => {
+    return products.filter(
       (p) =>
-        p.collectionId === "racing-jackets" ||
+        !p.hidden &&
+        (p.collectionId === "racing-jackets" ||
         racingJacketsCollection.productIds.includes(p.id) ||
-        p.id.startsWith("prod-jacket-"),
+        p.id.startsWith("prod-jacket-")),
     )
-    if (jacketProds.length === 0) return 1750
-    return Math.min(...jacketProds.map((p) => p.price))
   }, [products])
 
-  // Filter products for standard catalog view (excluding collection jackets from loose grid)
+  const minJacketPrice = useMemo(() => {
+    if (activeJacketProds.length === 0) return 1750
+    return Math.min(...activeJacketProds.map((p) => p.price))
+  }, [activeJacketProds])
+
+  // Filter products for standard catalog view (excluding hidden products and collection jackets)
   const filtered = useMemo(() => {
     return products.filter((p) => {
+      // Exclude hidden products from shop catalog
+      if (p.hidden) {
+        return false
+      }
+
       const isCollectiveProduct =
         p.collectionId === "racing-jackets" ||
         racingJacketsCollection.productIds.includes(p.id) ||
         p.id.startsWith("prod-jacket-")
 
-      // Exclude all 14 individual jackets from standard shop catalog
+      // Exclude all individual collective jackets from standard shop catalog
       if (isCollectiveProduct) {
         return false
       }
@@ -73,6 +82,7 @@ export default function Shop() {
 
   // Whether to render the Collection Card in the grid
   const showCollectionCard =
+    activeJacketProds.length > 0 &&
     (activeCategory === "all" || activeCategory === "Apparel") &&
     (!searchQuery.trim() ||
       "the paddock archive racing jackets retro vintage motorsport jacket"

@@ -16,10 +16,16 @@ const navLinks = [
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
-  const { cartCount, setIsCartOpen } = useStore()
+  const { cartCount, setIsCartOpen, settings } = useStore()
 
   return (
-    <nav className="sticky top-0 z-40 bg-[#f5f2ec] border-b border-[#e5e1d8] transition-all">
+    <header className="sticky top-0 z-40">
+      {settings?.announcementText && (
+        <div className="bg-[#1a1a1a] text-[#f5f2ec] text-[10px] sm:text-[11px] font-bold py-1.5 px-4 text-center tracking-widest uppercase border-b border-[#374151]">
+          {settings.announcementText}
+        </div>
+      )}
+      <nav className="bg-[#f5f2ec] border-b border-[#e5e1d8] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <Link to="/" className="flex flex-col leading-none">
@@ -183,5 +189,6 @@ export default function Navbar() {
         </div>
       )}
     </nav>
+    </header>
   )
 }

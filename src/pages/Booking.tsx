@@ -19,6 +19,7 @@ const timeSlots = [
   "16:00",
 ]
 const steps = ["Service", "Details", "Date & Time", "Review", "Confirmed"]
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Booking() {
   const { services, addBooking, prefilledServiceId, setPrefilledServiceId } =
@@ -36,6 +37,10 @@ export default function Booking() {
   const [confirmedBooking, setConfirmedBooking] = useState<BookingItem | null>(
     null,
   )
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const isEmailValid = EMAIL_REGEX.test(details.email.trim())
 
   // UX Navigation Refs for auto-scroll & focus management
   const formTopRef = useRef<HTMLDivElement>(null)
@@ -76,7 +81,11 @@ export default function Booking() {
   const canNext = () => {
     if (step === 0) return !!selectedService
     if (step === 1)
-      return details.name.trim() && details.email.trim() && details.phone.trim()
+      return (
+        details.name.trim().length > 0 &&
+        isEmailValid &&
+        details.phone.trim().length > 0
+      )
     if (step === 2) return selectedDate && selectedTime
     return true
   }
@@ -102,38 +111,55 @@ export default function Booking() {
     }
   }
 
-  const handleConfirmBooking = () => {
-    if (!serviceObj) return
+  const handleConfirmBooking = async () => {
+    if (!serviceObj || isSubmitting) return
 
-    const newBooking = addBooking({
-      customer: details.name,
-      email: details.email,
-      phone: details.phone,
-      serviceId: serviceObj.id,
-      serviceName: serviceObj.title,
-      price: serviceObj.price,
-      priceNumeric: serviceObj.priceNumeric || 15,
-      date: selectedDate,
-      time: selectedTime,
-      notes: details.notes,
-    })
+    setIsSubmitting(true)
+    setSubmitError(null)
 
-    setConfirmedBooking(newBooking)
-    setStep(4)
+    try {
+      const bookingData = {
+        customer: details.name.trim(),
+        email: details.email.trim().toLowerCase(),
+        phone: details.phone.trim(),
+        serviceId: serviceObj.id,
+        serviceName: serviceObj.title,
+        price: serviceObj.price,
+        priceNumeric: serviceObj.priceNumeric || 300,
+        date: selectedDate,
+        time: selectedTime,
+        notes: details.notes.trim(),
+      }
 
-    // Automatically dispatch booking details via WhatsApp
-    const waText = formatBookingWhatsAppMessage({
-      id: newBooking.id,
-      customer: newBooking.customer,
-      phone: newBooking.phone,
-      email: newBooking.email,
-      serviceName: newBooking.serviceName,
-      price: newBooking.price,
-      date: newBooking.date,
-      time: newBooking.time,
-      notes: newBooking.notes,
-    })
-    openWhatsApp(waText)
+      const newBooking = await addBooking(bookingData)
+
+      setConfirmedBooking(newBooking)
+      setStep(4)
+
+      // Automatically dispatch booking details via WhatsApp
+      const waText = formatBookingWhatsAppMessage({
+        id: newBooking.id,
+        customer: newBooking.customer,
+        phone: newBooking.phone,
+        email: newBooking.email,
+        serviceName: newBooking.serviceName,
+        price: newBooking.price,
+        date: newBooking.date,
+        time: newBooking.time,
+        notes: newBooking.notes,
+      })
+      openWhatsApp(waText)
+    } catch (err: any) {
+      console.error("Booking submission error:", err)
+      setSubmitError(
+        err.message || "Failed to confirm booking. Please try again.",
+      )
+      setTimeout(() => {
+        formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+      }, 50)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -363,6 +389,13 @@ export default function Booking() {
                       className="w-full border border-[#e5e1d8] bg-[#f5f2ec] px-4 py-3 text-base sm:text-sm text-[#1a1a1a] focus:outline-none focus:border-[#4a5c2d] transition-colors"
                       placeholder={placeholder}
                     />
+                    {key === "email" &&
+                      details.email.trim().length > 0 &&
+                      !isEmailValid && (
+                        <p className="text-[10px] text-red-600 mt-1 font-medium">
+                          Please enter a valid email address (e.g. name@domain.com)
+                        </p>
+                      )}
                   </div>
                 ))}
                 <div className="sm:col-span-2">
@@ -434,6 +467,11 @@ export default function Booking() {
               <h2 className="font-display text-xl font-bold uppercase tracking-wide mb-6 text-[#1a1a1a]">
                 CONFIRM APPOINTMENT
               </h2>
+              {submitError && (
+                <div className="mb-4 p-3.5 bg-red-50 border border-red-300 text-red-700 text-xs font-medium">
+                  {submitError}
+                </div>
+              )}
               <div className="space-y-3.5">
                 {[
                   { label: "Treatment", value: serviceObj?.title },
@@ -533,6 +571,8 @@ export default function Booking() {
                     setSelectedDate("")
                     setSelectedTime("")
                     setConfirmedBooking(null)
+                    setSubmitError(null)
+                    setIsSubmitting(false)
                   }}
                   className="px-6 py-3.5 bg-[#1a1a1a] text-[#f5f2ec] text-xs font-bold tracking-wider uppercase hover:bg-black transition-colors"
                 >
@@ -548,21 +588,25 @@ export default function Booking() {
           <div className="hidden sm:flex items-center justify-between gap-3 mt-6">
             <button
               onClick={() => setStep((s) => Math.max(0, s - 1))}
-              disabled={step === 0}
+              disabled={step === 0 || isSubmitting}
               className="px-6 py-3.5 border border-[#e5e1d8] text-[#6b7280] text-[11px] font-bold tracking-widest uppercase hover:border-[#1a1a1a] hover:text-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center"
             >
               BACK
             </button>
             <button
               onClick={handleNext}
-              disabled={!canNext()}
+              disabled={!canNext() || isSubmitting}
               className="px-7 py-3.5 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-center shadow-xs inline-flex items-center justify-center gap-1.5"
             >
               {step === 3 ? (
-                <>
-                  <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
-                  <span>CONFIRM & BOOK VIA WHATSAPP</span>
-                </>
+                isSubmitting ? (
+                  <span>SECURING SLOT...</span>
+                ) : (
+                  <>
+                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
+                    <span>CONFIRM & BOOK VIA WHATSAPP</span>
+                  </>
+                )
               ) : (
                 <span>CONTINUE</span>
               )}
@@ -619,20 +663,25 @@ export default function Booking() {
             <div className="flex items-center justify-between gap-2.5">
               <button
                 onClick={() => setStep((s) => Math.max(0, s - 1))}
-                className="px-4 py-2.5 border border-[#444] text-[#d1d5db] text-xs font-bold tracking-wider uppercase hover:border-white transition-colors"
+                disabled={isSubmitting}
+                className="px-4 py-2.5 border border-[#444] text-[#d1d5db] text-xs font-bold tracking-wider uppercase hover:border-white transition-colors disabled:opacity-40"
               >
                 BACK
               </button>
               <button
                 onClick={handleNext}
-                disabled={!canNext()}
+                disabled={!canNext() || isSubmitting}
                 className="flex-1 py-2.5 px-4 bg-[#4a5c2d] hover:bg-[#5a7038] text-[#f5f2ec] text-xs font-bold tracking-wider uppercase disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg flex items-center justify-center gap-1.5 active:scale-95 rounded-xs"
               >
                 {step === 3 ? (
-                  <>
-                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
-                    <span>BOOK VIA WHATSAPP</span>
-                  </>
+                  isSubmitting ? (
+                    <span>SECURING SLOT...</span>
+                  ) : (
+                    <>
+                      <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
+                      <span>BOOK VIA WHATSAPP</span>
+                    </>
+                  )
                 ) : (
                   <>
                     <span>CONTINUE</span>

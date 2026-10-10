@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "format": "oxfmt src",
-    "upload:image": "node scripts/upload-cloudinary.cjs"
+    "upload:image": "node scripts/upload-cloudinary.cjs",
+    "test:verify": "node scripts/verify-all-entities-e2e.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

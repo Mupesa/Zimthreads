@@ -24,6 +24,22 @@ import {
   initialSettings,
 } from "./seedData"
 
+declare module "./seedData" {
+  interface OrderItem {
+    paymentStatus?: "Paid" | "Pending" | "Refunded"
+  }
+  interface Inquiry {
+    response?: string
+    respondedAt?: string
+  }
+  interface BlogPost {
+    status?: "published" | "draft"
+  }
+  interface StoreSettings {
+    announcementText?: string
+  }
+}
+
 export interface ToastMessage {
   id: string
   type: "success" | "info" | "error"
@@ -42,7 +58,7 @@ export interface CustomerSummary {
   status: "Active" | "VIP" | "New"
 }
 
-interface StoreContextType {
+export interface StoreContextType {
   // State
   products: Product[]
   services: Service[]
@@ -55,6 +71,8 @@ interface StoreContextType {
   isCartOpen: boolean
   toasts: ToastMessage[]
   customers: CustomerSummary[]
+  isHydrating: boolean
+  lastSyncedAt: Date | null
 
   // Selected item for booking prefill
   prefilledServiceId: string | null
@@ -86,7 +104,7 @@ interface StoreContextType {
   // Booking actions
   addBooking: (
     booking: Omit<BookingItem, "id" | "createdAt" | "status">,
-  ) => BookingItem
+  ) => Promise<BookingItem>
   updateBookingStatus: (id: string, status: BookingItem["status"]) => void
   deleteBooking: (id: string) => void
 
@@ -98,8 +116,12 @@ interface StoreContextType {
     address: string
     city: string
     paymentMethod: OrderItem["paymentMethod"]
-  }) => OrderItem
+  }) => Promise<OrderItem>
   updateOrderStatus: (id: string, status: OrderItem["status"]) => void
+  updateOrderPaymentStatus: (
+    id: string,
+    paymentStatus: "Paid" | "Pending" | "Refunded",
+  ) => void
   deleteOrder: (id: string) => void
 
   // Service actions
@@ -121,8 +143,11 @@ interface StoreContextType {
   deleteBlogPost: (id: string) => void
 
   // Inquiry actions
-  addInquiry: (inquiry: Omit<Inquiry, "id" | "date" | "read">) => void
+  addInquiry: (
+    inquiry: Omit<Inquiry, "id" | "date" | "read">,
+  ) => Promise<Inquiry>
   markInquiryAsRead: (id: string, read?: boolean) => void
+  respondToInquiry: (id: string, response: string) => Promise<void>
   deleteInquiry: (id: string) => void
 
   // Settings
@@ -136,6 +161,9 @@ interface StoreContextType {
     type?: ToastMessage["type"],
   ) => void
   removeToast: (id: string) => void
+
+  // Cloud revalidation
+  refreshCloudData: () => Promise<void>
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -154,7 +182,11 @@ const STORAGE_KEYS = {
 function getStored<T>(key: string, fallback: T): T {
   try {
     const item = localStorage.getItem(key)
-    return item ? JSON.parse(item) : fallback
+    if (!item) return fallback
+    const parsed = JSON.parse(item)
+    if (parsed === null || parsed === undefined) return fallback
+    if (Array.isArray(fallback) && !Array.isArray(parsed)) return fallback
+    return parsed
   } catch (e) {
     console.warn(`Error reading localStorage key "${key}"`, e)
     return fallback
@@ -169,6 +201,56 @@ function setStored<T>(key: string, data: T) {
   }
 }
 
+// Unauthenticated persistence helper for customer submissions
+const persistPublicRecord = async <T,>(
+  entity: "bookings" | "orders" | "inquiries",
+  record: T,
+): Promise<T> => {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+  let res: Response
+  try {
+    res = await fetch("/api/store", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "public_create",
+        entity,
+        record,
+      }),
+      signal: controller.signal,
+    })
+  } catch (err: any) {
+    if (err.name === "AbortError") {
+      throw new Error(
+        "Request timed out. Please check your internet connection and try again.",
+      )
+    }
+    throw new Error(
+      err.message ||
+        "Network error: Unable to reach the server. Please check your internet connection.",
+    )
+  } finally {
+    clearTimeout(timeoutId)
+  }
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}))
+    const errorMsg =
+      errData.error ||
+      `Server error (${res.status}): Failed to save ${entity} to database.`
+    console.warn(`[StoreContext] Failed to persist ${entity} to cloud:`, errorMsg)
+    throw new Error(errorMsg)
+  }
+
+  const json = await res.json().catch(() => ({}))
+  return (json.record as T) || record
+}
+
+// Authenticated sync helper for administrative operations
 const syncToCloud = async (key: string, data: any) => {
   try {
     await fetch("/api/store", {
@@ -177,13 +259,14 @@ const syncToCloud = async (key: string, data: any) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        action: "sync",
         key,
         data,
         adminToken: "Zimthreads200",
       }),
     })
   } catch (err) {
-    console.warn(`Failed to sync ${key} to cloud:`, err)
+    console.warn(`[StoreContext] Failed to sync ${key} to cloud:`, err)
   }
 }
 
@@ -192,16 +275,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [products, setProducts] = useState<Product[]>(() => {
     const loaded = getStored(STORAGE_KEYS.PRODUCTS, initialProducts)
-    const loadedMap = new Map(loaded.map((p) => [p.id, p]))
-    const merged = initialProducts.map((initProd) => {
-      const existing = loadedMap.get(initProd.id)
-      return existing ? { ...initProd, ...existing } : initProd
-    })
-    const initialIds = new Set(initialProducts.map((p) => p.id))
-    const extraCustom = loaded.filter((p) => !initialIds.has(p.id))
-    const combined = [...merged, ...extraCustom]
-
-    return combined.map((p) => {
+    return loaded.map((p) => {
       if (
         p.id === "prod-4" &&
         (!p.img ||
@@ -257,6 +331,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     const loaded = getStored(STORAGE_KEYS.SETTINGS, initialSettings)
     return {
       ...initialSettings,
+      announcementText:
+        loaded.announcementText ||
+        "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN",
       ...loaded,
       featuredDrop: loaded.featuredDrop || initialSettings.featuredDrop,
     }
@@ -269,6 +346,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const [prefilledServiceId, setPrefilledServiceId] = useState<string | null>(
     null,
   )
+  const [isHydrating, setIsHydrating] = useState(true)
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
 
   // Sync state changes with localStorage
   useEffect(() => {
@@ -296,54 +375,121 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     setStored(STORAGE_KEYS.CART, cart)
   }, [cart])
 
-  // Revalidate with Neon cloud store on mount
-  useEffect(() => {
-    let isMounted = true
-    const fetchCloudData = async () => {
-      try {
-        const res = await fetch("/api/store")
-        if (!res.ok) return
-        const result = await res.json()
-        if (!result.success || !result.data || !isMounted) return
+  // Full 7-Entity Cloud Hydration from Neon PostgreSQL
+  const fetchCloudData = async () => {
+    setIsHydrating(true)
+    try {
+      const res = await fetch("/api/store?key=all")
+      if (!res.ok) return
+      const result = await res.json()
+      if (!result.success || !result.data) return
 
-        const {
-          products: cloudProducts,
-          services: cloudServices,
-          blog_posts: cloudBlogPosts,
-          settings: cloudSettings,
-        } = result.data
+      const {
+        products: cloudProducts,
+        services: cloudServices,
+        blog_posts: cloudBlogPosts,
+        settings: cloudSettings,
+        bookings: cloudBookings,
+        orders: cloudOrders,
+        inquiries: cloudInquiries,
+      } = result.data
 
-        if (Array.isArray(cloudProducts) && cloudProducts.length > 0) {
+      if (Array.isArray(cloudProducts)) {
+        if (cloudProducts.length === 16) {
+          const cloudIds = new Set(cloudProducts.map((p) => p.id))
+          const missingCanonical = initialProducts.filter(
+            (p) => !cloudIds.has(p.id),
+          )
+          if (missingCanonical.length > 0) {
+            const fullCanonical = [...cloudProducts, ...missingCanonical]
+            setProducts(fullCanonical)
+            syncToCloud("products", fullCanonical)
+          } else {
+            setProducts(cloudProducts)
+          }
+        } else {
           setProducts(cloudProducts)
         }
-        if (Array.isArray(cloudServices) && cloudServices.length > 0) {
-          setServices(cloudServices)
-        }
-        if (Array.isArray(cloudBlogPosts) && cloudBlogPosts.length > 0) {
-          setBlogPosts(cloudBlogPosts)
-        }
-        if (
-          cloudSettings &&
-          typeof cloudSettings === "object" &&
-          Object.keys(cloudSettings).length > 0
-        ) {
-          setSettings((prev) => ({
-            ...prev,
-            ...cloudSettings,
-            featuredDrop:
-              cloudSettings.featuredDrop ||
-              prev.featuredDrop ||
-              initialSettings.featuredDrop,
-          }))
-        }
-      } catch (err) {
-        console.warn("Could not fetch store data from cloud:", err)
       }
+      if (Array.isArray(cloudServices)) {
+        setServices(cloudServices)
+      }
+      if (Array.isArray(cloudBlogPosts)) {
+        setBlogPosts(cloudBlogPosts)
+      }
+      if (
+        cloudSettings &&
+        typeof cloudSettings === "object" &&
+        Object.keys(cloudSettings).length > 0
+      ) {
+        setSettings((prev) => ({
+          ...prev,
+          ...cloudSettings,
+          announcementText:
+            cloudSettings.announcementText !== undefined
+              ? cloudSettings.announcementText
+              : prev.announcementText ||
+                "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN",
+          featuredDrop:
+            cloudSettings.featuredDrop ||
+            prev.featuredDrop ||
+            initialSettings.featuredDrop,
+        }))
+      }
+      if (Array.isArray(cloudBookings)) {
+        setBookings((prev) => {
+          const cloudIds = new Set(cloudBookings.map((b) => b.id))
+          const recentLocal = prev.filter((b) => {
+            if (cloudIds.has(b.id)) return false
+            const ageMs = Date.now() - new Date(b.createdAt || 0).getTime()
+            return !isNaN(ageMs) && ageMs < 60000
+          })
+          return [...recentLocal, ...cloudBookings]
+        })
+      }
+      if (Array.isArray(cloudOrders)) {
+        setOrders((prev) => {
+          const cloudIds = new Set(cloudOrders.map((o) => o.id))
+          const recentLocal = prev.filter((o) => {
+            if (cloudIds.has(o.id)) return false
+            const ageMs = Date.now() - new Date(o.createdAt || 0).getTime()
+            return !isNaN(ageMs) && ageMs < 60000
+          })
+          return [...recentLocal, ...cloudOrders]
+        })
+      }
+      if (Array.isArray(cloudInquiries)) {
+        setInquiries((prev) => {
+          const cloudIds = new Set(cloudInquiries.map((i) => i.id))
+          const recentLocal = prev.filter((i) => {
+            if (cloudIds.has(i.id)) return false
+            const created = (i as any).createdAt || i.date
+            const ageMs = Date.now() - new Date(created || 0).getTime()
+            return !isNaN(ageMs) && ageMs < 60000
+          })
+          return [...recentLocal, ...cloudInquiries]
+        })
+      }
+      setLastSyncedAt(new Date())
+    } catch (err) {
+      console.warn("[StoreContext] Could not fetch store data from cloud:", err)
+    } finally {
+      setIsHydrating(false)
     }
+  }
 
+  // Revalidate with Neon cloud store on mount and on window focus
+  useEffect(() => {
+    let isMounted = true
     fetchCloudData()
+
+    const handleFocus = () => {
+      fetchCloudData()
+    }
+    window.addEventListener("focus", handleFocus)
     return () => {
       isMounted = false
+      window.removeEventListener("focus", handleFocus)
     }
   }, [])
 
@@ -466,9 +612,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }, [cart])
 
   // Bookings
-  const addBooking = (
+  const addBooking = async (
     bookingData: Omit<BookingItem, "id" | "createdAt" | "status">,
-  ): BookingItem => {
+  ): Promise<BookingItem> => {
     const randomNum = Math.floor(1000 + Math.random() * 9000)
     const newBooking: BookingItem = {
       ...bookingData,
@@ -476,16 +622,29 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       status: "Pending",
       createdAt: new Date().toISOString(),
     }
-    setBookings((prev) => [newBooking, ...prev])
+
+    // Persist to Neon DB first; if it throws, error bubbles to caller
+    const savedRecord = await persistPublicRecord("bookings", newBooking)
+
+    // Commit to local state only upon successful persistence
+    setBookings((prev) => {
+      if (prev.some((b) => b.id === savedRecord.id)) return prev
+      return [savedRecord, ...prev]
+    })
     showToast(
       "Booking Confirmed!",
-      `Your booking reference is #${newBooking.id}.`,
+      `Your booking reference is #${savedRecord.id}.`,
     )
-    return newBooking
+    return savedRecord
   }
 
   const updateBookingStatus = (id: string, status: BookingItem["status"]) => {
-    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)))
+    let next: BookingItem[] = []
+    setBookings((prev) => {
+      next = prev.map((b) => (b.id === id ? { ...b, status } : b))
+      return next
+    })
+    syncToCloud("bookings", next)
     showToast(
       "Booking Updated",
       `Booking #${id} status changed to ${status}.`,
@@ -494,22 +653,34 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const deleteBooking = (id: string) => {
-    setBookings((prev) => prev.filter((b) => b.id !== id))
+    let next: BookingItem[] = []
+    setBookings((prev) => {
+      next = prev.filter((b) => b.id !== id)
+      return next
+    })
+    syncToCloud("bookings", next)
     showToast("Booking Deleted", `Booking #${id} has been removed.`, "info")
   }
 
   // Orders
-  const createOrder = (orderData: {
+  const createOrder = async (orderData: {
     customer: string
     email: string
     phone: string
     address: string
     city: string
     paymentMethod: OrderItem["paymentMethod"]
-  }): OrderItem => {
+  }): Promise<OrderItem> => {
+    if (cart.length === 0) {
+      throw new Error("Cannot place an order with an empty shopping bag.")
+    }
+
     const randomNum = Math.floor(100 + Math.random() * 900)
     const summary = cart
-      .map((i) => `${i.name}${i.size ? ` [${i.size}]` : ""} (x${i.quantity})`)
+      .map(
+        (i) =>
+          `${i.name}${i.size ? ` [${i.size}]` : ""}${i.customName ? ` [Custom: "${i.customName}"]` : ""} (x${i.quantity})`,
+      )
       .join(", ")
     const totalAmount =
       cartTotal +
@@ -526,6 +697,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       itemSummary: summary,
       totalAmount,
       paymentMethod: orderData.paymentMethod,
+      paymentStatus: "Paid",
       status: "Processing",
       date: new Date().toLocaleDateString("en-US", {
         month: "short",
@@ -535,18 +707,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       createdAt: new Date().toISOString(),
     }
 
-    setOrders((prev) => [newOrder, ...prev])
+    // Persist to Neon DB first; if it throws, error bubbles to caller
+    const savedRecord = await persistPublicRecord("orders", newOrder)
+
+    // Commit to local state and clear cart only upon successful persistence
+    setOrders((prev) => {
+      if (prev.some((o) => o.id === savedRecord.id)) return prev
+      return [savedRecord, ...prev]
+    })
     clearCart()
-    setIsCartOpen(false)
+    // NOTE: Do not call setIsCartOpen(false) here - allows CartDrawer to display order confirmation view
     showToast(
       "Order Placed Successfully!",
-      `Order #${newOrder.id} has been recorded.`,
+      `Order #${savedRecord.id} has been recorded.`,
     )
-    return newOrder
+    return savedRecord
   }
 
   const updateOrderStatus = (id: string, status: OrderItem["status"]) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)))
+    let next: OrderItem[] = []
+    setOrders((prev) => {
+      next = prev.map((o) => (o.id === id ? { ...o, status } : o))
+      return next
+    })
+    syncToCloud("orders", next)
     showToast(
       "Order Updated",
       `Order #${id} status updated to ${status}.`,
@@ -554,8 +738,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     )
   }
 
+  const updateOrderPaymentStatus = (
+    id: string,
+    paymentStatus: "Paid" | "Pending" | "Refunded",
+  ) => {
+    let next: OrderItem[] = []
+    setOrders((prev) => {
+      next = prev.map((o) => (o.id === id ? { ...o, paymentStatus } : o))
+      return next
+    })
+    syncToCloud("orders", next)
+    showToast(
+      "Payment Status Updated",
+      `Order #${id} payment status set to ${paymentStatus}.`,
+      "info",
+    )
+  }
+
   const deleteOrder = (id: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id))
+    let next: OrderItem[] = []
+    setOrders((prev) => {
+      next = prev.filter((o) => o.id !== id)
+      return next
+    })
+    syncToCloud("orders", next)
     showToast("Order Deleted", `Order #${id} removed.`, "info")
   }
 
@@ -563,30 +769,33 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addService = (serviceData: Omit<Service, "id">): Service => {
     const id = serviceData.title.toLowerCase().replace(/[^a-z0-9]/g, "-")
     const newService: Service = { ...serviceData, id }
+    let next: Service[] = []
     setServices((prev) => {
-      const next = [...prev, newService]
-      syncToCloud("services", next)
+      next = [...prev, newService]
       return next
     })
+    syncToCloud("services", next)
     showToast("Service Added", `Service "${newService.title}" created.`)
     return newService
   }
 
   const updateService = (id: string, updated: Partial<Service>) => {
+    let next: Service[] = []
     setServices((prev) => {
-      const next = prev.map((s) => (s.id === id ? { ...s, ...updated } : s))
-      syncToCloud("services", next)
+      next = prev.map((s) => (s.id === id ? { ...s, ...updated } : s))
       return next
     })
+    syncToCloud("services", next)
     showToast("Service Saved", "Service details updated.")
   }
 
   const deleteService = (id: string) => {
+    let next: Service[] = []
     setServices((prev) => {
-      const next = prev.filter((s) => s.id !== id)
-      syncToCloud("services", next)
+      next = prev.filter((s) => s.id !== id)
       return next
     })
+    syncToCloud("services", next)
     showToast("Service Removed", "Service deleted.", "info")
   }
 
@@ -594,81 +803,90 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addProduct = (prodData: Omit<Product, "id">): Product => {
     const id = `prod-${Date.now().toString().slice(-4)}`
     const newProduct: Product = { ...prodData, id }
+    let next: Product[] = []
     setProducts((prev) => {
-      const next = [newProduct, ...prev]
-      syncToCloud("products", next)
+      next = [newProduct, ...prev]
       return next
     })
+    syncToCloud("products", next)
     showToast("Product Added", `Product "${newProduct.name}" added to catalog.`)
     return newProduct
   }
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
+    let next: Product[] = []
     setProducts((prev) => {
-      const next = prev.map((p) => (p.id === id ? { ...p, ...updated } : p))
-      syncToCloud("products", next)
+      next = prev.map((p) => (p.id === id ? { ...p, ...updated } : p))
       return next
     })
+    syncToCloud("products", next)
     showToast("Product Updated", "Product catalog entry updated.")
   }
 
   const updateProductsBatch = (
     updates: { id: string; changes: Partial<Product> }[],
   ) => {
+    let next: Product[] = []
     setProducts((prev) => {
       const map = new Map(updates.map((u) => [u.id, u.changes]))
-      const next = prev.map((p) => {
+      next = prev.map((p) => {
         const changes = map.get(p.id)
         return changes ? { ...p, ...changes } : p
       })
-      syncToCloud("products", next)
       return next
     })
+    syncToCloud("products", next)
     showToast("Batch Updated", "Product prices & inventory updated successfully.")
   }
 
   const deleteProduct = (id: string) => {
+    let next: Product[] = []
     setProducts((prev) => {
-      const next = prev.filter((p) => p.id !== id)
-      syncToCloud("products", next)
+      next = prev.filter((p) => p.id !== id)
       return next
     })
+    syncToCloud("products", next)
     showToast("Product Deleted", "Product removed from catalog.", "info")
   }
 
   // Blog Posts
   const addBlogPost = (postData: Omit<BlogPost, "id">): BlogPost => {
     const id = `post-${Date.now().toString().slice(-4)}`
-    const newPost: BlogPost = { ...postData, id }
+    const newPost: BlogPost = { status: "published", ...postData, id }
+    let next: BlogPost[] = []
     setBlogPosts((prev) => {
-      const next = [newPost, ...prev]
-      syncToCloud("blog_posts", next)
+      next = [newPost, ...prev]
       return next
     })
+    syncToCloud("blog_posts", next)
     showToast("Blog Published", `Article "${newPost.title}" published.`)
     return newPost
   }
 
   const updateBlogPost = (id: string, updated: Partial<BlogPost>) => {
+    let next: BlogPost[] = []
     setBlogPosts((prev) => {
-      const next = prev.map((b) => (b.id === id ? { ...b, ...updated } : b))
-      syncToCloud("blog_posts", next)
+      next = prev.map((b) => (b.id === id ? { ...b, ...updated } : b))
       return next
     })
+    syncToCloud("blog_posts", next)
     showToast("Article Saved", "Blog post updated.")
   }
 
   const deleteBlogPost = (id: string) => {
+    let next: BlogPost[] = []
     setBlogPosts((prev) => {
-      const next = prev.filter((b) => b.id !== id)
-      syncToCloud("blog_posts", next)
+      next = prev.filter((b) => b.id !== id)
       return next
     })
+    syncToCloud("blog_posts", next)
     showToast("Article Deleted", "Post removed.", "info")
   }
 
   // Inquiries
-  const addInquiry = (inquiryData: Omit<Inquiry, "id" | "date" | "read">) => {
+  const addInquiry = async (
+    inquiryData: Omit<Inquiry, "id" | "date" | "read">,
+  ): Promise<Inquiry> => {
     const id = `INQ-${Math.floor(100 + Math.random() * 900)}`
     const newInquiry: Inquiry = {
       ...inquiryData,
@@ -680,31 +898,64 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       }),
       read: false,
     }
-    setInquiries((prev) => [newInquiry, ...prev])
+
+    // Persist to Neon DB first; if it throws, error bubbles to caller
+    const savedRecord = await persistPublicRecord("inquiries", newInquiry)
+
+    // Commit to local state only upon successful persistence
+    setInquiries((prev) => {
+      if (prev.some((i) => i.id === savedRecord.id)) return prev
+      return [savedRecord, ...prev]
+    })
     showToast(
       "Message Sent!",
       "Thank you for reaching out. We will get back to you shortly.",
     )
+    return savedRecord
   }
 
   const markInquiryAsRead = (id: string, read = true) => {
-    setInquiries((prev) =>
-      prev.map((inq) => (inq.id === id ? { ...inq, read } : inq)),
-    )
+    let next: Inquiry[] = []
+    setInquiries((prev) => {
+      next = prev.map((inq) => (inq.id === id ? { ...inq, read } : inq))
+      return next
+    })
+    syncToCloud("inquiries", next)
+  }
+
+  const respondToInquiry = async (id: string, response: string) => {
+    let next: Inquiry[] = []
+    const respondedAt = new Date().toISOString()
+    setInquiries((prev) => {
+      next = prev.map((inq) =>
+        inq.id === id
+          ? { ...inq, response, respondedAt, read: true }
+          : inq,
+      )
+      return next
+    })
+    await syncToCloud("inquiries", next)
+    showToast("Response Logged", `Response saved for inquiry #${id}.`)
   }
 
   const deleteInquiry = (id: string) => {
-    setInquiries((prev) => prev.filter((inq) => inq.id !== id))
+    let next: Inquiry[] = []
+    setInquiries((prev) => {
+      next = prev.filter((inq) => inq.id !== id)
+      return next
+    })
+    syncToCloud("inquiries", next)
     showToast("Inquiry Deleted", "Message removed.", "info")
   }
 
   // Settings
   const updateSettings = (newSettings: Partial<StoreSettings>) => {
+    let next: StoreSettings = settings
     setSettings((prev) => {
-      const next = { ...prev, ...newSettings }
-      syncToCloud("settings", next)
+      next = { ...prev, ...newSettings }
       return next
     })
+    syncToCloud("settings", next)
     showToast("Settings Saved", "Store configuration updated.")
   }
 
@@ -737,44 +988,50 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       joinedDate: string
     }>()
 
-    // From bookings
-    bookings.forEach((b) => {
-      const key = (b.email || b.customer).toLowerCase()
+    // From bookings (excluding cancelled bookings)
+    ;(bookings || []).forEach((b) => {
+      const key = (b.email || b.customer || "").toLowerCase()
+      if (!key) return
       const existing = customerMap.get(key) || {
-        name: b.customer,
-        email: b.email,
-        phone: b.phone,
+        name: b.customer || "Anonymous",
+        email: b.email || "",
+        phone: b.phone || "",
         bookingsCount: 0,
         ordersCount: 0,
         totalSpent: 0,
-        joinedDate: b.createdAt.split("T")[0],
+        joinedDate: (b.createdAt || new Date().toISOString()).split("T")[0],
       }
       existing.bookingsCount += 1
-      existing.totalSpent += b.priceNumeric || 15
+      if (b.status !== "Cancelled") {
+        existing.totalSpent += b.priceNumeric || 300
+      }
       customerMap.set(key, existing)
     })
 
-    // From orders
-    orders.forEach((o) => {
-      const key = (o.email || o.customer).toLowerCase()
+    // From orders (excluding cancelled orders)
+    ;(orders || []).forEach((o) => {
+      const key = (o.email || o.customer || "").toLowerCase()
+      if (!key) return
       const existing = customerMap.get(key) || {
-        name: o.customer,
-        email: o.email,
-        phone: o.phone,
+        name: o.customer || "Anonymous",
+        email: o.email || "",
+        phone: o.phone || "",
         bookingsCount: 0,
         ordersCount: 0,
         totalSpent: 0,
-        joinedDate: o.createdAt.split("T")[0],
+        joinedDate: (o.createdAt || new Date().toISOString()).split("T")[0],
       }
       existing.ordersCount += 1
-      existing.totalSpent += o.totalAmount
+      if (o.status !== "Cancelled") {
+        existing.totalSpent += o.totalAmount || 0
+      }
       customerMap.set(key, existing)
     })
 
     return Array.from(customerMap.values()).map((c) => {
       const totalActivities = c.bookingsCount + c.ordersCount
       const status: "Active" | "VIP" | "New" =
-        c.totalSpent > 60 || totalActivities >= 3
+        c.totalSpent > 3000 || totalActivities >= 3
           ? "VIP"
           : totalActivities >= 2
             ? "Active"
@@ -800,6 +1057,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         isCartOpen,
         toasts,
         customers,
+        isHydrating,
+        lastSyncedAt,
         prefilledServiceId,
         setPrefilledServiceId,
         setIsCartOpen,
@@ -814,6 +1073,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         deleteBooking,
         createOrder,
         updateOrderStatus,
+        updateOrderPaymentStatus,
         deleteOrder,
         addService,
         updateService,
@@ -827,11 +1087,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         deleteBlogPost,
         addInquiry,
         markInquiryAsRead,
+        respondToInquiry,
         deleteInquiry,
         updateSettings,
         resetAllData,
         showToast,
         removeToast,
+        refreshCloudData: fetchCloudData,
       }}
     >
       {children}

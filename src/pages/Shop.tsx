@@ -20,6 +20,11 @@ export default function Shop() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
+  const liveSelectedProduct = useMemo(() => {
+    if (!selectedProduct) return null
+    return products.find((p) => p.id === selectedProduct.id) || selectedProduct
+  }, [products, selectedProduct])
+
   // Redirect legacy ?collection=racing-jackets queries to /collection/racing-jackets
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -181,13 +186,13 @@ export default function Shop() {
                 <div className="aspect-square overflow-hidden bg-black relative">
                   <img
                     src={racingJacketsCollection.heroImage}
-                    alt={racingJacketsCollection.title}
+                    alt={racingJacketsCollection.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                   />
                   {/* Badge */}
                   <span className="absolute top-2 left-2 bg-[#86a84e] text-black text-[8px] sm:text-[9px] font-black uppercase px-2 py-0.5 tracking-wider shadow-sm flex items-center gap-1.5 z-10">
                     <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-                    <span>COLLECTION · 14 PIECES</span>
+                    <span>COLLECTION · {activeJacketProds.length} PIECES</span>
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-transparent opacity-80" />
                 </div>
@@ -202,10 +207,10 @@ export default function Shop() {
                     </span>
                   </div>
                   <h3 className="font-display font-bold text-xs sm:text-sm text-white mb-1 leading-snug group-hover:text-[#86a84e] transition-colors line-clamp-2">
-                    {racingJacketsCollection.title}
+                    {racingJacketsCollection.name}
                   </h3>
                   <p className="text-[10px] sm:text-[11px] text-[#9ca3af] line-clamp-2 leading-relaxed">
-                    {racingJacketsCollection.subtitle}
+                    {racingJacketsCollection.tagline}
                   </p>
                 </div>
               </div>
@@ -220,14 +225,15 @@ export default function Shop() {
                       From Rs {minJacketPrice}
                     </span>
                   </div>
-                  <Link
-                    to="/collection/racing-jackets"
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#86a84e] text-black text-[9px] sm:text-[10px] font-black tracking-widest uppercase hover:bg-[#9cc45e] transition-colors text-center inline-flex items-center justify-center gap-1 cursor-pointer"
-                  >
-                    <span>VIEW COLLECTION</span>
-                    <span>→</span>
-                  </Link>
+                  <span onClick={(e) => e.stopPropagation()}>
+                    <Link
+                      to="/collection/racing-jackets"
+                      className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#86a84e] text-black text-[9px] sm:text-[10px] font-black tracking-widest uppercase hover:bg-[#9cc45e] transition-colors text-center inline-flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <span>VIEW COLLECTION</span>
+                      <span>→</span>
+                    </Link>
+                  </span>
                 </div>
               </div>
             </div>
@@ -354,7 +360,7 @@ export default function Shop() {
 
       {/* Quick View Modal */}
       <ProductModal
-        product={selectedProduct}
+        product={liveSelectedProduct}
         onClose={() => setSelectedProduct(null)}
       />
     </main>

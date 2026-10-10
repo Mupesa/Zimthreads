@@ -49,10 +49,14 @@ export default function Dashboard() {
     inquiries,
     settings,
     customers,
+    isHydrating,
+    lastSyncedAt,
+    refreshCloudData,
     updateBookingStatus,
     deleteBooking,
     addBooking,
     updateOrderStatus,
+    updateOrderPaymentStatus,
     deleteOrder,
     addService,
     updateService,
@@ -65,6 +69,7 @@ export default function Dashboard() {
     updateBlogPost,
     deleteBlogPost,
     markInquiryAsRead,
+    respondToInquiry,
     deleteInquiry,
     updateSettings,
     resetAllData,
@@ -125,9 +130,12 @@ export default function Dashboard() {
   const [newBlogModal, setNewBlogModal] = useState(false)
   const [editBlog, setEditBlog] = useState<BlogPost | null>(null)
   const [viewInquiry, setViewInquiry] = useState<Inquiry | null>(null)
+  const [inquiryResponseText, setInquiryResponseText] = useState("")
   const [viewOrder, setViewOrder] = useState<OrderItem | null>(null)
 
   // Form states for creators
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false)
+  const [bookingError, setBookingError] = useState("")
   const [bookingForm, setBookingForm] = useState({
     customer: "",
     email: "",
@@ -154,8 +162,8 @@ export default function Dashboard() {
   const [serviceForm, setServiceForm] = useState({
     title: "",
     subtitle: "",
-    price: "From $15",
-    priceNumeric: 15,
+    price: "From Rs 300",
+    priceNumeric: 300,
     desc: "",
     features: "Deep clean, Midsole scrub, Deodorize",
     turnaround: "24-48 Hours",
@@ -169,6 +177,7 @@ export default function Dashboard() {
     category: "Shoe Care",
     author: "Shepherd Chara",
     readTime: "5 min read",
+    status: "published" as "published" | "draft",
     img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=500&fit=crop&auto=format",
     alt: "Article banner",
     excerpt: "",
@@ -296,7 +305,7 @@ export default function Dashboard() {
     )
     const totalBookingRev = bookings.reduce(
       (sum, b) =>
-        b.status !== "Cancelled" ? sum + (b.priceNumeric || 15) : sum,
+        b.status !== "Cancelled" ? sum + (b.priceNumeric || 300) : sum,
       0,
     )
     const totalRev = totalOrderRev + totalBookingRev
@@ -326,36 +335,60 @@ export default function Dashboard() {
         sub: "Across Mauritius",
         icon: UsersIcon,
       },
+      {
+        label: "INQUIRIES",
+        value: `${inquiries.length}`,
+        sub: `${unreadInquiriesCount} Unread Messages`,
+        icon: MailIcon,
+      },
     ]
-  }, [bookings, orders, customers, pendingBookingsCount, processingOrdersCount])
+  }, [
+    bookings,
+    orders,
+    customers,
+    inquiries,
+    pendingBookingsCount,
+    processingOrdersCount,
+    unreadInquiriesCount,
+  ])
 
   // Handlers for Form Submissions
-  const handleCreateBooking = (e: React.FormEvent) => {
+  const handleCreateBooking = async (e: React.FormEvent) => {
     e.preventDefault()
-    const serviceObj =
-      services.find((s) => s.id === bookingForm.serviceId) || services[0]
-    addBooking({
-      customer: bookingForm.customer,
-      email: bookingForm.email,
-      phone: bookingForm.phone,
-      serviceId: serviceObj.id,
-      serviceName: serviceObj.title,
-      price: serviceObj.price,
-      priceNumeric: serviceObj.priceNumeric || 15,
-      date: bookingForm.date,
-      time: bookingForm.time,
-      notes: bookingForm.notes,
-    })
-    setNewBookingModal(false)
-    setBookingForm({
-      customer: "",
-      email: "",
-      phone: "",
-      serviceId: "clean",
-      date: new Date().toISOString().split("T")[0],
-      time: "10:00",
-      notes: "",
-    })
+    setIsCreatingBooking(true)
+    setBookingError("")
+    try {
+      const serviceObj =
+        services.find((s) => s.id === bookingForm.serviceId) || services[0]
+      await addBooking({
+        customer: bookingForm.customer,
+        email: bookingForm.email,
+        phone: bookingForm.phone,
+        serviceId: serviceObj.id,
+        serviceName: serviceObj.title,
+        price: serviceObj.price,
+        priceNumeric: serviceObj.priceNumeric || 300,
+        date: bookingForm.date,
+        time: bookingForm.time,
+        notes: bookingForm.notes,
+      })
+      setNewBookingModal(false)
+      setBookingForm({
+        customer: "",
+        email: "",
+        phone: "",
+        serviceId: "clean",
+        date: new Date().toISOString().split("T")[0],
+        time: "10:00",
+        notes: "",
+      })
+    } catch (err: any) {
+      setBookingError(
+        err.message || "Failed to create booking. Please try again.",
+      )
+    } finally {
+      setIsCreatingBooking(false)
+    }
   }
 
   const handleCreateProduct = (e: React.FormEvent) => {
@@ -400,15 +433,27 @@ export default function Dashboard() {
       title: serviceForm.title,
       subtitle: serviceForm.subtitle,
       price: serviceForm.price,
-      priceNumeric: Number(serviceForm.priceNumeric),
+      priceNumeric: Number(serviceForm.priceNumeric) || 300,
       desc: serviceForm.desc,
       features: featuresList,
-      turnaround: serviceForm.turnaround,
+      turnaround: serviceForm.turnaround || "24-48 Hours",
       img: serviceForm.img,
       alt: serviceForm.title,
       active: serviceForm.active,
     })
     setNewServiceModal(false)
+    setServiceForm({
+      title: "",
+      subtitle: "",
+      price: "From Rs 300",
+      priceNumeric: 300,
+      desc: "",
+      features: "Deep clean, Midsole scrub, Deodorize",
+      turnaround: "24-48 Hours",
+      img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=350&fit=crop&auto=format",
+      alt: "Service showcase",
+      active: true,
+    })
   }
 
   const handleSaveEditService = (e: React.FormEvent) => {
@@ -425,6 +470,7 @@ export default function Dashboard() {
       category: blogForm.category,
       author: blogForm.author,
       readTime: blogForm.readTime,
+      status: blogForm.status || "published",
       img: blogForm.img,
       alt: blogForm.title,
       excerpt: blogForm.excerpt,
@@ -436,6 +482,17 @@ export default function Dashboard() {
       }),
     })
     setNewBlogModal(false)
+    setBlogForm({
+      title: "",
+      category: "Shoe Care",
+      author: "Shepherd Chara",
+      readTime: "5 min read",
+      status: "published",
+      img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=500&fit=crop&auto=format",
+      alt: "Article banner",
+      excerpt: "",
+      content: "",
+    })
   }
 
   const handleSaveEditBlog = (e: React.FormEvent) => {
@@ -544,7 +601,41 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Cloud Hydration Status & Manual Sync Button */}
+          <div className="flex items-center gap-2 bg-[#111827] border border-[#374151] px-2.5 py-1 text-xs">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isHydrating ? "bg-amber-400 animate-ping" : "bg-emerald-400"
+              }`}
+            />
+            <span className="text-[10px] font-mono text-[#9ca3af] hidden md:inline">
+              {isHydrating
+                ? "Syncing Cloud..."
+                : lastSyncedAt
+                  ? `Cloud Live (${lastSyncedAt.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })})`
+                  : "Cloud Live"}
+            </span>
+            <button
+              onClick={() => refreshCloudData()}
+              disabled={isHydrating}
+              className="text-[#86a84e] hover:text-[#9fc75d] disabled:opacity-50 transition-colors ml-1 font-bold flex items-center gap-1 cursor-pointer"
+              title="Refresh from Neon Cloud DB"
+            >
+              <span
+                className={`inline-block ${isHydrating ? "animate-spin" : ""}`}
+              >
+                ↻
+              </span>
+              <span className="text-[9px] uppercase tracking-wider hidden sm:inline">
+                Refresh
+              </span>
+            </button>
+          </div>
+
           <button
             onClick={() => setActive("inquiries")}
             className="relative text-[#9ca3af] hover:text-[#f9fafb] p-1.5"
@@ -681,7 +772,7 @@ export default function Dashboard() {
               </div>
 
               {/* KPI Stat Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {stats.map((s) => (
                   <div
                     key={s.label}
@@ -723,17 +814,26 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       {bookings.length === 0 ? (
                         <div className="p-6 text-center text-xs text-[#9ca3af] bg-[#111827] border border-[#374151]">
-                          <p className="mb-1">No bookings recorded yet.</p>
-                          <p className="text-[10px] text-[#6b7280]">
-                            Test the live flow by booking at{" "}
-                            <Link
-                              to="/booking"
-                              className="text-[#86a84e] underline"
-                            >
-                              /booking
-                            </Link>{" "}
-                            or logging a walk-in above.
-                          </p>
+                          {isHydrating ? (
+                            <div className="flex items-center justify-center gap-2 text-[#86a84e] py-2">
+                              <span className="w-2 h-2 rounded-full bg-[#86a84e] animate-ping" />
+                              <span>Syncing bookings from Neon Cloud...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="mb-1">No bookings recorded yet.</p>
+                              <p className="text-[10px] text-[#6b7280]">
+                                Test the live flow by booking at{" "}
+                                <Link
+                                  to="/booking"
+                                  className="text-[#86a84e] underline"
+                                >
+                                  /booking
+                                </Link>{" "}
+                                or logging a walk-in above.
+                              </p>
+                            </>
+                          )}
                         </div>
                       ) : (
                         bookings.slice(0, 5).map((b) => (
@@ -805,17 +905,26 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       {orders.length === 0 ? (
                         <div className="p-6 text-center text-xs text-[#9ca3af] bg-[#111827] border border-[#374151]">
-                          <p className="mb-1">No orders placed yet.</p>
-                          <p className="text-[10px] text-[#6b7280]">
-                            Test the cart & checkout flow by purchasing gear at{" "}
-                            <Link
-                              to="/shop"
-                              className="text-[#86a84e] underline"
-                            >
-                              /shop
-                            </Link>
-                            .
-                          </p>
+                          {isHydrating ? (
+                            <div className="flex items-center justify-center gap-2 text-[#86a84e] py-2">
+                              <span className="w-2 h-2 rounded-full bg-[#86a84e] animate-ping" />
+                              <span>Syncing orders from Neon Cloud...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="mb-1">No orders placed yet.</p>
+                              <p className="text-[10px] text-[#6b7280]">
+                                Test the cart & checkout flow by purchasing gear at{" "}
+                                <Link
+                                  to="/shop"
+                                  className="text-[#86a84e] underline"
+                                >
+                                  /shop
+                                </Link>
+                                .
+                              </p>
+                            </>
+                          )}
                         </div>
                       ) : (
                         orders.slice(0, 5).map((o) => (
@@ -832,7 +941,7 @@ export default function Dashboard() {
                                   {o.customer}
                                 </span>
                                 <span className="text-xs font-bold text-[#f9fafb] font-mono">
-                                  ${o.totalAmount}
+                                  Rs {o.totalAmount}
                                 </span>
                               </div>
                               <p className="text-xs text-[#9ca3af] truncate">
@@ -1073,8 +1182,16 @@ export default function Dashboard() {
                             </td>
                             <td className="p-4 text-right">
                               <button
-                                onClick={() => deleteBooking(b.id)}
-                                className="text-xs text-red-400 hover:text-red-300 font-bold p-1"
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      `Are you sure you want to delete booking #${b.id} for ${b.customer}?`,
+                                    )
+                                  ) {
+                                    deleteBooking(b.id)
+                                  }
+                                }}
+                                className="text-xs text-red-400 hover:text-red-300 font-bold p-1 cursor-pointer"
                                 title="Delete Booking"
                               >
                                 Delete
@@ -1247,13 +1364,39 @@ export default function Dashboard() {
                                 {o.date}
                               </p>
                             </td>
-                            <td className="p-4">
+                            <td className="p-4 space-y-1">
                               <p className="font-mono font-bold text-sm text-white">
-                                ${o.totalAmount}
+                                Rs {o.totalAmount}
                               </p>
-                              <span className="inline-block text-[9px] font-bold text-[#86a84e] bg-[#4a5c2d]/20 px-1.5 py-0.5">
-                                {o.paymentMethod}
-                              </span>
+                              <div className="flex flex-col gap-1">
+                                <span className="inline-block text-[9px] font-bold text-[#86a84e] bg-[#4a5c2d]/20 px-1.5 py-0.5 w-fit">
+                                  {o.paymentMethod}
+                                </span>
+                                <select
+                                  value={o.paymentStatus || "Paid"}
+                                  onChange={(e) =>
+                                    updateOrderPaymentStatus(
+                                      o.id,
+                                      e.target.value as
+                                        | "Paid"
+                                        | "Pending"
+                                        | "Refunded",
+                                    )
+                                  }
+                                  className={`text-[9px] font-bold uppercase px-1.5 py-0.5 border rounded-none cursor-pointer w-fit ${
+                                    (o.paymentStatus || "Paid") === "Paid"
+                                      ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                      : (o.paymentStatus || "Paid") === "Refunded"
+                                        ? "bg-red-950 text-red-400 border-red-800"
+                                        : "bg-amber-950 text-amber-400 border-amber-800"
+                                  }`}
+                                  title="Payment Status"
+                                >
+                                  <option value="Paid">Paid</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Refunded">Refunded</option>
+                                </select>
+                              </div>
                             </td>
                             <td className="p-4">
                               <select
@@ -1283,13 +1426,21 @@ export default function Dashboard() {
                             <td className="p-4 text-right space-x-2">
                               <button
                                 onClick={() => setViewOrder(o)}
-                                className="text-xs text-[#86a84e] hover:underline font-bold"
+                                className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
                               >
                                 View
                               </button>
                               <button
-                                onClick={() => deleteOrder(o.id)}
-                                className="text-xs text-red-400 hover:text-red-300 font-bold"
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      `Are you sure you want to delete order #${o.id}?`,
+                                    )
+                                  ) {
+                                    deleteOrder(o.id)
+                                  }
+                                }}
+                                className="text-xs text-red-400 hover:text-red-300 font-bold cursor-pointer"
                               >
                                 Delete
                               </button>
@@ -1391,8 +1542,16 @@ export default function Dashboard() {
                           Edit
                         </button>
                         <button
-                          onClick={() => deleteService(s.id)}
-                          className="px-3 py-1 bg-red-950 text-xs font-bold uppercase text-red-400 hover:bg-red-900"
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                `Are you sure you want to delete service "${s.title}"?`,
+                              )
+                            ) {
+                              deleteService(s.id)
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-950 text-xs font-bold uppercase text-red-400 hover:bg-red-900 cursor-pointer"
                         >
                           Delete
                         </button>
@@ -1798,13 +1957,21 @@ export default function Dashboard() {
                               <span className="text-xs text-[#9ca3af]">Stock:</span>
                               <input
                                 type="number"
-                                value={p.stock}
-                                onChange={(e) =>
-                                  updateProduct(p.id, {
-                                    stock: parseInt(e.target.value) || 0,
-                                  })
-                                }
-                                className="w-14 bg-[#111827] border border-[#374151] px-1.5 py-0.5 text-xs text-white text-center font-mono"
+                                defaultValue={p.stock}
+                                key={p.stock}
+                                onBlur={(e) => {
+                                  const newStock =
+                                    parseInt(e.target.value) || 0
+                                  if (newStock !== p.stock) {
+                                    updateProduct(p.id, { stock: newStock })
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.currentTarget.blur()
+                                  }
+                                }}
+                                className="w-14 bg-[#111827] border border-[#374151] px-1.5 py-0.5 text-xs text-white text-center font-mono focus:border-[#86a84e]"
                               />
                             </div>
                             <div className="flex items-center gap-2">
@@ -1827,7 +1994,15 @@ export default function Dashboard() {
                                 Edit
                               </button>
                               <button
-                                onClick={() => deleteProduct(p.id)}
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      `Are you sure you want to delete product "${p.name}"?`,
+                                    )
+                                  ) {
+                                    deleteProduct(p.id)
+                                  }
+                                }}
                                 className="text-xs text-red-400 hover:text-red-300 font-bold cursor-pointer"
                               >
                                 Delete
@@ -1880,9 +2055,18 @@ export default function Dashboard() {
                         />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-[10px] font-bold text-[#86a84e] uppercase tracking-wider">
                             {post.category}
+                          </span>
+                          <span
+                            className={`text-[9px] font-bold uppercase px-1.5 py-0.5 ${
+                              post.status === "draft"
+                                ? "bg-amber-950 text-amber-400 border border-amber-800"
+                                : "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                            }`}
+                          >
+                            {post.status === "draft" ? "Draft" : "Published"}
                           </span>
                           <span className="text-xs text-[#6b7280]">·</span>
                           <span className="text-xs text-[#9ca3af]">
@@ -1904,14 +2088,40 @@ export default function Dashboard() {
 
                     <div className="flex items-center gap-2 self-end sm:self-center">
                       <button
+                        onClick={() =>
+                          updateBlogPost(post.id, {
+                            status:
+                              post.status === "draft"
+                                ? "published"
+                                : "draft",
+                          })
+                        }
+                        className={`px-3 py-1.5 text-xs font-bold uppercase cursor-pointer transition-colors ${
+                          post.status === "draft"
+                            ? "bg-[#4a5c2d] hover:bg-[#5a7038] text-white"
+                            : "bg-amber-950/80 hover:bg-amber-900 text-amber-400 border border-amber-800"
+                        }`}
+                        title="Toggle publish status"
+                      >
+                        {post.status === "draft" ? "Publish" : "Unpublish"}
+                      </button>
+                      <button
                         onClick={() => setEditBlog(post)}
-                        className="px-3 py-1.5 bg-[#374151] text-xs font-bold uppercase text-white hover:bg-[#4b5563]"
+                        className="px-3 py-1.5 bg-[#374151] text-xs font-bold uppercase text-white hover:bg-[#4b5563] cursor-pointer"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => deleteBlogPost(post.id)}
-                        className="px-3 py-1.5 bg-red-950 text-xs font-bold uppercase text-red-400 hover:bg-red-900"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              `Are you sure you want to delete article "${post.title}"?`,
+                            )
+                          ) {
+                            deleteBlogPost(post.id)
+                          }
+                        }}
+                        className="px-3 py-1.5 bg-red-950 text-xs font-bold uppercase text-red-400 hover:bg-red-900 cursor-pointer"
                       >
                         Delete
                       </button>
@@ -1987,7 +2197,7 @@ export default function Dashboard() {
                             {c.ordersCount}
                           </td>
                           <td className="p-4 font-mono font-bold text-sm text-[#86a84e]">
-                            ${c.totalSpent.toFixed(2)}
+                            Rs {c.totalSpent.toFixed(0)}
                           </td>
                           <td className="p-4">
                             <span
@@ -2088,23 +2298,69 @@ export default function Dashboard() {
                         <h4 className="font-semibold text-xs text-[#86a84e] mb-1">
                           Subject: {inq.subject}
                         </h4>
-                        <p className="text-xs text-[#d1d5db] leading-relaxed mb-4">
+                        <p className="text-xs text-[#d1d5db] leading-relaxed mb-3">
                           {inq.message}
                         </p>
 
-                        <div className="flex justify-end gap-3 pt-2 border-t border-[#374151]">
-                          <button
-                            onClick={() => markInquiryAsRead(inq.id, !inq.read)}
-                            className="text-xs text-[#9ca3af] hover:text-white font-semibold"
+                        {inq.response && (
+                          <div className="mb-3 p-3 bg-[#111827] border-l-2 border-[#86a84e] text-xs space-y-1">
+                            <div className="flex justify-between items-center text-[10px] text-[#9ca3af]">
+                              <span className="font-bold text-[#86a84e] uppercase">
+                                Logged Staff Response
+                              </span>
+                              <span>
+                                {inq.respondedAt
+                                  ? new Date(inq.respondedAt).toLocaleDateString()
+                                  : ""}
+                              </span>
+                            </div>
+                            <p className="text-[#e5e7eb] italic leading-relaxed">
+                              "{inq.response}"
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-[#374151]">
+                          <a
+                            href={`mailto:${inq.email}?subject=Re: ${encodeURIComponent(inq.subject)}`}
+                            className="text-xs text-[#86a84e] hover:underline font-semibold"
                           >
-                            {inq.read ? "Mark as Unread" : "Mark as Read"}
-                          </button>
-                          <button
-                            onClick={() => deleteInquiry(inq.id)}
-                            className="text-xs text-red-400 hover:text-red-300 font-bold"
-                          >
-                            Delete
-                          </button>
+                            Email Customer ↗
+                          </a>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => {
+                                setViewInquiry(inq)
+                                setInquiryResponseText(inq.response || "")
+                                if (!inq.read) {
+                                  markInquiryAsRead(inq.id, true)
+                                }
+                              }}
+                              className="text-xs text-[#86a84e] hover:text-[#9fc75d] font-bold cursor-pointer"
+                            >
+                              View & Respond
+                            </button>
+                            <button
+                              onClick={() => markInquiryAsRead(inq.id, !inq.read)}
+                              className="text-xs text-[#9ca3af] hover:text-white font-semibold cursor-pointer"
+                            >
+                              {inq.read ? "Mark as Unread" : "Mark as Read"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    `Are you sure you want to delete inquiry from ${inq.name}?`,
+                                  )
+                                ) {
+                                  deleteInquiry(inq.id)
+                                }
+                              }}
+                              className="text-xs text-red-400 hover:text-red-300 font-bold cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -2335,10 +2591,31 @@ export default function Dashboard() {
                   />
                 </div>
 
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                    Store Announcement Bar Text
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN"
+                    value={settingsForm.announcementText || ""}
+                    onChange={(e) =>
+                      setSettingsForm({
+                        ...settingsForm,
+                        announcementText: e.target.value,
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                  />
+                  <p className="text-[10px] text-[#6b7280] mt-1">
+                    Appears across the top of all pages in the customer storefront.
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Standard Delivery Fee ($)
+                      Standard Delivery Fee (Rs)
                     </label>
                     <input
                       type="number"
@@ -2354,7 +2631,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                      Free Delivery Threshold ($)
+                      Free Delivery Threshold (Rs)
                     </label>
                     <input
                       type="number"
@@ -2692,6 +2969,11 @@ export default function Dashboard() {
                 ✕
               </button>
             </div>
+            {bookingError && (
+              <div className="p-3 bg-red-950/80 border border-red-800 text-red-200 text-xs mb-3">
+                {bookingError}
+              </div>
+            )}
             <form onSubmit={handleCreateBooking} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
@@ -2803,9 +3085,10 @@ export default function Dashboard() {
               </div>
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2"
+                disabled={isCreatingBooking}
+                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] disabled:opacity-50 text-white font-bold uppercase tracking-widest mt-2 cursor-pointer transition-colors"
               >
-                Save Booking
+                {isCreatingBooking ? "Saving Walk-in Booking..." : "Save Booking"}
               </button>
             </form>
           </div>
@@ -3139,14 +3422,49 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
-                    Price Tag
+                    Display Price Tag
                   </label>
                   <input
                     type="text"
-                    placeholder="From $20"
+                    placeholder="From Rs 300"
                     value={serviceForm.price}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, price: e.target.value })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Numeric Price (Rs)
+                  </label>
+                  <input
+                    type="number"
+                    value={serviceForm.priceNumeric}
+                    onChange={(e) =>
+                      setServiceForm({
+                        ...serviceForm,
+                        priceNumeric: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Turnaround Time
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="24-48 Hours"
+                    value={serviceForm.turnaround}
+                    onChange={(e) =>
+                      setServiceForm({
+                        ...serviceForm,
+                        turnaround: e.target.value,
+                      })
                     }
                     className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
                   />
@@ -3185,11 +3503,194 @@ export default function Dashboard() {
                   rows={2}
                 />
               </div>
+              <div className="flex items-center gap-2 p-2 bg-[#111827] border border-[#374151]">
+                <input
+                  type="checkbox"
+                  id="serviceFormActive"
+                  checked={serviceForm.active}
+                  onChange={(e) =>
+                    setServiceForm({ ...serviceForm, active: e.target.checked })
+                  }
+                  className="w-4 h-4 accent-[#4a5c2d] cursor-pointer"
+                />
+                <label
+                  htmlFor="serviceFormActive"
+                  className="text-xs text-gray-300 font-mono cursor-pointer select-none"
+                >
+                  Active (Available for customer booking)
+                </label>
+              </div>
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2"
+                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2 cursor-pointer"
               >
                 Add Service Offering
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Service Modal */}
+      {editService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-md p-6 text-white shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-up">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#374151]">
+              <h3 className="font-display text-lg font-bold uppercase">
+                Edit Service Offering
+              </h3>
+              <button
+                onClick={() => setEditService(null)}
+                className="text-sm font-bold text-[#9ca3af] hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSaveEditService} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Service Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editService.title}
+                  onChange={(e) =>
+                    setEditService({ ...editService, title: e.target.value })
+                  }
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Subtitle
+                  </label>
+                  <input
+                    type="text"
+                    value={editService.subtitle}
+                    onChange={(e) =>
+                      setEditService({
+                        ...editService,
+                        subtitle: e.target.value,
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Display Price Tag
+                  </label>
+                  <input
+                    type="text"
+                    value={editService.price}
+                    onChange={(e) =>
+                      setEditService({ ...editService, price: e.target.value })
+                    }
+                    placeholder="From Rs 300"
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Numeric Price (Rs)
+                  </label>
+                  <input
+                    type="number"
+                    value={editService.priceNumeric || 300}
+                    onChange={(e) =>
+                      setEditService({
+                        ...editService,
+                        priceNumeric: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Turnaround Time
+                  </label>
+                  <input
+                    type="text"
+                    value={editService.turnaround || "24-48 Hours"}
+                    onChange={(e) =>
+                      setEditService({
+                        ...editService,
+                        turnaround: e.target.value,
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Features (comma separated)
+                </label>
+                <input
+                  type="text"
+                  value={editService.features?.join(", ") || ""}
+                  onChange={(e) =>
+                    setEditService({
+                      ...editService,
+                      features: e.target.value
+                        .split(",")
+                        .map((f) => f.trim())
+                        .filter(Boolean),
+                    })
+                  }
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                />
+              </div>
+              <ImageUploader
+                value={editService.img || ""}
+                onChange={(url) => setEditService({ ...editService, img: url })}
+                folder="zimthreads/services"
+                label="Service Showcase Image"
+                compact
+              />
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={editService.desc}
+                  onChange={(e) =>
+                    setEditService({ ...editService, desc: e.target.value })
+                  }
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white resize-none"
+                  rows={2}
+                />
+              </div>
+              <div className="flex items-center gap-2 p-2 bg-[#111827] border border-[#374151]">
+                <input
+                  type="checkbox"
+                  id="editServiceActive"
+                  checked={editService.active !== false}
+                  onChange={(e) =>
+                    setEditService({
+                      ...editService,
+                      active: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 accent-[#4a5c2d] cursor-pointer"
+                />
+                <label
+                  htmlFor="editServiceActive"
+                  className="text-xs text-gray-300 font-mono cursor-pointer select-none"
+                >
+                  Active (Available for customer booking)
+                </label>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2 cursor-pointer"
+              >
+                Save Service Changes
               </button>
             </form>
           </div>
@@ -3227,11 +3728,53 @@ export default function Dashboard() {
                 <p className="text-white mt-1">
                   {viewOrder.address}, {viewOrder.city}
                 </p>
-                <p className="text-[#86a84e] font-bold mt-1">
-                  Payment Method: {viewOrder.paymentMethod}
-                </p>
+                <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[#374151]">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                      Fulfillment Status
+                    </label>
+                    <select
+                      value={viewOrder.status}
+                      onChange={(e) => {
+                        const newStatus = e.target.value as OrderItem["status"]
+                        updateOrderStatus(viewOrder.id, newStatus)
+                        setViewOrder({ ...viewOrder, status: newStatus })
+                      }}
+                      className="w-full bg-[#1f2937] border border-[#374151] px-2 py-1.5 text-xs text-white uppercase font-bold"
+                    >
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                      Payment ({viewOrder.paymentMethod})
+                    </label>
+                    <select
+                      value={viewOrder.paymentStatus || "Paid"}
+                      onChange={(e) => {
+                        const newPayment = e.target.value as
+                          | "Paid"
+                          | "Pending"
+                          | "Refunded"
+                        updateOrderPaymentStatus(viewOrder.id, newPayment)
+                        setViewOrder({
+                          ...viewOrder,
+                          paymentStatus: newPayment,
+                        })
+                      }}
+                      className="w-full bg-[#1f2937] border border-[#374151] px-2 py-1.5 text-xs text-white uppercase font-bold"
+                    >
+                      <option value="Paid">Paid</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Refunded">Refunded</option>
+                    </select>
+                  </div>
+                </div>
                 {viewOrder.phone && (
-                  <div className="mt-2 pt-2 border-t border-[#374151]/50">
+                  <div className="mt-3 pt-2 border-t border-[#374151]/50">
                     <a
                       href={getWhatsAppUrl(
                         `Hi ${viewOrder.customer}, this is Zimthreads following up on your order #${viewOrder.id}!`,
@@ -3276,7 +3819,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <span className="font-mono font-bold text-white">
-                        {item.quantity} x ${item.price}
+                        {item.quantity} x Rs {item.price}
                       </span>
                     </div>
                   ))}
@@ -3286,17 +3829,134 @@ export default function Dashboard() {
               <div className="flex justify-between items-center p-3 bg-[#111827] border border-[#374151] font-bold text-sm">
                 <span>Grand Total:</span>
                 <span className="text-[#86a84e] font-mono">
-                  ${viewOrder.totalAmount}
+                  Rs {viewOrder.totalAmount}
                 </span>
               </div>
             </div>
 
             <button
               onClick={() => setViewOrder(null)}
-              className="w-full py-2.5 bg-[#374151] hover:bg-[#4b5563] text-white font-bold uppercase tracking-widest text-xs"
+              className="w-full py-2.5 bg-[#374151] hover:bg-[#4b5563] text-white font-bold uppercase tracking-widest text-xs cursor-pointer"
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Inquiry Details & Response Modal */}
+      {viewInquiry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-lg p-6 text-white shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-up">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#374151]">
+              <div>
+                <h3 className="font-display text-lg font-bold uppercase">
+                  Customer Inquiry
+                </h3>
+                <p className="text-xs text-[#9ca3af]">{viewInquiry.date}</p>
+              </div>
+              <button
+                onClick={() => setViewInquiry(null)}
+                className="text-sm font-bold text-[#9ca3af] hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="bg-[#111827] p-3 border border-[#374151]">
+                <p className="font-bold text-[#86a84e] uppercase text-[10px] mb-1">
+                  Customer Information
+                </p>
+                <p className="font-semibold text-white text-sm">
+                  {viewInquiry.name}
+                </p>
+                <p className="text-[#9ca3af]">{viewInquiry.email}</p>
+                <div className="mt-2 pt-2 border-t border-[#374151]/50">
+                  <a
+                    href={`mailto:${viewInquiry.email}?subject=Re: ${encodeURIComponent(viewInquiry.subject)}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-[11px] font-bold uppercase rounded-xs transition-colors"
+                  >
+                    <MailIcon className="w-3.5 h-3.5" />
+                    <span>Open Email Client ↗</span>
+                  </a>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Subject
+                </label>
+                <div className="bg-[#111827] p-2.5 border border-[#374151] text-white font-medium">
+                  {viewInquiry.subject}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Customer Message
+                </label>
+                <div className="bg-[#111827] p-3 border border-[#374151] text-[#d1d5db] leading-relaxed whitespace-pre-wrap">
+                  {viewInquiry.message}
+                </div>
+              </div>
+
+              {viewInquiry.response && (
+                <div className="p-3 bg-[#111827] border-l-2 border-[#86a84e] space-y-1">
+                  <div className="flex justify-between items-center text-[10px] text-[#9ca3af]">
+                    <span className="font-bold text-[#86a84e] uppercase">
+                      Current Saved Response
+                    </span>
+                    <span>
+                      {viewInquiry.respondedAt
+                        ? new Date(viewInquiry.respondedAt).toLocaleDateString()
+                        : ""}
+                    </span>
+                  </div>
+                  <p className="text-gray-200 italic">
+                    "{viewInquiry.response}"
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Staff Resolution / Logged Response
+                </label>
+                <textarea
+                  value={inquiryResponseText}
+                  onChange={(e) => setInquiryResponseText(e.target.value)}
+                  placeholder="Type official response notes or resolution summary..."
+                  rows={3}
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white resize-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    respondToInquiry(viewInquiry.id, inquiryResponseText)
+                    setViewInquiry({
+                      ...viewInquiry,
+                      response: inquiryResponseText,
+                      respondedAt: new Date().toISOString(),
+                      read: true,
+                    })
+                  }}
+                  className="flex-1 py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest text-xs cursor-pointer"
+                >
+                  Save Response & Mark Responded
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewInquiry(null)}
+                  className="px-4 py-2.5 bg-[#374151] hover:bg-[#4b5563] text-white font-bold uppercase tracking-widest text-xs cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -3331,7 +3991,7 @@ export default function Dashboard() {
                   className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                     Category
@@ -3374,6 +4034,24 @@ export default function Dashboard() {
                     className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
                   />
                 </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={blogForm.status}
+                    onChange={(e) =>
+                      setBlogForm({
+                        ...blogForm,
+                        status: e.target.value as "published" | "draft",
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-2 py-2 text-white cursor-pointer"
+                  >
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                </div>
               </div>
               <ImageUploader
                 value={blogForm.img}
@@ -3413,9 +4091,148 @@ export default function Dashboard() {
               </div>
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2"
+                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2 cursor-pointer"
               >
                 Publish Article
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Edit Blog Post Modal */}
+      {editBlog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-xl p-6 text-white shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-up">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#374151]">
+              <h3 className="font-display text-lg font-bold uppercase">
+                Edit Blog Article
+              </h3>
+              <button
+                onClick={() => setEditBlog(null)}
+                className="text-sm font-bold text-[#9ca3af] hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSaveEditBlog} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Article Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editBlog.title}
+                  onChange={(e) =>
+                    setEditBlog({ ...editBlog, title: e.target.value })
+                  }
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editBlog.category}
+                    onChange={(e) =>
+                      setEditBlog({ ...editBlog, category: e.target.value })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Author
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editBlog.author}
+                    onChange={(e) =>
+                      setEditBlog({ ...editBlog, author: e.target.value })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Read Time
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editBlog.readTime}
+                    onChange={(e) =>
+                      setEditBlog({ ...editBlog, readTime: e.target.value })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={editBlog.status || "published"}
+                    onChange={(e) =>
+                      setEditBlog({
+                        ...editBlog,
+                        status: e.target.value as "published" | "draft",
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-2 py-2 text-white cursor-pointer"
+                  >
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                </div>
+              </div>
+              <ImageUploader
+                value={editBlog.img || ""}
+                onChange={(url) => setEditBlog({ ...editBlog, img: url })}
+                folder="zimthreads/blog"
+                label="Article Hero Banner"
+                compact
+              />
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Short Excerpt *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editBlog.excerpt}
+                  onChange={(e) =>
+                    setEditBlog({ ...editBlog, excerpt: e.target.value })
+                  }
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Article Content *
+                </label>
+                <textarea
+                  required
+                  rows={6}
+                  value={editBlog.content}
+                  onChange={(e) =>
+                    setEditBlog({ ...editBlog, content: e.target.value })
+                  }
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white resize-none"
+                  placeholder="Write your article in markdown or plain text..."
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white font-bold uppercase tracking-widest mt-2 cursor-pointer"
+              >
+                Save Article Changes
               </button>
             </form>
           </div>

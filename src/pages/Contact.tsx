@@ -10,6 +10,8 @@ import {
 } from "@/components/Icons"
 import { formatInquiryWhatsAppMessage, getWhatsAppUrl } from "@/lib/whatsapp"
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function Contact() {
   const { addInquiry, settings } = useStore()
   const [form, setForm] = useState({
@@ -19,23 +21,56 @@ export default function Contact() {
     message: "",
   })
   const [sent, setSent] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name || !form.email || !form.subject || !form.message) return
+    if (isSubmitting) return
+    setSubmitError(null)
 
-    addInquiry({
-      name: form.name,
-      email: form.email,
-      subject: form.subject,
-      message: form.message,
-    })
+    const name = form.name.trim()
+    const email = form.email.trim().toLowerCase()
+    const subject = form.subject.trim()
+    const message = form.message.trim()
 
-    setSent(true)
+    if (!name || !email || !subject || !message) {
+      setSubmitError("Please complete all required fields.")
+      return
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      setSubmitError("Please enter a valid email address.")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await addInquiry({
+        name,
+        email,
+        subject,
+        message,
+      })
+
+      setSent(true)
+      setForm({ name: "", email: "", subject: "", message: "" })
+    } catch (err: any) {
+      console.error("Inquiry submission error:", err)
+      setSubmitError(
+        err.message ||
+          "Could not dispatch message. Please try again or reach us via WhatsApp.",
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleSendAnother = () => {
     setForm({ name: "", email: "", subject: "", message: "" })
+    setSubmitError(null)
+    setIsSubmitting(false)
     setSent(false)
   }
 
@@ -161,6 +196,11 @@ export default function Contact() {
             onSubmit={handleSubmit}
             className="space-y-4 sm:space-y-5 bg-white border border-[#e5e1d8] p-6 sm:p-8"
           >
+            {submitError && (
+              <div className="p-3.5 bg-red-50 border border-red-300 text-red-700 text-xs font-medium">
+                {submitError}
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-1">
@@ -221,9 +261,10 @@ export default function Contact() {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 type="submit"
-                className="flex-1 py-4 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors"
+                disabled={isSubmitting}
+                className="flex-1 py-4 bg-[#4a5c2d] text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                SEND MESSAGE
+                {isSubmitting ? "SENDING MESSAGE..." : "SEND MESSAGE"}
               </button>
               <a
                 href="https://wa.me/23055132614"

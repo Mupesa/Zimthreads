@@ -17,10 +17,11 @@ export default function Blog() {
   const [active, setActive] = useState("All")
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
 
+  const publishedPosts = blogPosts.filter((p) => p.status !== "draft")
   const filtered =
     active === "All"
-      ? blogPosts
-      : blogPosts.filter((p) => p.category === active)
+      ? publishedPosts
+      : publishedPosts.filter((p) => p.category === active)
   const [featured, ...rest] = filtered
 
   return (

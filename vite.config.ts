@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
       figmaErrorOverlayReplay(),
       figmaReactRefreshBoundaryFallback(),
       figmaMakeKitPlugin({ storiesGlob: "/src/**/*.stories.{ts,tsx,js,jsx}" }),
+      viteDevStoreApiPlugin(),
     ],
     resolve: {
       alias: {
@@ -410,3 +411,101 @@ function figmaMakeKitPlugin(options: {
     },
   }
 }
+
+/**
+ * Local development middleware for /api/store.
+ * Intercepts /api/store requests during `npm run dev` and delegates
+ * them to the serverless API handler via ssrLoadModule.
+ */
+function viteDevStoreApiPlugin(): Plugin {
+  return {
+    name: "vite-dev-store-api",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url || ""
+        const [pathname] = url.split("?")
+
+        if (pathname !== "/api/store") {
+          return next()
+        }
+
+        // Standard CORS headers
+        res.setHeader("Access-Control-Allow-Origin", "*")
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization",
+        )
+
+        if (req.method === "OPTIONS") {
+          res.statusCode = 204
+          return res.end()
+        }
+
+        try {
+          // Parse query string into req.query
+          const parsedUrl = new URL(url, "http://localhost")
+          ;(req as any).query = Object.fromEntries(
+            parsedUrl.searchParams.entries(),
+          )
+
+          // Parse JSON body for mutation requests
+          if (
+            req.method === "POST" ||
+            req.method === "PUT" ||
+            req.method === "PATCH"
+          ) {
+            const body = await new Promise<any>((resolve, reject) => {
+              let raw = ""
+              req.on("data", (chunk: Buffer | string) => {
+                raw += chunk
+              })
+              req.on("end", () => {
+                if (!raw.trim()) {
+                  return resolve({})
+                }
+                try {
+                  resolve(JSON.parse(raw))
+                } catch {
+                  reject(new Error("Malformed JSON in request body"))
+                }
+              })
+              req.on("error", (err) => reject(err))
+            })
+            ;(req as any).body = body
+          }
+
+          // Augment res with Express/Vercel convenience methods
+          const nodeRes = res as any
+          nodeRes.status = function (statusCode: number) {
+            this.statusCode = statusCode
+            return this
+          }
+          nodeRes.json = function (payload: any) {
+            this.setHeader("Content-Type", "application/json; charset=utf-8")
+            this.end(JSON.stringify(payload))
+            return this
+          }
+
+          // Delegate to api/store.ts via Vite SSR module loader
+          const storeModule = await server.ssrLoadModule("/api/store.ts")
+          const handler = storeModule.default || storeModule
+          await handler(req, res)
+        } catch (err: any) {
+          console.error("[Vite Dev Store API] Error handling request:", err)
+          if (!res.headersSent) {
+            res.statusCode = 500
+            res.setHeader("Content-Type", "application/json; charset=utf-8")
+            res.end(
+              JSON.stringify({
+                error: err.message || "Internal server error in dev API",
+              }),
+            )
+          }
+        }
+      })
+    },
+  }
+}
+

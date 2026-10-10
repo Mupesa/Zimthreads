@@ -7,6 +7,12 @@ import ProductModal from "@/components/ProductModal"
 export default function JacketsCollectionPage() {
   const { products } = useStore()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+
+  const liveSelectedProduct = useMemo(() => {
+    if (!selectedProduct) return null
+    return products.find((p) => p.id === selectedProduct.id) || selectedProduct
+  }, [products, selectedProduct])
+
   const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({})
 
   // Retrieve all products belonging to this collection (excluding hidden pieces)
@@ -259,7 +265,7 @@ export default function JacketsCollectionPage() {
 
       {/* Close-Up Product Modal (Shows Full Description, Sizes, and Add to Bag) */}
       <ProductModal
-        product={selectedProduct}
+        product={liveSelectedProduct}
         onClose={() => setSelectedProduct(null)}
       />
     </main>

@@ -22,6 +22,7 @@ export interface CloudinaryUploadResult {
   bytes: number
   secure_url: string
   cdn_url: string
+  cdnUrl?: string
   created_at?: string
 }
 
@@ -87,7 +88,7 @@ async function computeSha1(text: string): Promise<string> {
  */
 export async function uploadImageToCloudinary(
   file: File | Blob,
-  options: { folder?: string tags?: string[] } = {},
+  options: { folder?: string; tags?: string[] } = {},
 ): Promise<CloudinaryUploadResult> {
   const config = getCloudinaryConfig()
 
@@ -152,6 +153,7 @@ export async function uploadImageToCloudinary(
     bytes: data.bytes,
     secure_url: data.secure_url,
     cdn_url: cdnUrl,
+    cdnUrl: cdnUrl,
     created_at: data.created_at,
   }
 }

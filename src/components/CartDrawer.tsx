@@ -15,6 +15,8 @@ import {
   openWhatsApp,
 } from "@/lib/whatsapp"
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function CartDrawer() {
   const {
     cart,
@@ -38,6 +40,8 @@ export default function CartDrawer() {
     notes: "",
   })
   const [orderComplete, setOrderComplete] = useState<OrderItem | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   if (!isCartOpen) return null
 
@@ -49,46 +53,74 @@ export default function CartDrawer() {
     (cartTotal / settings.freeDeliveryThreshold) * 100,
   )
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.phone ||
-      !formData.address
-    )
+    if (isSubmitting) return
+    setCheckoutError(null)
+
+    const name = formData.name.trim()
+    const email = formData.email.trim().toLowerCase()
+    const phone = formData.phone.trim()
+    const address = formData.address.trim()
+
+    if (!name || !email || !phone || !address) {
+      setCheckoutError("Please fill in all required fields.")
       return
+    }
 
-    const order = createOrder({
-      customer: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      address: formData.address,
-      city: formData.city,
-      paymentMethod: formData.paymentMethod,
-    })
+    if (!EMAIL_REGEX.test(email)) {
+      setCheckoutError("Please enter a valid email address.")
+      return
+    }
 
-    setOrderComplete(order)
+    if (cart.length === 0) {
+      setCheckoutError("Your shopping bag is empty.")
+      return
+    }
 
-    // Automatically dispatch order receipt via WhatsApp
-    const waText = formatOrderWhatsAppMessage({
-      id: order.id,
-      customer: order.customer,
-      phone: order.phone,
-      email: order.email,
-      address: order.address,
-      city: order.city,
-      paymentMethod: order.paymentMethod,
-      items: order.items,
-      totalAmount: order.totalAmount,
-    })
-    openWhatsApp(waText)
+    setIsSubmitting(true)
+
+    try {
+      const order = await createOrder({
+        customer: name,
+        email,
+        phone,
+        address,
+        city: formData.city,
+        paymentMethod: formData.paymentMethod,
+      })
+
+      setOrderComplete(order)
+
+      // Automatically dispatch order receipt via WhatsApp
+      const waText = formatOrderWhatsAppMessage({
+        id: order.id,
+        customer: order.customer,
+        phone: order.phone,
+        email: order.email,
+        address: order.address,
+        city: order.city,
+        paymentMethod: order.paymentMethod,
+        items: order.items,
+        totalAmount: order.totalAmount,
+      })
+      openWhatsApp(waText)
+    } catch (err: any) {
+      console.error("Order submission error:", err)
+      setCheckoutError(
+        err.message || "Failed to place order. Please try again.",
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleResetCheckout = () => {
     setOrderComplete(null)
     setCheckoutOpen(false)
     setIsCartOpen(false)
+    setCheckoutError(null)
+    setIsSubmitting(false)
     setFormData({
       name: "",
       email: "",
@@ -398,6 +430,11 @@ export default function CartDrawer() {
                   </div>
 
                   <form onSubmit={handleCheckoutSubmit} className="space-y-4">
+                    {checkoutError && (
+                      <div className="p-3 bg-red-50 border border-red-300 text-red-700 text-xs font-medium">
+                        {checkoutError}
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-1">
@@ -551,18 +588,26 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={() => setCheckoutOpen(false)}
-                        className="flex-1 py-3 border border-[#e5e1d8] text-[#6b7280] text-[10px] font-bold tracking-widest uppercase hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
+                        disabled={isSubmitting}
+                        className="flex-1 py-3 border border-[#e5e1d8] text-[#6b7280] text-[10px] font-bold tracking-widest uppercase hover:border-[#1a1a1a] hover:text-[#1a1a1a] disabled:opacity-40"
                       >
                         BACK
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] transition-colors flex items-center justify-center gap-1.5"
+                        disabled={isSubmitting}
+                        className="flex-1 py-3 bg-[#4a5c2d] text-[#f5f2ec] text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
                       >
-                        <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
-                        <span>
-                          ORDER VIA WHATSAPP (Rs {grandTotal.toFixed(0)})
-                        </span>
+                        {isSubmitting ? (
+                          <span>PLACING ORDER...</span>
+                        ) : (
+                          <>
+                            <WhatsAppIcon className="w-3.5 h-3.5 text-[#f5f2ec]" />
+                            <span>
+                              ORDER VIA WHATSAPP (Rs {grandTotal.toFixed(0)})
+                            </span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>

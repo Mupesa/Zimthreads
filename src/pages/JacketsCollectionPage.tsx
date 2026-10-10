@@ -3,12 +3,11 @@ import { Link } from "@/router"
 import { useStore } from "@/store/StoreContext"
 import { Product, racingJacketsCollection } from "@/store/seedData"
 import ProductModal from "@/components/ProductModal"
-import { BagIcon, CheckIcon, SparklesIcon } from "@/components/Icons"
 
 export default function JacketsCollectionPage() {
-  const { products, addToCart, showToast } = useStore()
+  const { products } = useStore()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({})
+  const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({})
 
   // Retrieve all products belonging to this collection
   const jacketProducts = useMemo(() => {
@@ -30,19 +29,11 @@ export default function JacketsCollectionPage() {
     return Math.max(...jacketProducts.map((p) => p.price))
   }, [jacketProducts])
 
-  const handleSelectSize = (productId: string, size: string) => {
-    setSelectedSizes((prev) => ({ ...prev, [productId]: size }))
-  }
-
-  const handleQuickAdd = (p: Product) => {
-    const size =
-      selectedSizes[p.id] || (p.sizes && p.sizes.length > 0 ? p.sizes[0] : "L")
-    addToCart(p, 1, size)
-    showToast(
-      "Added to Bag",
-      `${p.name} (${size}) added to your bag at Rs ${p.price}.`,
-      "success",
-    )
+  const toggleDescription = (id: string) => {
+    setExpandedDescIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }))
   }
 
   return (
@@ -87,10 +78,10 @@ export default function JacketsCollectionPage() {
               Vintage Motorsport & Retro Racing Jackets
             </p>
             <p className="mt-5 text-sm sm:text-base text-[#d1d5db] leading-relaxed max-w-2xl">
-              An archival collection of 14 iconic vintage motorsport racing
-              garments. Preserved in authentic 90s boxy racing silhouettes,
-              each piece features genuine heavy cowhide leathers, high-stitch
-              embroidered sponsor patches, and technical satin paddock tourers.
+              An archival collection of 14 iconic vintage motorsport racing garments.
+              Preserved in authentic 90s boxy racing silhouettes with heavy cowhide
+              leathers and technical paddock twills. Tap any piece to view its craftsmanship
+              story and sizing.
             </p>
 
             {/* Collection Metadata Strip */}
@@ -104,42 +95,27 @@ export default function JacketsCollectionPage() {
               <span className="bg-[#1f2937] px-3.5 py-1.5 border border-[#374151] text-white">
                 Sizes S to XXL
               </span>
-              <span className="bg-[#1f2937] px-3.5 py-1.5 border border-[#374151] text-white">
-                Continuous Editorial Lookbook
-              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===================== CONTINUOUS EDITORIAL LOOKBOOK STREAM ===================== */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20 lg:space-y-28">
-        {jacketProducts.map((p, index) => {
-          const activeSize =
-            selectedSizes[p.id] ||
-            (p.sizes && p.sizes.length > 0 ? p.sizes[0] : "L")
-          const isEven = index % 2 === 0
-          const editionNumber = String(index + 1).padStart(2, "0")
+      {/* ===================== JACKETS GALLERY GRID ===================== */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {jacketProducts.map((p, index) => {
+            const editionNumber = String(index + 1).padStart(2, "0")
+            const isExpanded = expandedDescIds[p.id]
 
-          return (
-            <article
-              key={p.id}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center bg-white border border-[#e5e1d8] p-6 sm:p-8 lg:p-12 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
-            >
-              {/* Giant Background Watermark Number */}
-              <div className="absolute right-4 bottom-0 text-[10rem] font-display font-black text-black/[0.03] select-none pointer-events-none leading-none">
-                {editionNumber}
-              </div>
-
-              {/* Showcase Image Column */}
-              <div
-                className={`lg:col-span-6 ${
-                  isEven ? "lg:order-1" : "lg:order-2"
-                }`}
+            return (
+              <article
+                key={p.id}
+                className="group bg-white border border-[#e5e1d8] overflow-hidden hover:border-[#4a5c2d] hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
               >
+                {/* Clickable Image Area */}
                 <div
                   onClick={() => setSelectedProduct(p)}
-                  className="aspect-square bg-[#f5f2ec] overflow-hidden relative cursor-pointer group border border-[#e5e1d8]"
+                  className="aspect-[4/5] bg-[#f5f2ec] overflow-hidden relative cursor-pointer"
                 >
                   <img
                     src={p.img}
@@ -149,133 +125,91 @@ export default function JacketsCollectionPage() {
 
                   {/* Badge */}
                   {p.badge && (
-                    <span className="absolute top-4 left-4 bg-[#1a1a1a] text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 shadow-md z-10">
+                    <span className="absolute top-3 left-3 bg-[#1a1a1a] text-white text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 shadow-md z-10">
                       {p.badge}
                     </span>
                   )}
 
+                  {/* Edition Tag */}
+                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs text-[#1a1a1a] text-[9px] font-mono font-bold px-2 py-0.5 shadow-xs z-10">
+                    #{editionNumber}
+                  </span>
+
                   {/* Stock Notice */}
-                  {p.stock <= 8 && p.stock > 0 && (
-                    <span className="absolute bottom-4 right-4 bg-amber-600 text-white text-[9px] font-bold uppercase px-2.5 py-0.5 z-10">
-                      Limited · {p.stock} In Stock
+                  {p.stock <= 5 && p.stock > 0 && (
+                    <span className="absolute bottom-3 right-3 bg-amber-600 text-white text-[8px] sm:text-[9px] font-bold uppercase px-2 py-0.5 z-10">
+                      Low Stock · {p.stock} Left
                     </span>
                   )}
 
-                  {/* Zoom Inspect Overlay */}
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="bg-white/95 backdrop-blur-xs text-[#1a1a1a] text-xs font-bold uppercase tracking-widest px-4 py-2 shadow-lg">
-                      Inspect Details ↗
+                  {/* Hover Inspect Overlay */}
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
+                    <span className="bg-white/95 backdrop-blur-xs text-[#1a1a1a] text-[10px] sm:text-xs font-bold uppercase tracking-widest px-3.5 py-1.5 shadow-md">
+                      View Description & Sizes ↗
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Storytelling & Action Column */}
-              <div
-                className={`lg:col-span-6 flex flex-col justify-between space-y-6 ${
-                  isEven ? "lg:order-2" : "lg:order-1"
-                }`}
-              >
-                <div>
-                  {/* Edition Index & Category Tag */}
-                  <div className="flex items-center justify-between gap-4 mb-2">
-                    <span className="text-[11px] font-mono font-bold tracking-widest text-[#4a5c2d] uppercase">
-                      EDITION {editionNumber} / {jacketProducts.length}
-                    </span>
-                    <span className="text-[10px] font-mono uppercase text-[#9ca3af] tracking-wider">
-                      {p.tag || "Archive Selection"}
-                    </span>
-                  </div>
-
-                  {/* Jacket Title */}
-                  <h2
-                    onClick={() => setSelectedProduct(p)}
-                    className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold uppercase text-[#1a1a1a] leading-tight hover:text-[#4a5c2d] transition-colors cursor-pointer"
-                  >
-                    {p.name}
-                  </h2>
-
-                  {/* Price Tag */}
-                  <div className="mt-3 flex items-baseline gap-2">
-                    <span className="text-xs font-bold uppercase tracking-widest text-[#9ca3af]">
-                      Price:
-                    </span>
-                    <span className="font-display text-2xl sm:text-3xl font-extrabold text-[#1a1a1a]">
-                      Rs {p.price}
-                    </span>
-                  </div>
-
-                  {/* Detailed Craftsmanship Notes */}
-                  <div className="mt-4 pt-4 border-t border-[#f5f2ec]">
-                    <p className="text-xs sm:text-sm text-[#4b5563] leading-relaxed">
-                      {p.description}
-                    </p>
-                  </div>
-
-                  {/* Silhouette and Fit Spec Note */}
-                  <div className="mt-4 p-3 bg-[#f9fafb] border border-[#e5e1d8] flex items-center gap-2 text-xs text-[#6b7280]">
-                    <span className="font-bold uppercase tracking-wider text-[#1a1a1a]">
-                      Silhouette:
-                    </span>
-                    <span>Authentic 90s Boxy Pit Fit · Drop Shoulder</span>
-                  </div>
-                </div>
-
-                {/* Purchasing Section */}
-                <div className="pt-6 border-t border-[#e5e1d8] space-y-4">
-                  {/* Size Selector */}
-                  {p.sizes && p.sizes.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="font-bold uppercase tracking-wider text-[#6b7280]">
-                          Select Size:
-                        </span>
-                        <span className="font-bold text-[#1a1a1a]">
-                          Size {activeSize}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {p.sizes.map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => handleSelectSize(p.id, s)}
-                            className={`w-10 h-10 text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center ${
-                              activeSize === s
-                                ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
-                                : "border-[#e5e1d8] text-[#1a1a1a] hover:border-[#1a1a1a] bg-white"
-                            }`}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
+                {/* Product Info: Name and Price */}
+                <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#6b7280] uppercase tracking-wider mb-1.5">
+                      <span>Edition {editionNumber} / {jacketProducts.length}</span>
+                      <span>{p.sizes ? `${p.sizes.length} Sizes (S–XXL)` : "Archival"}</span>
                     </div>
-                  )}
 
-                  {/* Actions */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <button
-                      onClick={() => handleQuickAdd(p)}
-                      disabled={p.stock <= 0}
-                      className="flex-1 py-3.5 px-6 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-extrabold tracking-widest uppercase transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <BagIcon className="w-4 h-4" />
-                      <span>+ ADD TO BAG · RS {p.price}</span>
-                    </button>
-
-                    <button
+                    {/* Jacket Name */}
+                    <h2
                       onClick={() => setSelectedProduct(p)}
-                      className="py-3.5 px-5 bg-white border border-[#1a1a1a] hover:bg-black hover:text-white text-[#1a1a1a] text-xs font-bold tracking-widest uppercase transition-colors cursor-pointer"
+                      className="font-display text-base sm:text-lg font-extrabold uppercase text-[#1a1a1a] leading-tight hover:text-[#4a5c2d] transition-colors cursor-pointer mb-2 line-clamp-2"
+                      title={p.name}
                     >
-                      Inspect
+                      {p.name}
+                    </h2>
+
+                    {/* Price and Inline Description Trigger */}
+                    <div className="flex items-baseline justify-between pt-1">
+                      <span className="font-display text-lg sm:text-xl font-bold text-[#1a1a1a]">
+                        Rs {p.price}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleDescription(p.id)
+                        }}
+                        className="text-[10px] font-bold uppercase tracking-wider text-[#4a5c2d] hover:text-[#1a1a1a] transition-colors cursor-pointer"
+                      >
+                        {isExpanded ? "Hide Description ▴" : "Description ▾"}
+                      </button>
+                    </div>
+
+                    {/* Expandable Description when toggled */}
+                    {isExpanded && (
+                      <div className="mt-3 pt-3 border-t border-[#f5f2ec] text-xs text-[#6b7280] leading-relaxed">
+                        <p className="mb-2 whitespace-pre-line">{p.description}</p>
+                        <div className="text-[10px] font-mono text-[#9ca3af] uppercase">
+                          Silhouette: Authentic 90s Boxy Pit Fit
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Primary Press Action */}
+                  <div className="pt-4 mt-3 border-t border-[#f5f2ec]">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProduct(p)}
+                      className="w-full py-2.5 bg-[#1a1a1a] hover:bg-[#4a5c2d] text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-colors cursor-pointer text-center"
+                    >
+                      View Details & Sizes
                     </button>
                   </div>
                 </div>
-              </div>
-            </article>
-          )
-        })}
+              </article>
+            )
+          })}
+        </div>
       </section>
 
       {/* ===================== FOOTER ATELIER NOTES ===================== */}
@@ -287,8 +221,7 @@ export default function JacketsCollectionPage() {
             </h3>
             <p className="text-xs text-[#6b7280] leading-relaxed">
               Cut in authentic vintage pit-lane proportions with structured chest width
-              and slightly cropped hem. Order your true size for tailored structure, or
-              size up for an oversized drape.
+              and slightly cropped hem. True to size for tailored boxy structure.
             </p>
           </div>
 
@@ -298,8 +231,7 @@ export default function JacketsCollectionPage() {
             </h3>
             <p className="text-xs text-[#6b7280] leading-relaxed">
               Crafted with heavy top-grain cowhide leather, heavy satin twill, and
-              high-density embroidered sponsor heraldry. Fitted with heavy-gauge YKK
-              zippers and quilted diamond interior lining.
+              high-density embroidered sponsor heraldry with quilted diamond linings.
             </p>
           </div>
 
@@ -309,7 +241,7 @@ export default function JacketsCollectionPage() {
             </h3>
             <p className="text-xs text-[#6b7280] leading-relaxed">
               Specialist leather conditioning and dry-cleaning recommended. Zimthreads
-              provides complimentary sneaker laundry consultations and garment care advice.
+              provides complimentary footwear and garment care advice.
             </p>
           </div>
         </div>
@@ -324,7 +256,7 @@ export default function JacketsCollectionPage() {
         </div>
       </section>
 
-      {/* Close-Up Inspection Modal */}
+      {/* Close-Up Product Modal (Shows Full Description, Sizes, and Add to Bag) */}
       <ProductModal
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}

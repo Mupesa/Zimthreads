@@ -68,9 +68,9 @@
 | M3 | Admin Dashboard Full CRUD Persistence | Wire all 8 desks in `Dashboard.tsx` to Neon DB, batch pricing/stock for 14 jackets, hard refresh persistence | M2 | DONE |
 | M4 | Automated E2E Verification Suite | Build and run automated test script executing live Neon DB CRUD for all entities | M3 | DONE |
 | M5 | Production Build & Final Acceptance | `npm run build`, final forensic audit, and delivery victory report | M4 | DONE |
-| M6 | Data Model & Storefront Sizes & Price Tiers | Types (`PriceOption`), `prod-5` sizes (`2XL`, `XXL`), `ProductModal` & `Shop` size/price selectors with disabled states | M5 | IN_PROGRESS |
-| M7 | Admin CMS Size Chips & Price Tiers Config | Dashboard Add/Edit product modals with preset chips, custom sizes, price options & active toggles with Neon DB sync | M6 | PLANNED |
-| M8 | Automated E2E Verification, Build & Git Push | E2E automated test script for sizes & prices, clean Vite build, git commit & push under Mupesa | M7 | PLANNED |
+| M6 | Data Model & Storefront Sizes & Price Tiers | Types (`PriceOption`), `prod-5` sizes (`2XL`, `XXL`), `ProductModal` & `Shop` size/price selectors with disabled states | M5 | DONE |
+| M7 | Admin CMS Size Chips & Price Tiers Config | Dashboard Add/Edit product modals with preset chips, custom sizes, price options & active toggles with Neon DB sync | M6 | DONE |
+| M8 | Automated E2E Verification, Build & Git Push | E2E automated test script for sizes & prices, clean Vite build, git commit & push under Mupesa | M7 | IN_PROGRESS |
 
 ## Interface Contracts
 ### Client ↔ `/api/store`

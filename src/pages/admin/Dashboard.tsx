@@ -160,6 +160,7 @@ export default function Dashboard() {
     priceOptions: [] as PriceOption[],
     newPriceLabel: "",
     newPriceValue: "",
+    newPriceActive: true,
     featured: false,
     hidden: false,
   })
@@ -168,6 +169,19 @@ export default function Dashboard() {
   const [editProductCustomSize, setEditProductCustomSize] = useState("")
   const [editProductPriceLabel, setEditProductPriceLabel] = useState("")
   const [editProductPriceValue, setEditProductPriceValue] = useState("")
+  const [editProductPriceActive, setEditProductPriceActive] = useState(true)
+
+  const openEditProductModal = (product: Product) => {
+    setEditProduct({
+      ...product,
+      sizes: Array.isArray(product.sizes) ? [...product.sizes] : [],
+      priceOptions: Array.isArray(product.priceOptions) ? [...product.priceOptions] : [],
+    })
+    setEditProductCustomSize("")
+    setEditProductPriceLabel("")
+    setEditProductPriceValue("")
+    setEditProductPriceActive(true)
+  }
 
   const [serviceForm, setServiceForm] = useState({
     title: "",
@@ -441,6 +455,7 @@ export default function Dashboard() {
       priceOptions: [],
       newPriceLabel: "",
       newPriceValue: "",
+      newPriceActive: true,
       featured: false,
       hidden: false,
     })
@@ -449,7 +464,20 @@ export default function Dashboard() {
   const handleSaveEditProduct = (e: React.FormEvent) => {
     e.preventDefault()
     if (!editProduct) return
-    updateProduct(editProduct.id, editProduct)
+    const sizesArray =
+      Array.isArray(editProduct.sizes) && editProduct.sizes.length > 0
+        ? editProduct.sizes
+        : []
+    const priceOptionsArray =
+      Array.isArray(editProduct.priceOptions) && editProduct.priceOptions.length > 0
+        ? editProduct.priceOptions
+        : []
+
+    updateProduct(editProduct.id, {
+      ...editProduct,
+      sizes: sizesArray,
+      priceOptions: priceOptionsArray,
+    })
     setEditProduct(null)
   }
 
@@ -1861,7 +1889,7 @@ export default function Dashboard() {
                                       </button>
                                     )}
                                     <button
-                                      onClick={() => setEditProduct(j)}
+                                      onClick={() => openEditProductModal(j)}
                                       className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
                                     >
                                       Edit Full
@@ -2019,7 +2047,7 @@ export default function Dashboard() {
                                 {p.hidden ? "Unhide" : "Hide"}
                               </button>
                               <button
-                                onClick={() => setEditProduct(p)}
+                                onClick={() => openEditProductModal(p)}
                                 className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
                               >
                                 Edit
@@ -3129,7 +3157,7 @@ export default function Dashboard() {
       {/* 2. New Product Modal */}
       {newProductModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-md p-6 text-white shadow-2xl animate-scale-up">
+          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-md p-6 text-white shadow-2xl animate-scale-up max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#374151]">
               <h3 className="font-display text-lg font-bold uppercase">
                 Add New Product
@@ -3261,7 +3289,7 @@ export default function Dashboard() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Custom size (e.g. 3XL, 42 EU, 10 US)"
+                    placeholder="Custom size (e.g. 3XL, 42 EU, Kids)"
                     value={productForm.customSizeInput}
                     onChange={(e) =>
                       setProductForm({ ...productForm, customSizeInput: e.target.value })
@@ -3295,7 +3323,7 @@ export default function Dashboard() {
                     }}
                     className="px-3 py-1 bg-[#374151] hover:bg-[#4b5563] text-white text-[10px] font-bold uppercase cursor-pointer"
                   >
-                    Add
+                    + Add Size
                   </button>
                 </div>
 
@@ -3338,17 +3366,17 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="text"
-                    placeholder="Tier label (e.g. Standard, Member)"
-                    value={productForm.newPriceLabel}
-                    onChange={(e) =>
-                      setProductForm({ ...productForm, newPriceLabel: e.target.value })
-                    }
-                    className="bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
-                  />
-                  <div className="flex gap-1.5">
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      placeholder="Tier label (e.g. Standard, Member)"
+                      value={productForm.newPriceLabel}
+                      onChange={(e) =>
+                        setProductForm({ ...productForm, newPriceLabel: e.target.value })
+                      }
+                      className="bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                    />
                     <input
                       type="number"
                       placeholder="Price (Rs)"
@@ -3358,6 +3386,27 @@ export default function Dashboard() {
                       }
                       className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
                     />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          newPriceActive: !prev.newPriceActive,
+                        }))
+                      }
+                      className={`px-2.5 py-1 text-[10px] font-extrabold uppercase border cursor-pointer transition-colors flex items-center gap-1.5 ${
+                        productForm.newPriceActive
+                          ? "bg-emerald-950 border-emerald-500 text-emerald-300"
+                          : "bg-amber-950/60 border-amber-600/70 text-amber-300"
+                      }`}
+                      title="Set active state for new price tier"
+                    >
+                      {productForm.newPriceActive ? "✓ Active Tier" : "✕ Inactive / Deselected Tier"}
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => {
@@ -3367,19 +3416,20 @@ export default function Dashboard() {
                             id: `tier-${Date.now()}`,
                             label: productForm.newPriceLabel.trim() || `Tier Rs ${price}`,
                             price,
-                            active: true,
+                            active: productForm.newPriceActive,
                           }
                           setProductForm({
                             ...productForm,
                             priceOptions: [...productForm.priceOptions, newOpt],
                             newPriceLabel: "",
                             newPriceValue: "",
+                            newPriceActive: true,
                           })
                         }
                       }}
-                      className="px-2.5 py-1 bg-[#86a84e] text-[#141715] text-[10px] font-extrabold uppercase cursor-pointer"
+                      className="px-3 py-1 bg-[#86a84e] hover:bg-[#97bd58] text-[#141715] text-[10px] font-extrabold uppercase cursor-pointer"
                     >
-                      + Add
+                      + Add Price Tier
                     </button>
                   </div>
                 </div>
@@ -3393,7 +3443,7 @@ export default function Dashboard() {
                         className={`flex items-center justify-between p-2 border transition-colors ${
                           opt.active
                             ? "bg-[#1f2937] border-[#374151]"
-                            : "bg-red-950/20 border-red-900/50 opacity-60"
+                            : "bg-amber-950/20 border-amber-900/50 opacity-75"
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -3405,13 +3455,14 @@ export default function Dashboard() {
                               )
                               setProductForm({ ...productForm, priceOptions: updated })
                             }}
-                            className={`px-2 py-0.5 text-[9px] font-extrabold uppercase border cursor-pointer ${
+                            className={`px-2 py-0.5 text-[9px] font-extrabold uppercase border cursor-pointer transition-colors ${
                               opt.active
                                 ? "bg-emerald-950 border-emerald-500 text-emerald-300"
-                                : "bg-neutral-800 border-neutral-600 text-neutral-400 line-through"
+                                : "bg-amber-950/70 border-amber-600/70 text-amber-300"
                             }`}
+                            title="Toggle active / deselected"
                           >
-                            {opt.active ? "Active" : "Deselected / Greyed"}
+                            {opt.active ? "✓ Active" : "✕ Inactive / Deselected"}
                           </button>
                           <span
                             className={`text-xs font-bold ${
@@ -3429,7 +3480,7 @@ export default function Dashboard() {
                               priceOptions: productForm.priceOptions.filter((_, i) => i !== idx),
                             })
                           }}
-                          className="text-red-400 hover:text-red-300 text-xs px-1 cursor-pointer"
+                          className="text-red-400 hover:text-red-300 text-xs px-1.5 py-0.5 cursor-pointer font-bold"
                           title="Delete price option"
                         >
                           ✕
@@ -3496,7 +3547,7 @@ export default function Dashboard() {
       {/* 3. Edit Product Modal */}
       {editProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-md p-6 text-white shadow-2xl animate-scale-up">
+          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-md p-6 text-white shadow-2xl animate-scale-up max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#374151]">
               <h3 className="font-display text-lg font-bold uppercase">
                 Edit Product
@@ -3621,7 +3672,7 @@ export default function Dashboard() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Custom size (e.g. 3XL, 42 EU, 10 US)"
+                    placeholder="Custom size (e.g. 3XL, 42 EU, Kids)"
                     value={editProductCustomSize}
                     onChange={(e) => setEditProductCustomSize(e.target.value)}
                     onKeyDown={(e) => {
@@ -3655,7 +3706,7 @@ export default function Dashboard() {
                     }}
                     className="px-3 py-1 bg-[#374151] hover:bg-[#4b5563] text-white text-[10px] font-bold uppercase cursor-pointer"
                   >
-                    Add
+                    + Add Size
                   </button>
                 </div>
 
@@ -3698,15 +3749,15 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="text"
-                    placeholder="Tier label (e.g. Standard, Member)"
-                    value={editProductPriceLabel}
-                    onChange={(e) => setEditProductPriceLabel(e.target.value)}
-                    className="bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
-                  />
-                  <div className="flex gap-1.5">
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      placeholder="Tier label (e.g. Standard, Member)"
+                      value={editProductPriceLabel}
+                      onChange={(e) => setEditProductPriceLabel(e.target.value)}
+                      className="bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                    />
                     <input
                       type="number"
                       placeholder="Price (Rs)"
@@ -3714,6 +3765,22 @@ export default function Dashboard() {
                       onChange={(e) => setEditProductPriceValue(e.target.value)}
                       className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
                     />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditProductPriceActive((prev) => !prev)}
+                      className={`px-2.5 py-1 text-[10px] font-extrabold uppercase border cursor-pointer transition-colors flex items-center gap-1.5 ${
+                        editProductPriceActive
+                          ? "bg-emerald-950 border-emerald-500 text-emerald-300"
+                          : "bg-amber-950/60 border-amber-600/70 text-amber-300"
+                      }`}
+                      title="Set active state for new price tier"
+                    >
+                      {editProductPriceActive ? "✓ Active Tier" : "✕ Inactive / Deselected Tier"}
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => {
@@ -3723,7 +3790,7 @@ export default function Dashboard() {
                             id: `tier-${Date.now()}`,
                             label: editProductPriceLabel.trim() || `Tier Rs ${price}`,
                             price,
-                            active: true,
+                            active: editProductPriceActive,
                           }
                           const existingOpts = editProduct.priceOptions || []
                           setEditProduct({
@@ -3732,11 +3799,12 @@ export default function Dashboard() {
                           })
                           setEditProductPriceLabel("")
                           setEditProductPriceValue("")
+                          setEditProductPriceActive(true)
                         }
                       }}
-                      className="px-2.5 py-1 bg-[#86a84e] text-[#141715] text-[10px] font-extrabold uppercase cursor-pointer"
+                      className="px-3 py-1 bg-[#86a84e] hover:bg-[#97bd58] text-[#141715] text-[10px] font-extrabold uppercase cursor-pointer"
                     >
-                      + Add
+                      + Add Price Tier
                     </button>
                   </div>
                 </div>
@@ -3750,7 +3818,7 @@ export default function Dashboard() {
                         className={`flex items-center justify-between p-2 border transition-colors ${
                           opt.active
                             ? "bg-[#1f2937] border-[#374151]"
-                            : "bg-red-950/20 border-red-900/50 opacity-60"
+                            : "bg-amber-950/20 border-amber-900/50 opacity-75"
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -3765,13 +3833,14 @@ export default function Dashboard() {
                                 priceOptions: updated,
                               })
                             }}
-                            className={`px-2 py-0.5 text-[9px] font-extrabold uppercase border cursor-pointer ${
+                            className={`px-2 py-0.5 text-[9px] font-extrabold uppercase border cursor-pointer transition-colors ${
                               opt.active
                                 ? "bg-emerald-950 border-emerald-500 text-emerald-300"
-                                : "bg-neutral-800 border-neutral-600 text-neutral-400 line-through"
+                                : "bg-amber-950/70 border-amber-600/70 text-amber-300"
                             }`}
+                            title="Toggle active / deselected"
                           >
-                            {opt.active ? "Active" : "Deselected / Greyed"}
+                            {opt.active ? "✓ Active" : "✕ Inactive / Deselected"}
                           </button>
                           <span
                             className={`text-xs font-bold ${
@@ -3789,7 +3858,7 @@ export default function Dashboard() {
                               priceOptions: (editProduct.priceOptions || []).filter((_, i) => i !== idx),
                             })
                           }}
-                          className="text-red-400 hover:text-red-300 text-xs px-1 cursor-pointer"
+                          className="text-red-400 hover:text-red-300 text-xs px-1.5 py-0.5 cursor-pointer font-bold"
                           title="Delete price option"
                         >
                           ✕

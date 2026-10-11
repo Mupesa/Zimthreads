@@ -387,7 +387,178 @@ async function runEndToEndVerification() {
     logStep(`Catalog baseline confirmed: ${baseline.products.length} total products, exactly 14 Archival Racing Jackets`)
     passCount++
 
-    // 3.2 Add Test Product via Admin Sync
+    // 3.2 Milestone 8 R1: Verify prod-5 ('LLICYLAND' Graphic Boxy Tee) contains all 6 sizes
+    {
+      const tStart = performance.now()
+      const sqlRow = await queryDbKey("products")
+      assert(sqlRow && Array.isArray(sqlRow.data), "Products must exist in Neon DB")
+      const prod5 = sqlRow.data.find((p) => p.id === "prod-5")
+      assert(prod5, "Product prod-5 ('LLICYLAND' Graphic Boxy Tee) must exist in Neon DB catalog")
+      assert(Array.isArray(prod5.sizes), "prod-5.sizes must be an array")
+      assert(prod5.sizes.length >= 6, `prod-5 must contain at least 6 sizes, got ${prod5.sizes.length}`)
+      const requiredSizes = ["S", "M", "L", "XL", "2XL", "XXL"]
+      for (const sz of requiredSizes) {
+        assert(prod5.sizes.includes(sz), `prod-5.sizes must include size '${sz}'`)
+      }
+      logStep(`Milestone 8 R1: prod-5 contains all 6 sizes [${requiredSizes.join(", ")}] in live Neon DB`, performance.now() - tStart)
+      passCount++
+    }
+
+    // 3.3 Milestone 8 R2: Admin Configurable Sizes (Preset Chips + Custom Size Entries) Persistence & Readback
+    const m8TestProductId = `prod-e2e-m8-sizes-${Date.now().toString().slice(-4)}`
+    const presetAndCustomSizes = ["S", "M", "L", "XL", "2XL", "XXL", "3XL", "One Size", "Custom-Atelier-Fit"]
+    const m8TestProduct = {
+      id: m8TestProductId,
+      name: "Zimthreads Milestone 8 Custom Config Boxy Hoodie",
+      category: "Apparel",
+      price: 1850,
+      stock: 25,
+      sizes: presetAndCustomSizes,
+      img: "https://res.cloudinary.com/pwranjbq/image/upload/v1790345314/zimthreads/hoodie.jpg",
+      alt: "M8 Custom Sizes Hoodie",
+      description: "Testing admin configurable sizes with preset chips and custom entries.",
+      featured: false,
+      hidden: false,
+    }
+
+    {
+      const tStart = performance.now()
+      const currentProducts = (await queryDbKey("products")).data
+      const updatedProducts = [m8TestProduct, ...currentProducts]
+      await callApi("POST", {
+        action: "sync",
+        key: "products",
+        data: updatedProducts,
+        adminToken: "Zimthreads200",
+      })
+
+      // Read back via direct SQL and API GET
+      const freshSql = await queryDbKey("products")
+      const foundInSql = freshSql.data.find((p) => p.id === m8TestProductId)
+      assert(foundInSql, `Test product ${m8TestProductId} must be present in Neon DB`)
+      assert(Array.isArray(foundInSql.sizes), "foundInSql.sizes must be an array")
+      assert(
+        JSON.stringify(foundInSql.sizes) === JSON.stringify(presetAndCustomSizes),
+        `Sizes in Neon DB must match preset chips + custom entries with 100% fidelity. Expected ${JSON.stringify(presetAndCustomSizes)}, got ${JSON.stringify(foundInSql.sizes)}`,
+      )
+
+      // Also verify via API GET
+      const apiGet = await callApi("GET", null, { key: "products" })
+      const foundInApi = apiGet.data.find((p) => p.id === m8TestProductId)
+      assert(foundInApi, "Test product must be present in GET /api/store?key=products")
+      assert(
+        JSON.stringify(foundInApi.sizes) === JSON.stringify(presetAndCustomSizes),
+        "Sizes returned by API must match preset chips + custom entries",
+      )
+
+      // Mutate sizes via admin update_entity: add additional custom size entry
+      const mutatedSizes = [...presetAndCustomSizes, "Bespoke-44EU"]
+      await callApi("POST", {
+        action: "update_entity",
+        entity: "products",
+        id: m8TestProductId,
+        updates: { sizes: mutatedSizes },
+        adminToken: "Zimthreads200",
+      })
+
+      const recheckedSql = await queryDbKey("products")
+      const recheckedProd = recheckedSql.data.find((p) => p.id === m8TestProductId)
+      assert(
+        recheckedProd.sizes.includes("Bespoke-44EU"),
+        "Newly appended custom size entry must persist in Neon DB",
+      )
+      assert(
+        recheckedProd.sizes.length === mutatedSizes.length,
+        `Expected ${mutatedSizes.length} sizes after update, got ${recheckedProd.sizes.length}`,
+      )
+
+      logStep(`Milestone 8 R2: Admin configurable sizes (preset chips + custom entries) persist & read back with 100% fidelity`, performance.now() - tStart)
+      passCount++
+    }
+
+    // 3.4 Milestone 8 R3: Configurable Price Options (Active & Deselected/Disabled Options)
+    const initialPriceOptions = [
+      { id: "tier-std", label: "Standard Boxy Cut", price: 1850, active: true },
+      { id: "tier-heavyweight", label: "450GSM Heavyweight Drop", price: 2350, active: false },
+      { id: "tier-bespoke", label: "VIP Hand-Distressed Patina", price: 3100, active: true },
+    ]
+
+    {
+      const tStart = performance.now()
+      await callApi("POST", {
+        action: "update_entity",
+        entity: "products",
+        id: m8TestProductId,
+        updates: { priceOptions: initialPriceOptions },
+        adminToken: "Zimthreads200",
+      })
+
+      // Read back via SQL and API
+      const freshSql = await queryDbKey("products")
+      const foundInSql = freshSql.data.find((p) => p.id === m8TestProductId)
+      assert(Array.isArray(foundInSql.priceOptions), "priceOptions must be an array in Neon DB")
+      assert(foundInSql.priceOptions.length === 3, "priceOptions array length must be 3")
+      assert(foundInSql.priceOptions[0].active === true, "Tier 1 must be active: true (selectable)")
+      assert(foundInSql.priceOptions[1].active === false, "Tier 2 must be active: false (deselected / disabled)")
+      assert(foundInSql.priceOptions[2].active === true, "Tier 3 must be active: true (selectable)")
+      assert(foundInSql.priceOptions[0].price === 1850, "Tier 1 price must be 1850")
+      assert(foundInSql.priceOptions[1].price === 2350, "Tier 2 price must be 2350")
+
+      logStep(`Milestone 8 R3: Configurable price options (active & deselected/disabled) persist and read back from Neon DB`, performance.now() - tStart)
+      passCount++
+    }
+
+    // 3.5 Milestone 8 R3: Toggle Active Boolean & Delete Price Option
+    {
+      const tStart = performance.now()
+      // Toggle tier-std to false (deselected), tier-heavyweight to true (active), and delete tier-bespoke
+      const mutatedPriceOptions = [
+        { id: "tier-std", label: "Standard Boxy Cut", price: 1850, active: false },
+        { id: "tier-heavyweight", label: "450GSM Heavyweight Drop", price: 2350, active: true },
+      ]
+
+      await callApi("POST", {
+        action: "update_entity",
+        entity: "products",
+        id: m8TestProductId,
+        updates: { priceOptions: mutatedPriceOptions },
+        adminToken: "Zimthreads200",
+      })
+
+      const freshSql = await queryDbKey("products")
+      const foundInSql = freshSql.data.find((p) => p.id === m8TestProductId)
+      assert(foundInSql.priceOptions.length === 2, "priceOptions must have exactly 2 tiers after deletion")
+      const tierStd = foundInSql.priceOptions.find((o) => o.id === "tier-std")
+      const tierHvy = foundInSql.priceOptions.find((o) => o.id === "tier-heavyweight")
+      const tierBespoke = foundInSql.priceOptions.find((o) => o.id === "tier-bespoke")
+
+      assert(tierStd && tierStd.active === false, "tier-std must now have active: false (toggled to deselected)")
+      assert(tierHvy && tierHvy.active === true, "tier-heavyweight must now have active: true (toggled to active)")
+      assert(!tierBespoke, "tier-bespoke must be permanently deleted from priceOptions")
+
+      logStep(`Milestone 8 R3: Active boolean toggle & price option deletion persisted in Neon DB`, performance.now() - tStart)
+      passCount++
+    }
+
+    // 3.6 Delete Milestone 8 Test Product & Clean Removal
+    {
+      const tStart = performance.now()
+      const deleteRes = await callApi("POST", {
+        action: "delete_entity",
+        entity: "products",
+        id: m8TestProductId,
+        adminToken: "Zimthreads200",
+      })
+      assert(deleteRes.success, "delete_entity for M8 test product must succeed")
+
+      const freshSql = await queryDbKey("products")
+      const found = freshSql.data.find((p) => p.id === m8TestProductId)
+      assert(!found, `Test product ${m8TestProductId} must NOT exist in Neon DB`)
+      logStep(`Milestone 8 test product deleted cleanly`, performance.now() - tStart)
+      passCount++
+    }
+
+    // 3.7 Add Test Product via Admin Sync
     {
       const tStart = performance.now()
       const updatedProducts = [testProduct, ...baseline.products]
@@ -408,7 +579,7 @@ async function runEndToEndVerification() {
       passCount++
     }
 
-    // 3.3 Batch Update Test Product and Archival Racing Jacket
+    // 3.8 Batch Update Test Product and Archival Racing Jacket
     {
       const tStart = performance.now()
       const targetJacketId = "prod-jacket-ferrari-red-leather"
@@ -453,7 +624,7 @@ async function runEndToEndVerification() {
       passCount++
     }
 
-    // 3.4 Delete Test Product & verify clean removal
+    // 3.9 Delete Test Product & verify clean removal
     {
       const tStart = performance.now()
       const deleteRes = await callApi("POST", {
@@ -783,11 +954,21 @@ async function runEndToEndVerification() {
       assert(endData.services.length === baseline.services.length, `Services discrepancy detected! Expected ${baseline.services.length}, got ${endData.services.length}`)
       assert(endData.blog_posts.length === baseline.blog_posts.length, `Blog posts discrepancy detected! Expected ${baseline.blog_posts.length}, got ${endData.blog_posts.length}`)
 
+      // Verify baseline products count is exactly 24
+      assert(endData.products.length === 24, `Products baseline count must be exactly 24, found ${endData.products.length}`)
+
       // Verify racing jackets count is still 14
       const endJackets = endData.products.filter((p) => p.id && p.id.startsWith("prod-jacket-"))
       assert(endJackets.length === 14, `Racing jackets count must remain 14, found ${endJackets.length}`)
 
-      logStep(`Zero residual audit passed: Database state identical to pristine baseline`, performance.now() - tFinal)
+      // Verify prod-5 retains all 6 sizes in final database state
+      const finalProd5 = endData.products.find((p) => p.id === "prod-5")
+      assert(finalProd5, "prod-5 must exist in final database state")
+      for (const sz of ["S", "M", "L", "XL", "2XL", "XXL"]) {
+        assert(finalProd5.sizes && finalProd5.sizes.includes(sz), `prod-5 must retain size '${sz}' in final database state`)
+      }
+
+      logStep(`Zero residual audit passed: Database state identical to pristine baseline (24 products, all 6 sizes retained on prod-5)`, performance.now() - tFinal)
       passCount++
     }
 

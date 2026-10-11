@@ -1,14 +1,15 @@
 /**
  * scripts/verify-m8-sizes-prices-e2e.mjs
  * 
- * End-to-end verification script for:
- * 1. prod-5 ('LLICYLAND' Graphic Boxy Tee) has 2XL and XXL sizes in Neon DB.
- * 2. Ability to update product sizes and priceOptions in Neon DB and read them back.
- * 3. Verify priceOptions active vs inactive toggles and proper data shape.
- * 4. Verify no data corruption or regressions across catalog products.
+ * End-to-end verification script for Milestone 8:
+ * a) Confirm prod-5 ('LLICYLAND' Graphic Boxy Tee) contains all 6 sizes ["S", "M", "L", "XL", "2XL", "XXL"].
+ * b) Admin configurable sizes: preset chips + custom size entries persist to Neon PostgreSQL and read back with 100% fidelity.
+ * c) Configurable price options: active and deselected/disabled price options persist to Neon PostgreSQL and read back, toggle active boolean, delete options.
+ * d) Confirm clean zero-residual restoration of baseline (24 products).
  * 
  * Target Database:
  * Neon PostgreSQL Project: rapid-hill-42448439 ("Zimthreads Collective")
+ * Endpoint: ep-icy-brook-b4bmxdh6-pooler.c-6.us-east-2.aws.neon.tech
  * Identity: anesumupesa@gmail.com / Mupesa
  */
 
@@ -31,92 +32,209 @@ async function run() {
   console.log("=== STARTING MILESTONE 8 E2E VERIFICATION SUITE ===")
   console.log("Connecting to Neon PostgreSQL (project rapid-hill-42448439)...")
 
-  // 1. Fetch live products from Neon DB
-  const rows = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
-  assert(rows && rows.length > 0, "Successfully fetched products row from public.zimthreads_store")
-  const products = rows[0].data
-  assert(Array.isArray(products) && products.length > 0, `Products is a non-empty array (${products.length} items)`)
+  // 1. Fetch live products from Neon DB and take pristine baseline snapshot
+  const baselineRows = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
+  assert(baselineRows && baselineRows.length > 0, "Successfully fetched products row from public.zimthreads_store")
+  const baselineProducts = baselineRows[0].data
+  assert(Array.isArray(baselineProducts) && baselineProducts.length === 24, `Products baseline is exactly 24 items (got ${baselineProducts.length})`)
 
-  // 2. Verify prod-5 (Zimthread 'LLICYLAND' Graphic Boxy Tee)
-  const prod5 = products.find((p) => p.id === "prod-5")
-  assert(Boolean(prod5), "Product prod-5 exists in Neon DB catalog")
-  assert(Array.isArray(prod5.sizes), "prod-5.sizes is an array")
-  assert(prod5.sizes.includes("2XL"), "prod-5.sizes includes '2XL'")
-  assert(prod5.sizes.includes("XXL"), "prod-5.sizes includes 'XXL'")
-  assert(
-    prod5.sizes.includes("S") && prod5.sizes.includes("M") && prod5.sizes.includes("L") && prod5.sizes.includes("XL"),
-    "prod-5.sizes retains standard sizes ['S', 'M', 'L', 'XL']"
-  )
-
-  // 3. Test dynamic size update and priceOptions persistence in Neon DB
-  const testProdId = "prod-5"
-  const originalProd5 = { ...prod5 }
-
-  const testPriceOptions = [
-    { id: "tier-std", label: "Standard Boxy", price: 1200, active: true },
-    { id: "tier-premium", label: "Heavyweight Special", price: 1500, active: false },
-  ]
-
-  const updatedProducts = products.map((p) => {
-    if (p.id === testProdId) {
-      return {
-        ...p,
-        priceOptions: testPriceOptions,
-      }
+  try {
+    // ------------------------------------------------------------------------
+    // CHECK A: Verify prod-5 contains all 6 sizes ["S", "M", "L", "XL", "2XL", "XXL"]
+    // ------------------------------------------------------------------------
+    console.log("\n--- [CHECK A] Verifying prod-5 ('LLICYLAND' Graphic Boxy Tee) Sizes ---")
+    const prod5 = baselineProducts.find((p) => p.id === "prod-5")
+    assert(Boolean(prod5), "Product prod-5 exists in Neon DB catalog")
+    assert(prod5.name.includes("LLICYLAND"), "prod-5 name matches 'LLICYLAND'")
+    assert(Array.isArray(prod5.sizes), "prod-5.sizes is an array")
+    assert(prod5.sizes.length >= 6, `prod-5 has at least 6 sizes (found ${prod5.sizes.length})`)
+    const requiredSizes = ["S", "M", "L", "XL", "2XL", "XXL"]
+    for (const sz of requiredSizes) {
+      assert(prod5.sizes.includes(sz), `prod-5.sizes includes '${sz}'`)
     }
-    return p
-  })
 
-  console.log("Testing write of priceOptions with active & inactive tiers to Neon DB...")
-  await executeSql(
-    `
-    INSERT INTO public.zimthreads_store (key, data, updated_at)
-    VALUES ('products', $1::jsonb, NOW())
-    ON CONFLICT (key) DO UPDATE
-    SET data = EXCLUDED.data, updated_at = NOW();
-    `,
-    [JSON.stringify(updatedProducts)]
-  )
+    // ------------------------------------------------------------------------
+    // CHECK B: Admin configurable sizes: preset chips + custom size entries
+    // ------------------------------------------------------------------------
+    console.log("\n--- [CHECK B] Testing Admin Configurable Sizes (Preset Chips + Custom Entries) ---")
+    const testProductId = `prod-m8-e2e-sizes-${Date.now().toString().slice(-4)}`
+    const presetAndCustomSizes = ["S", "M", "L", "XL", "2XL", "XXL", "3XL", "One Size", "Custom-Atelier-Fit"]
 
-  // 4. Read back and verify persistence
-  const verifyRows = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
-  const verifiedProducts = verifyRows[0].data
-  const verifiedProd5 = verifiedProducts.find((p) => p.id === testProdId)
-
-  assert(Boolean(verifiedProd5), "Verified prod-5 after priceOptions write")
-  assert(Array.isArray(verifiedProd5.priceOptions), "verifiedProd5.priceOptions is an array")
-  assert(verifiedProd5.priceOptions.length === 2, "verifiedProd5.priceOptions has 2 tiers")
-  assert(verifiedProd5.priceOptions[0].active === true, "First tier is active (selectable)")
-  assert(verifiedProd5.priceOptions[1].active === false, "Second tier is inactive (greyed-out)")
-
-  // 5. Restore pristine state (or keep priceOptions active if desired)
-  // Let's restore prod-5 while maintaining all sizes
-  const pristineProducts = products.map((p) => {
-    if (p.id === testProdId) {
-      const { priceOptions, ...rest } = originalProd5
-      return {
-        ...rest,
-        sizes: ["S", "M", "L", "XL", "2XL", "XXL"],
-      }
+    const testProduct = {
+      id: testProductId,
+      name: "Zimthreads Milestone 8 Custom Config Boxy Hoodie",
+      category: "Apparel",
+      price: 1850,
+      stock: 25,
+      sizes: presetAndCustomSizes,
+      img: "https://res.cloudinary.com/pwranjbq/image/upload/v1790345314/zimthreads/hoodie.jpg",
+      alt: "M8 Custom Sizes Hoodie",
+      description: "Testing admin configurable sizes with preset chips and custom entries.",
+      featured: false,
+      hidden: false,
     }
-    return p
-  })
 
-  await executeSql(
-    `
-    INSERT INTO public.zimthreads_store (key, data, updated_at)
-    VALUES ('products', $1::jsonb, NOW())
-    ON CONFLICT (key) DO UPDATE
-    SET data = EXCLUDED.data, updated_at = NOW();
-    `,
-    [JSON.stringify(pristineProducts)]
-  )
+    // Persist new product with custom sizes to Neon DB
+    const catalogWithTest = [testProduct, ...baselineProducts]
+    await executeSql(
+      `
+      INSERT INTO public.zimthreads_store (key, data, updated_at)
+      VALUES ('products', $1::jsonb, NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET data = EXCLUDED.data, updated_at = NOW();
+      `,
+      [JSON.stringify(catalogWithTest)]
+    )
 
-  const finalRows = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
-  const finalProd5 = finalRows[0].data.find((p) => p.id === testProdId)
-  assert(finalProd5.sizes.includes("2XL") && finalProd5.sizes.includes("XXL"), "Final state: prod-5 retains 2XL and XXL sizes")
+    // Read back and verify 100% fidelity
+    const readAfterCreate = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
+    const foundCreated = readAfterCreate[0].data.find((p) => p.id === testProductId)
+    assert(Boolean(foundCreated), `Created test product ${testProductId} exists in Neon DB`)
+    assert(Array.isArray(foundCreated.sizes), "foundCreated.sizes is an array")
+    assert(
+      JSON.stringify(foundCreated.sizes) === JSON.stringify(presetAndCustomSizes),
+      `Preset chips + custom entries persist with 100% fidelity. Expected ${JSON.stringify(presetAndCustomSizes)}, got ${JSON.stringify(foundCreated.sizes)}`
+    )
 
-  console.log(`\n🎉 ALL ${passedAssertions}/${totalAssertions} E2E ASSERTIONS PASSED!`)
+    // Mutate sizes: append another custom size and verify update persistence
+    const mutatedSizes = [...presetAndCustomSizes, "Bespoke-44EU"]
+    const catalogWithMutatedSizes = readAfterCreate[0].data.map((p) => {
+      if (p.id === testProductId) {
+        return { ...p, sizes: mutatedSizes }
+      }
+      return p
+    })
+
+    await executeSql(
+      `
+      INSERT INTO public.zimthreads_store (key, data, updated_at)
+      VALUES ('products', $1::jsonb, NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET data = EXCLUDED.data, updated_at = NOW();
+      `,
+      [JSON.stringify(catalogWithMutatedSizes)]
+    )
+
+    const readAfterMutate = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
+    const foundMutated = readAfterMutate[0].data.find((p) => p.id === testProductId)
+    assert(foundMutated.sizes.includes("Bespoke-44EU"), "Newly appended custom size entry persists in Neon DB")
+    assert(foundMutated.sizes.length === mutatedSizes.length, `Sizes length is ${mutatedSizes.length}`)
+
+    // ------------------------------------------------------------------------
+    // CHECK C: Configurable price options: active and deselected/disabled options, toggle, delete
+    // ------------------------------------------------------------------------
+    console.log("\n--- [CHECK C] Testing Configurable Price Options (Active, Deselected, Toggle, Delete) ---")
+    const initialPriceOptions = [
+      { id: "tier-std", label: "Standard Boxy Cut", price: 1850, active: true },
+      { id: "tier-heavyweight", label: "450GSM Heavyweight Drop", price: 2350, active: false },
+      { id: "tier-bespoke", label: "VIP Hand-Distressed Patina", price: 3100, active: true },
+    ]
+
+    const catalogWithPriceOptions = readAfterMutate[0].data.map((p) => {
+      if (p.id === testProductId) {
+        return { ...p, priceOptions: initialPriceOptions }
+      }
+      return p
+    })
+
+    await executeSql(
+      `
+      INSERT INTO public.zimthreads_store (key, data, updated_at)
+      VALUES ('products', $1::jsonb, NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET data = EXCLUDED.data, updated_at = NOW();
+      `,
+      [JSON.stringify(catalogWithPriceOptions)]
+    )
+
+    // Read back and verify active vs inactive options
+    const readAfterPrices = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
+    const foundPrices = readAfterPrices[0].data.find((p) => p.id === testProductId)
+    assert(Array.isArray(foundPrices.priceOptions), "priceOptions is an array in Neon DB")
+    assert(foundPrices.priceOptions.length === 3, "priceOptions array length is 3")
+    assert(foundPrices.priceOptions[0].active === true, "Tier 1 is active (selectable)")
+    assert(foundPrices.priceOptions[1].active === false, "Tier 2 is deselected / inactive (disabled/greyed out)")
+    assert(foundPrices.priceOptions[2].active === true, "Tier 3 is active (selectable)")
+    assert(foundPrices.priceOptions[0].price === 1850, "Tier 1 price is 1850")
+    assert(foundPrices.priceOptions[1].price === 2350, "Tier 2 price is 2350")
+    assert(foundPrices.priceOptions[2].price === 3100, "Tier 3 price is 3100")
+
+    // Toggle active boolean on tiers and delete tier-bespoke
+    const mutatedPriceOptions = [
+      { id: "tier-std", label: "Standard Boxy Cut", price: 1850, active: false }, // toggled from true to false
+      { id: "tier-heavyweight", label: "450GSM Heavyweight Drop", price: 2350, active: true }, // toggled from false to true
+      // tier-bespoke deleted
+    ]
+
+    const catalogWithToggledPrices = readAfterPrices[0].data.map((p) => {
+      if (p.id === testProductId) {
+        return { ...p, priceOptions: mutatedPriceOptions }
+      }
+      return p
+    })
+
+    await executeSql(
+      `
+      INSERT INTO public.zimthreads_store (key, data, updated_at)
+      VALUES ('products', $1::jsonb, NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET data = EXCLUDED.data, updated_at = NOW();
+      `,
+      [JSON.stringify(catalogWithToggledPrices)]
+    )
+
+    const readAfterToggle = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
+    const foundToggled = readAfterToggle[0].data.find((p) => p.id === testProductId)
+    assert(foundToggled.priceOptions.length === 2, "priceOptions has 2 tiers after deletion")
+    const tierStd = foundToggled.priceOptions.find((o) => o.id === "tier-std")
+    const tierHvy = foundToggled.priceOptions.find((o) => o.id === "tier-heavyweight")
+    const tierBespoke = foundToggled.priceOptions.find((o) => o.id === "tier-bespoke")
+
+    assert(tierStd && tierStd.active === false, "tier-std active boolean successfully toggled to false (deselected)")
+    assert(tierHvy && tierHvy.active === true, "tier-heavyweight active boolean successfully toggled to true (active)")
+    assert(!tierBespoke, "tier-bespoke successfully deleted from priceOptions")
+
+    // ------------------------------------------------------------------------
+    // CHECK D: Confirm clean zero-residual restoration of baseline (24 products)
+    // ------------------------------------------------------------------------
+    console.log("\n--- [CHECK D] Clean Zero-Residual Baseline Restoration ---")
+    await executeSql(
+      `
+      INSERT INTO public.zimthreads_store (key, data, updated_at)
+      VALUES ('products', $1::jsonb, NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET data = EXCLUDED.data, updated_at = NOW();
+      `,
+      [JSON.stringify(baselineProducts)]
+    )
+
+    const finalRows = await executeSql("SELECT data FROM public.zimthreads_store WHERE key = 'products';")
+    const finalProducts = finalRows[0].data
+    assert(finalProducts.length === 24, `Final catalog count matches pristine baseline: exactly 24 products (got ${finalProducts.length})`)
+
+    const testProdResidual = finalProducts.find((p) => p.id === testProductId)
+    assert(!testProdResidual, "No residual test product remains in Neon DB")
+
+    const finalProd5 = finalProducts.find((p) => p.id === "prod-5")
+    assert(Boolean(finalProd5), "prod-5 remains intact in final catalog")
+    for (const sz of requiredSizes) {
+      assert(finalProd5.sizes.includes(sz), `Final state: prod-5 retains size '${sz}'`)
+    }
+
+    console.log(`\n🎉 ALL ${passedAssertions}/${totalAssertions} E2E ASSERTIONS PASSED WITH ZERO RESIDUALS!`)
+  } catch (err) {
+    console.error("Error during execution, performing emergency restoration:", err)
+    await executeSql(
+      `
+      INSERT INTO public.zimthreads_store (key, data, updated_at)
+      VALUES ('products', $1::jsonb, NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET data = EXCLUDED.data, updated_at = NOW();
+      `,
+      [JSON.stringify(baselineProducts)]
+    )
+    throw err
+  }
 }
 
 run().catch((err) => {

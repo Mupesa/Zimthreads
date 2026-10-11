@@ -223,6 +223,7 @@ export default function CartDrawer() {
                             item.productId,
                             item.size,
                             item.customName,
+                            item.priceOptionLabel,
                           )
                         }
                         className="text-[#9ca3af] hover:text-red-600 transition-colors p-1 cursor-pointer"
@@ -235,6 +236,11 @@ export default function CartDrawer() {
                       {item.size && (
                         <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#4a5c2d] bg-[#4a5c2d]/10 px-1.5 py-0.5">
                           Size: {item.size}
+                        </span>
+                      )}
+                      {item.priceOptionLabel && (
+                        <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#1a1a1a] bg-[#f5f2ec] border border-[#e5e1d8] px-1.5 py-0.5">
+                          {item.priceOptionLabel}
                         </span>
                       )}
                       {item.customName && (
@@ -255,6 +261,7 @@ export default function CartDrawer() {
                             item.quantity - 1,
                             item.size,
                             item.customName,
+                            item.priceOptionLabel,
                           )
                         }
                         className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation cursor-pointer"
@@ -271,6 +278,7 @@ export default function CartDrawer() {
                             item.quantity + 1,
                             item.size,
                             item.customName,
+                            item.priceOptionLabel,
                           )
                         }
                         className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#6b7280] hover:bg-[#e5e1d8] touch-manipulation cursor-pointer"

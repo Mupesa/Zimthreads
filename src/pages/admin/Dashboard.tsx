@@ -5,6 +5,7 @@ import {
   BookingItem,
   OrderItem,
   Product,
+  PriceOption,
   Service,
   BlogPost,
   Inquiry,
@@ -154,10 +155,19 @@ export default function Dashboard() {
     img: "https://images.unsplash.com/photo-1583778176476-4a8b02a64c01?w=500&h=500&fit=crop&auto=format",
     alt: "Product image",
     description: "",
-    sizes: "",
+    sizes: [] as string[],
+    customSizeInput: "",
+    priceOptions: [] as PriceOption[],
+    newPriceLabel: "",
+    newPriceValue: "",
     featured: false,
     hidden: false,
   })
+
+  // Edit Product auxiliary states for sizes & price options
+  const [editProductCustomSize, setEditProductCustomSize] = useState("")
+  const [editProductPriceLabel, setEditProductPriceLabel] = useState("")
+  const [editProductPriceValue, setEditProductPriceValue] = useState("")
 
   const [serviceForm, setServiceForm] = useState({
     title: "",
@@ -393,17 +403,21 @@ export default function Dashboard() {
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault()
-    const sizesArray = productForm.sizes
-      ? productForm.sizes
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : undefined
+    const sizesArray =
+      Array.isArray(productForm.sizes) && productForm.sizes.length > 0
+        ? productForm.sizes
+        : undefined
+
+    const priceOptionsArray =
+      Array.isArray(productForm.priceOptions) && productForm.priceOptions.length > 0
+        ? productForm.priceOptions
+        : undefined
 
     addProduct({
       name: productForm.name,
       category: productForm.category,
       price: Number(productForm.price),
+      priceOptions: priceOptionsArray,
       stock: Number(productForm.stock),
       img: productForm.img,
       alt: productForm.name,
@@ -413,6 +427,23 @@ export default function Dashboard() {
       hidden: productForm.hidden,
     })
     setNewProductModal(false)
+    // Reset productForm
+    setProductForm({
+      name: "",
+      category: "Cleaning",
+      price: 15,
+      stock: 20,
+      img: "https://images.unsplash.com/photo-1583778176476-4a8b02a64c01?w=500&h=500&fit=crop&auto=format",
+      alt: "Product image",
+      description: "",
+      sizes: [],
+      customSizeInput: "",
+      priceOptions: [],
+      newPriceLabel: "",
+      newPriceValue: "",
+      featured: false,
+      hidden: false,
+    })
   }
 
   const handleSaveEditProduct = (e: React.FormEvent) => {
@@ -3180,19 +3211,233 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
-                  Sizes / Options (comma separated)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. S, M, L, XL"
-                  value={productForm.sizes}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, sizes: e.target.value })
-                  }
-                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
-                />
+              {/* Dynamic Size Configuration */}
+              <div className="p-3 bg-[#111827] border border-[#374151] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    Available Sizes / Options
+                  </label>
+                  {productForm.sizes.length > 0 && (
+                    <span className="text-[10px] font-mono text-[#86a84e]">
+                      {productForm.sizes.length} selected
+                    </span>
+                  )}
+                </div>
+
+                {/* Preset Chips */}
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block mb-1">
+                    Quick Presets:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["S", "M", "L", "XL", "2XL", "XXL", "One Size"].map((preset) => {
+                      const isSelected = productForm.sizes.includes(preset)
+                      return (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            setProductForm((prev) => ({
+                              ...prev,
+                              sizes: isSelected
+                                ? prev.sizes.filter((s) => s !== preset)
+                                : [...prev.sizes, preset],
+                            }))
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase border transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-[#86a84e] text-[#141715] border-[#86a84e]"
+                              : "bg-[#1f2937] text-gray-300 border-[#374151] hover:border-gray-400"
+                          }`}
+                        >
+                          {isSelected ? `✓ ${preset}` : `+ ${preset}`}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Size Input */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Custom size (e.g. 3XL, 42 EU, 10 US)"
+                    value={productForm.customSizeInput}
+                    onChange={(e) =>
+                      setProductForm({ ...productForm, customSizeInput: e.target.value })
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        const val = productForm.customSizeInput.trim()
+                        if (val && !productForm.sizes.includes(val)) {
+                          setProductForm({
+                            ...productForm,
+                            sizes: [...productForm.sizes, val],
+                            customSizeInput: "",
+                          })
+                        }
+                      }
+                    }}
+                    className="flex-1 bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = productForm.customSizeInput.trim()
+                      if (val && !productForm.sizes.includes(val)) {
+                        setProductForm({
+                          ...productForm,
+                          sizes: [...productForm.sizes, val],
+                          customSizeInput: "",
+                        })
+                      }
+                    }}
+                    className="px-3 py-1 bg-[#374151] hover:bg-[#4b5563] text-white text-[10px] font-bold uppercase cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {/* Selected Size Chips */}
+                {productForm.sizes.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1 border-t border-[#374151]/60">
+                    {productForm.sizes.map((s) => (
+                      <span
+                        key={s}
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#1f2937] border border-[#86a84e]/60 text-emerald-300 text-[10px] font-mono"
+                      >
+                        <span>{s}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setProductForm((prev) => ({
+                              ...prev,
+                              sizes: prev.sizes.filter((item) => item !== s),
+                            }))
+                          }
+                          className="hover:text-red-400 cursor-pointer font-bold"
+                          title="Remove size"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Price Options / Tiers Configuration */}
+              <div className="p-3 bg-[#111827] border border-[#374151] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    Selectable Price Tiers / Options
+                  </label>
+                  <span className="text-[9px] text-gray-400">
+                    Toggle active to show/grey-out
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="Tier label (e.g. Standard, Member)"
+                    value={productForm.newPriceLabel}
+                    onChange={(e) =>
+                      setProductForm({ ...productForm, newPriceLabel: e.target.value })
+                    }
+                    className="bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                  />
+                  <div className="flex gap-1.5">
+                    <input
+                      type="number"
+                      placeholder="Price (Rs)"
+                      value={productForm.newPriceValue}
+                      onChange={(e) =>
+                        setProductForm({ ...productForm, newPriceValue: e.target.value })
+                      }
+                      className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const price = parseFloat(productForm.newPriceValue)
+                        if (!isNaN(price) && price > 0) {
+                          const newOpt: PriceOption = {
+                            id: `tier-${Date.now()}`,
+                            label: productForm.newPriceLabel.trim() || `Tier Rs ${price}`,
+                            price,
+                            active: true,
+                          }
+                          setProductForm({
+                            ...productForm,
+                            priceOptions: [...productForm.priceOptions, newOpt],
+                            newPriceLabel: "",
+                            newPriceValue: "",
+                          })
+                        }
+                      }}
+                      className="px-2.5 py-1 bg-[#86a84e] text-[#141715] text-[10px] font-extrabold uppercase cursor-pointer"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Configured Price Options List */}
+                {productForm.priceOptions.length > 0 && (
+                  <div className="space-y-1.5 pt-1 border-t border-[#374151]/60">
+                    {productForm.priceOptions.map((opt, idx) => (
+                      <div
+                        key={opt.id || idx}
+                        className={`flex items-center justify-between p-2 border transition-colors ${
+                          opt.active
+                            ? "bg-[#1f2937] border-[#374151]"
+                            : "bg-red-950/20 border-red-900/50 opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = productForm.priceOptions.map((p, i) =>
+                                i === idx ? { ...p, active: !p.active } : p,
+                              )
+                              setProductForm({ ...productForm, priceOptions: updated })
+                            }}
+                            className={`px-2 py-0.5 text-[9px] font-extrabold uppercase border cursor-pointer ${
+                              opt.active
+                                ? "bg-emerald-950 border-emerald-500 text-emerald-300"
+                                : "bg-neutral-800 border-neutral-600 text-neutral-400 line-through"
+                            }`}
+                          >
+                            {opt.active ? "Active" : "Deselected / Greyed"}
+                          </button>
+                          <span
+                            className={`text-xs font-bold ${
+                              opt.active ? "text-white" : "text-gray-400 line-through"
+                            }`}
+                          >
+                            {opt.label || `Option ${idx + 1}`} · Rs {opt.price}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductForm({
+                              ...productForm,
+                              priceOptions: productForm.priceOptions.filter((_, i) => i !== idx),
+                            })
+                          }}
+                          className="text-red-400 hover:text-red-300 text-xs px-1 cursor-pointer"
+                          title="Delete price option"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <ImageUploader
                 value={productForm.img}
@@ -3324,6 +3569,237 @@ export default function Dashboard() {
                 label="Product Image"
                 compact
               />
+
+              {/* Dynamic Size Configuration */}
+              <div className="p-3 bg-[#111827] border border-[#374151] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    Available Sizes / Options
+                  </label>
+                  {(editProduct.sizes || []).length > 0 && (
+                    <span className="text-[10px] font-mono text-[#86a84e]">
+                      {(editProduct.sizes || []).length} selected
+                    </span>
+                  )}
+                </div>
+
+                {/* Preset Chips */}
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block mb-1">
+                    Quick Presets:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["S", "M", "L", "XL", "2XL", "XXL", "One Size"].map((preset) => {
+                      const currentSizes = editProduct.sizes || []
+                      const isSelected = currentSizes.includes(preset)
+                      return (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            setEditProduct({
+                              ...editProduct,
+                              sizes: isSelected
+                                ? currentSizes.filter((s) => s !== preset)
+                                : [...currentSizes, preset],
+                            })
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase border transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-[#86a84e] text-[#141715] border-[#86a84e]"
+                              : "bg-[#1f2937] text-gray-300 border-[#374151] hover:border-gray-400"
+                          }`}
+                        >
+                          {isSelected ? `✓ ${preset}` : `+ ${preset}`}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Size Adder */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Custom size (e.g. 3XL, 42 EU, 10 US)"
+                    value={editProductCustomSize}
+                    onChange={(e) => setEditProductCustomSize(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        const val = editProductCustomSize.trim()
+                        const currentSizes = editProduct.sizes || []
+                        if (val && !currentSizes.includes(val)) {
+                          setEditProduct({
+                            ...editProduct,
+                            sizes: [...currentSizes, val],
+                          })
+                          setEditProductCustomSize("")
+                        }
+                      }
+                    }}
+                    className="flex-1 bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = editProductCustomSize.trim()
+                      const currentSizes = editProduct.sizes || []
+                      if (val && !currentSizes.includes(val)) {
+                        setEditProduct({
+                          ...editProduct,
+                          sizes: [...currentSizes, val],
+                        })
+                        setEditProductCustomSize("")
+                      }
+                    }}
+                    className="px-3 py-1 bg-[#374151] hover:bg-[#4b5563] text-white text-[10px] font-bold uppercase cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {/* Current Sizes Chips */}
+                {(editProduct.sizes || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1 border-t border-[#374151]/60">
+                    {(editProduct.sizes || []).map((s) => (
+                      <span
+                        key={s}
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#1f2937] border border-[#86a84e]/60 text-emerald-300 text-[10px] font-mono"
+                      >
+                        <span>{s}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditProduct({
+                              ...editProduct,
+                              sizes: (editProduct.sizes || []).filter((item) => item !== s),
+                            })
+                          }}
+                          className="hover:text-red-400 cursor-pointer font-bold"
+                          title="Remove size"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Price Options / Tiers Configuration */}
+              <div className="p-3 bg-[#111827] border border-[#374151] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    Selectable Price Tiers / Options
+                  </label>
+                  <span className="text-[9px] text-gray-400">
+                    Toggle active to show/grey-out
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="Tier label (e.g. Standard, Member)"
+                    value={editProductPriceLabel}
+                    onChange={(e) => setEditProductPriceLabel(e.target.value)}
+                    className="bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                  />
+                  <div className="flex gap-1.5">
+                    <input
+                      type="number"
+                      placeholder="Price (Rs)"
+                      value={editProductPriceValue}
+                      onChange={(e) => setEditProductPriceValue(e.target.value)}
+                      className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const price = parseFloat(editProductPriceValue)
+                        if (!isNaN(price) && price > 0) {
+                          const newOpt: PriceOption = {
+                            id: `tier-${Date.now()}`,
+                            label: editProductPriceLabel.trim() || `Tier Rs ${price}`,
+                            price,
+                            active: true,
+                          }
+                          const existingOpts = editProduct.priceOptions || []
+                          setEditProduct({
+                            ...editProduct,
+                            priceOptions: [...existingOpts, newOpt],
+                          })
+                          setEditProductPriceLabel("")
+                          setEditProductPriceValue("")
+                        }
+                      }}
+                      className="px-2.5 py-1 bg-[#86a84e] text-[#141715] text-[10px] font-extrabold uppercase cursor-pointer"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Price Options List with Active / Inactive Toggle */}
+                {(editProduct.priceOptions || []).length > 0 && (
+                  <div className="space-y-1.5 pt-1 border-t border-[#374151]/60">
+                    {(editProduct.priceOptions || []).map((opt, idx) => (
+                      <div
+                        key={opt.id || idx}
+                        className={`flex items-center justify-between p-2 border transition-colors ${
+                          opt.active
+                            ? "bg-[#1f2937] border-[#374151]"
+                            : "bg-red-950/20 border-red-900/50 opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (editProduct.priceOptions || []).map((p, i) =>
+                                i === idx ? { ...p, active: !p.active } : p,
+                              )
+                              setEditProduct({
+                                ...editProduct,
+                                priceOptions: updated,
+                              })
+                            }}
+                            className={`px-2 py-0.5 text-[9px] font-extrabold uppercase border cursor-pointer ${
+                              opt.active
+                                ? "bg-emerald-950 border-emerald-500 text-emerald-300"
+                                : "bg-neutral-800 border-neutral-600 text-neutral-400 line-through"
+                            }`}
+                          >
+                            {opt.active ? "Active" : "Deselected / Greyed"}
+                          </button>
+                          <span
+                            className={`text-xs font-bold ${
+                              opt.active ? "text-white" : "text-gray-400 line-through"
+                            }`}
+                          >
+                            {opt.label || `Option ${idx + 1}`} · Rs {opt.price}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditProduct({
+                              ...editProduct,
+                              priceOptions: (editProduct.priceOptions || []).filter((_, i) => i !== idx),
+                            })
+                          }}
+                          className="text-red-400 hover:text-red-300 text-xs px-1 cursor-pointer"
+                          title="Delete price option"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                   Description

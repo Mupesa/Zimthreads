@@ -3,11 +3,19 @@ export interface ProductView {
   url: string
 }
 
+export interface PriceOption {
+  id?: string
+  label?: string
+  price: number
+  active: boolean
+}
+
 export interface Product {
   id: string
   name: string
   category: "Cleaning" | "Apparel" | "Accessories"
   price: number
+  priceOptions?: PriceOption[]
   stock: number
   img: string
   images?: string[]
@@ -96,6 +104,7 @@ export interface CartItem {
   size?: string
   img: string
   customName?: string
+  priceOptionLabel?: string
 }
 
 export interface OrderItem {
@@ -738,7 +747,7 @@ export const initialProducts: Product[] = [
     alt: "Zimthread LLICYLAND Graphic Boxy Tee",
     description:
       "Heavyweight combed cotton boxy-fit graphic tee with signature red dice LLICYLAND artwork and custom Zimthread atelier tag.",
-    sizes: ["S", "M", "L", "XL"],
+    sizes: ["S", "M", "L", "XL", "2XL", "XXL"],
     featured: true,
   },
   {

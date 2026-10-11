@@ -86,17 +86,21 @@ export interface StoreContextType {
     quantity?: number,
     size?: string,
     customName?: string,
+    selectedPrice?: number,
+    priceOptionLabel?: string,
   ) => void
   removeFromCart: (
     productId: string,
     size?: string,
     customName?: string,
+    priceOptionLabel?: string,
   ) => void
   updateCartQuantity: (
     productId: string,
     quantity: number,
     size?: string,
     customName?: string,
+    priceOptionLabel?: string,
   ) => void
   clearCart: () => void
   cartTotal: number
@@ -309,14 +313,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           img: "https://res.cloudinary.com/qyuoyjju/image/upload/f_auto,q_auto/v1788884997/zimthreads/products/zcb9ju1mhzsuaizw668l.jpg",
         }
       }
-      if (
-        p.id === "prod-5" &&
-        (!p.img || p.img.includes("photo-1521572267360-ee0c2909d518"))
-      ) {
+      if (p.id === "prod-5") {
+        const canonicalSizes = ["S", "M", "L", "XL", "2XL", "XXL"]
+        const existingSizes = Array.isArray(p.sizes) ? p.sizes : []
+        const has2XL = existingSizes.includes("2XL")
+        const hasXXL = existingSizes.includes("XXL")
+        const finalSizes = has2XL && hasXXL ? existingSizes : canonicalSizes
         return {
           ...p,
-          name: "Zimthread 'LLICYLAND' Graphic Boxy Tee",
-          img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789976413/zimthreads/products/jnfkstiyqubyzn4xslia.jpg",
+          name: p.name || "Zimthread 'LLICYLAND' Graphic Boxy Tee",
+          img:
+            !p.img || p.img.includes("photo-1521572267360-ee0c2909d518")
+              ? "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1789976413/zimthreads/products/jnfkstiyqubyzn4xslia.jpg"
+              : p.img,
+          sizes: finalSizes,
         }
       }
       return p
@@ -456,25 +466,39 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       } = result.data
 
       if (Array.isArray(cloudProducts)) {
-        if (cloudProducts.length === 0) {
+        // Defensive sanitization: ensure prod-5 includes ["S", "M", "L", "XL", "2XL", "XXL"]
+        const sanitizedCloudProducts = cloudProducts.map((p: any) => {
+          if (p && p.id === "prod-5") {
+            const sizes = Array.isArray(p.sizes) ? p.sizes : []
+            const has2XL = sizes.includes("2XL")
+            const hasXXL = sizes.includes("XXL")
+            if (!has2XL || !hasXXL) {
+              const merged = Array.from(new Set([...sizes, "S", "M", "L", "XL", "2XL", "XXL"]))
+              return { ...p, sizes: merged }
+            }
+          }
+          return p
+        })
+
+        if (sanitizedCloudProducts.length === 0) {
           // Cloud catalog was empty, seed with initial canonical products
           setProducts(initialProducts)
           productsRef.current = initialProducts
           syncToCloud("products", initialProducts)
         } else {
           // Cloud has products: merge any missing canonical products into cloud data without overriding cloud attributes
-          const cloudIds = new Set(cloudProducts.map((p: any) => p.id))
+          const cloudIds = new Set(sanitizedCloudProducts.map((p: any) => p.id))
           const missingCanonical = initialProducts.filter(
             (p) => !cloudIds.has(p.id),
           )
           if (missingCanonical.length > 0) {
-            const fullCanonical = [...cloudProducts, ...missingCanonical]
+            const fullCanonical = [...sanitizedCloudProducts, ...missingCanonical]
             setProducts(fullCanonical)
             productsRef.current = fullCanonical
             syncToCloud("products", fullCanonical)
           } else {
-            setProducts(cloudProducts)
-            productsRef.current = cloudProducts
+            setProducts(sanitizedCloudProducts)
+            productsRef.current = sanitizedCloudProducts
           }
         }
       }
@@ -619,19 +643,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     quantity = 1,
     size?: string,
     customName?: string,
+    selectedPrice?: number,
+    priceOptionLabel?: string,
   ) => {
     const formattedCustomName = customName?.trim()
       ? customName.trim().toUpperCase()
       : undefined
     const extraPrice = formattedCustomName ? product.customNamePrice || 50 : 0
-    const finalPrice = product.price + extraPrice
+    const basePrice = selectedPrice !== undefined ? selectedPrice : product.price
+    const finalPrice = basePrice + extraPrice
 
     setCart((prev) => {
       const existingIndex = prev.findIndex(
         (item) =>
           item.productId === product.id &&
           (item.size || "") === (size || "") &&
-          (item.customName || "") === (formattedCustomName || ""),
+          (item.customName || "") === (formattedCustomName || "") &&
+          (item.priceOptionLabel || "") === (priceOptionLabel || ""),
       )
       if (existingIndex > -1) {
         const next = [...prev]
@@ -648,6 +676,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             size,
             img: product.img,
             customName: formattedCustomName,
+            priceOptionLabel,
           },
         ]
       }
@@ -655,6 +684,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     showToast(
       "Added to Cart",
       `${product.name} ${size ? `(${size})` : ""}${
+        priceOptionLabel ? ` [${priceOptionLabel}]` : ""
+      }${
         formattedCustomName ? ` [Custom: "${formattedCustomName}"]` : ""
       } was added.`,
     )
@@ -664,6 +695,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     productId: string,
     size?: string,
     customName?: string,
+    priceOptionLabel?: string,
   ) => {
     const formattedCustomName = customName?.trim()
       ? customName.trim().toUpperCase()
@@ -674,7 +706,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           !(
             item.productId === productId &&
             (item.size || "") === (size || "") &&
-            (item.customName || "") === (formattedCustomName || "")
+            (item.customName || "") === (formattedCustomName || "") &&
+            (item.priceOptionLabel || "") === (priceOptionLabel || "")
           ),
       ),
     )
@@ -685,9 +718,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     quantity: number,
     size?: string,
     customName?: string,
+    priceOptionLabel?: string,
   ) => {
     if (quantity <= 0) {
-      removeFromCart(productId, size, customName)
+      removeFromCart(productId, size, customName, priceOptionLabel)
       return
     }
     const formattedCustomName = customName?.trim()
@@ -697,7 +731,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       prev.map((item) =>
         item.productId === productId &&
         (item.size || "") === (size || "") &&
-        (item.customName || "") === (formattedCustomName || "")
+        (item.customName || "") === (formattedCustomName || "") &&
+        (item.priceOptionLabel || "") === (priceOptionLabel || "")
           ? { ...item, quantity }
           : item,
       ),
@@ -780,7 +815,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     const summary = cart
       .map(
         (i) =>
-          `${i.name}${i.size ? ` [${i.size}]` : ""}${i.customName ? ` [Custom: "${i.customName}"]` : ""} (x${i.quantity})`,
+          `${i.name}${i.size ? ` [${i.size}]` : ""}${i.priceOptionLabel ? ` [${i.priceOptionLabel}]` : ""}${i.customName ? ` [Custom: "${i.customName}"]` : ""} (x${i.quantity})`,
       )
       .join(", ")
     const totalAmount =

@@ -101,7 +101,10 @@ export default function Shop() {
 
   const handleQuickAdd = (e: React.MouseEvent, p: Product) => {
     e.stopPropagation()
-    if ((p.sizes && p.sizes.length > 1) || (p.views && p.views.length > 1)) {
+    const hasMultipleSizes = Boolean(p.sizes && p.sizes.length > 1)
+    const hasMultipleViews = Boolean(p.views && p.views.length > 1)
+    const hasPriceOptions = Boolean(p.priceOptions && p.priceOptions.length > 0)
+    if (hasMultipleSizes || hasMultipleViews || hasPriceOptions) {
       setSelectedProduct(p)
     } else {
       addToCart(p, 1, p.sizes ? p.sizes[0] : undefined)
@@ -337,24 +340,67 @@ export default function Shop() {
                   <h3 className="font-semibold text-xs sm:text-sm text-[#1a1a1a] mb-1.5 leading-snug group-hover:text-[#4a5c2d] transition-colors line-clamp-2">
                     {p.name}
                   </h3>
+                  {p.sizes && p.sizes.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {p.sizes.map((s) => (
+                        <span
+                          key={s}
+                          className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold border border-[#e5e1d8] bg-[#fbf9f6] text-[#6b7280]"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="p-3 sm:p-4 pt-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-2 border-t border-[#f5f2ec]">
-                  <span className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
-                    Rs {p.price}
-                  </span>
+                  <div>
+                    {p.priceOptions && p.priceOptions.length > 0 ? (
+                      <div>
+                        {p.priceOptions.some((opt) => opt.active) ? (
+                          <span className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
+                            Rs{" "}
+                            {Math.min(
+                              ...p.priceOptions
+                                .filter((opt) => opt.active)
+                                .map((opt) => opt.price),
+                            )}
+                            {p.priceOptions.filter((opt) => opt.active).length > 1 ? "+" : ""}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-[#9ca3af] line-through">
+                            UNAVAILABLE
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="font-display text-base sm:text-lg font-bold text-[#1a1a1a]">
+                        Rs {p.price}
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={(e) => handleQuickAdd(e, p)}
-                    disabled={p.stock <= 0}
+                    disabled={
+                      p.stock <= 0 ||
+                      (p.priceOptions &&
+                        p.priceOptions.length > 0 &&
+                        !p.priceOptions.some((opt) => opt.active))
+                    }
                     className="w-full sm:w-auto px-2.5 py-1.5 sm:py-1 bg-[#4a5c2d] text-[#f5f2ec] text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:bg-[#5a7038] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-center cursor-pointer"
                   >
                     {p.isPresale
                       ? "PRESALE"
                       : p.isPreorder
                         ? "PRE-ORDER"
-                        : "+ ADD"}
+                        : p.priceOptions &&
+                            p.priceOptions.length > 0 &&
+                            !p.priceOptions.some((opt) => opt.active)
+                          ? "SOLD OUT"
+                          : "+ ADD"}
                   </button>
                 </div>
               </div>

@@ -11,6 +11,7 @@ interface ProductModalProps {
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const { addToCart } = useStore()
   const [selectedSize, setSelectedSize] = useState<string>("")
+  const [selectedPriceOptionId, setSelectedPriceOptionId] = useState<string>("")
   const [quantity, setQuantity] = useState<number>(1)
   const [activeImageIdx, setActiveImageIdx] = useState<number>(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
@@ -21,6 +22,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   useEffect(() => {
     setActiveImageIdx(0)
     setSelectedSize("")
+    setSelectedPriceOptionId("")
     setQuantity(1)
     setIsCustomizing(false)
     setCustomName("")
@@ -43,16 +45,41 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   if (!product) return null
 
+  const activeImage = gallery[activeImageIdx] || gallery[0]
+
+  const hasPriceOptions = Boolean(product.priceOptions && product.priceOptions.length > 0)
+  const priceOptions = product.priceOptions || []
+  const activePriceOptions = priceOptions.filter((po) => po.active)
+
+  const selectedPriceOption = (() => {
+    if (!hasPriceOptions) return undefined
+    if (selectedPriceOptionId) {
+      const found = priceOptions.find(
+        (po) =>
+          po.id === selectedPriceOptionId ||
+          `${po.label}-${po.price}` === selectedPriceOptionId,
+      )
+      if (found) return found
+    }
+    // Default to the first active option
+    return activePriceOptions[0]
+  })()
+
+  // If price options exist, cannot add if no option is selected or if selected option is inactive
+  const isPriceOptionUnavailable =
+    hasPriceOptions && (!selectedPriceOption || !selectedPriceOption.active)
+
+  const basePrice = selectedPriceOption ? selectedPriceOption.price : product.price
   const customPrice = product.customNamePrice ?? 50
   const isCustomActive = isCustomizing && customName.trim().length > 0
   const isCustomRequiredButEmpty = isCustomizing && !customName.trim()
-  const unitPrice = product.price + (isCustomActive ? customPrice : 0)
+  const unitPrice = basePrice + (isCustomActive ? customPrice : 0)
 
   const currentSize =
     selectedSize || (product.sizes ? product.sizes[0] : undefined)
 
   const handleAdd = () => {
-    if (isCustomRequiredButEmpty) return
+    if (isCustomRequiredButEmpty || isPriceOptionUnavailable) return
 
     const isMultiStyle =
       gallery.length > 1 &&
@@ -71,6 +98,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       quantity,
       currentSize,
       isCustomActive ? customName.trim().toUpperCase() : undefined,
+      selectedPriceOption ? selectedPriceOption.price : undefined,
+      selectedPriceOption ? selectedPriceOption.label : undefined,
     )
     onClose()
   }
@@ -100,8 +129,6 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     }
     setTouchStart(null)
   }
-
-  const activeImage = gallery[activeImageIdx] || gallery[0]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs">
@@ -312,19 +339,105 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               {product.description}
             </p>
 
+            {/* Configurable Price Options / Tiers */}
+            {hasPriceOptions && (
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280]">
+                    Select Price Tier
+                  </label>
+                  {selectedPriceOption && selectedPriceOption.active && (
+                    <span className="text-[10px] font-bold text-[#4a5c2d]">
+                      {selectedPriceOption.label || "Selected Option"}: Rs {selectedPriceOption.price}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {priceOptions.map((opt, idx) => {
+                    const optKey = opt.id || `${opt.label || "tier"}-${opt.price}-${idx}`
+                    const isSelected = selectedPriceOption
+                      ? (opt.id && selectedPriceOption.id === opt.id) ||
+                        (selectedPriceOption.label === opt.label && selectedPriceOption.price === opt.price)
+                      : false
+                    const isActive = opt.active
+
+                    if (!isActive) {
+                      return (
+                        <div
+                          key={optKey}
+                          className="p-2.5 border border-dashed border-[#d1d5db] bg-[#f3f4f6]/70 opacity-40 cursor-not-allowed select-none flex items-center justify-between"
+                          title="This price tier is currently unavailable"
+                        >
+                          <div>
+                            <span className="text-xs font-bold text-[#6b7280] line-through block">
+                              {opt.label || `Option ${idx + 1}`}
+                            </span>
+                            <span className="text-[10px] text-[#9ca3af] line-through">
+                              Rs {opt.price}
+                            </span>
+                          </div>
+                          <span className="text-[9px] font-black tracking-widest uppercase bg-neutral-200 text-neutral-600 px-1.5 py-0.5 border border-neutral-300">
+                            UNAVAILABLE
+                          </span>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <button
+                        key={optKey}
+                        type="button"
+                        onClick={() => setSelectedPriceOptionId(opt.id || optKey)}
+                        className={`p-2.5 text-left border transition-all cursor-pointer flex items-center justify-between ${
+                          isSelected
+                            ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                            : "border-[#e5e1d8] bg-white text-[#1a1a1a] hover:border-[#1a1a1a]"
+                        }`}
+                      >
+                        <div>
+                          <span className="text-xs font-bold block">
+                            {opt.label || `Option ${idx + 1}`}
+                          </span>
+                          <span
+                            className={`text-[11px] font-extrabold ${
+                              isSelected ? "text-amber-300" : "text-[#4a5c2d]"
+                            }`}
+                          >
+                            Rs {opt.price}
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <span className="text-[9px] font-bold tracking-widest uppercase bg-white/20 text-white px-1.5 py-0.5">
+                            SELECTED
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Size Selector */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-5">
-                <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280] block mb-2">
-                  Select Size
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-[#6b7280]">
+                    Select Size
+                  </label>
+                  {currentSize && (
+                    <span className="text-[10px] font-bold text-[#4a5c2d] uppercase">
+                      Chosen: {currentSize}
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map((s) => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setSelectedSize(s)}
-                      className={`px-3 py-1.5 text-xs font-bold border transition-colors cursor-pointer ${
+                      className={`min-w-[42px] px-3 py-1.5 text-xs font-bold border transition-colors cursor-pointer text-center ${
                         currentSize === s
                           ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
                           : "border-[#e5e1d8] text-[#1a1a1a] hover:border-[#1a1a1a] bg-white"
@@ -476,7 +589,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             <button
               type="button"
               onClick={handleAdd}
-              disabled={product.stock <= 0 || isCustomRequiredButEmpty}
+              disabled={
+                product.stock <= 0 ||
+                isCustomRequiredButEmpty ||
+                isPriceOptionUnavailable
+              }
               className={`w-full py-3.5 text-[#f5f2ec] text-[11px] font-bold tracking-widest uppercase disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-md ${
                 product.isPresale || product.isPreorder
                   ? "bg-[#4a5c2d] hover:bg-[#5a7038]"
@@ -485,13 +602,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             >
               {isCustomRequiredButEmpty
                 ? "ENTER CUSTOM NAME TO PROCEED"
-                : product.isPresale
-                  ? `SECURE PRESALE (Rs ${(unitPrice * quantity).toFixed(0)})`
-                  : product.isPreorder
-                    ? `PRE-ORDER NOW (Rs ${(unitPrice * quantity).toFixed(0)})${
-                        isCustomActive ? " · CUSTOM" : ""
-                      }`
-                    : `ADD TO BAG (Rs ${(unitPrice * quantity).toFixed(0)})`}
+                : isPriceOptionUnavailable
+                  ? "PRICE OPTION UNAVAILABLE"
+                  : product.isPresale
+                    ? `SECURE PRESALE (Rs ${(unitPrice * quantity).toFixed(0)})`
+                    : product.isPreorder
+                      ? `PRE-ORDER NOW (Rs ${(unitPrice * quantity).toFixed(0)})${
+                          isCustomActive ? " · CUSTOM" : ""
+                        }`
+                      : `ADD TO BAG (Rs ${(unitPrice * quantity).toFixed(0)})`}
             </button>
           </div>
         </div>

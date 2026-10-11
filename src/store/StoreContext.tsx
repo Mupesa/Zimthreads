@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useRef,
   ReactNode,
   useMemo,
 } from "react"
@@ -251,9 +252,18 @@ const persistPublicRecord = async <T,>(
 }
 
 // Authenticated sync helper for administrative operations
-const syncToCloud = async (key: string, data: any) => {
+const syncToCloud = async (key: string, data: any): Promise<boolean> => {
+  if (
+    (key === "products" || key === "services" || key === "blog_posts") &&
+    Array.isArray(data) &&
+    data.length === 0
+  ) {
+    console.error(`[StoreContext] Aborted sync of empty array for "${key}".`)
+    return false
+  }
+
   try {
-    await fetch("/api/store", {
+    const res = await fetch("/api/store", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -265,8 +275,18 @@ const syncToCloud = async (key: string, data: any) => {
         adminToken: "Zimthreads200",
       }),
     })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      console.warn(
+        `[StoreContext] Cloud sync failed for ${key} (${res.status}):`,
+        err,
+      )
+      return false
+    }
+    return true
   } catch (err) {
     console.warn(`[StoreContext] Failed to sync ${key} to cloud:`, err)
+    return false
   }
 }
 
@@ -359,6 +379,37 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const [isHydrating, setIsHydrating] = useState(true)
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
 
+  // Live synchronized refs to eliminate closure stale-state bugs in mutations
+  const productsRef = useRef<Product[]>(products)
+  const servicesRef = useRef<Service[]>(services)
+  const bookingsRef = useRef<BookingItem[]>(bookings)
+  const ordersRef = useRef<OrderItem[]>(orders)
+  const blogPostsRef = useRef<BlogPost[]>(blogPosts)
+  const inquiriesRef = useRef<Inquiry[]>(inquiries)
+  const settingsRef = useRef<StoreSettings>(settings)
+
+  useEffect(() => {
+    productsRef.current = products
+  }, [products])
+  useEffect(() => {
+    servicesRef.current = services
+  }, [services])
+  useEffect(() => {
+    bookingsRef.current = bookings
+  }, [bookings])
+  useEffect(() => {
+    ordersRef.current = orders
+  }, [orders])
+  useEffect(() => {
+    blogPostsRef.current = blogPosts
+  }, [blogPosts])
+  useEffect(() => {
+    inquiriesRef.current = inquiries
+  }, [inquiries])
+  useEffect(() => {
+    settingsRef.current = settings
+  }, [settings])
+
   // Sync state changes with localStorage
   useEffect(() => {
     setStored(STORAGE_KEYS.PRODUCTS, products)
@@ -408,9 +459,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         if (cloudProducts.length === 0) {
           // Cloud catalog was empty, seed with initial canonical products
           setProducts(initialProducts)
+          productsRef.current = initialProducts
           syncToCloud("products", initialProducts)
         } else {
-          // Cloud has products: merge any missing canonical products into cloud data
+          // Cloud has products: merge any missing canonical products into cloud data without overriding cloud attributes
           const cloudIds = new Set(cloudProducts.map((p: any) => p.id))
           const missingCanonical = initialProducts.filter(
             (p) => !cloudIds.has(p.id),
@@ -418,26 +470,32 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           if (missingCanonical.length > 0) {
             const fullCanonical = [...cloudProducts, ...missingCanonical]
             setProducts(fullCanonical)
+            productsRef.current = fullCanonical
             syncToCloud("products", fullCanonical)
           } else {
             setProducts(cloudProducts)
+            productsRef.current = cloudProducts
           }
         }
       }
       if (Array.isArray(cloudServices)) {
         if (cloudServices.length === 0) {
           setServices(initialServices)
+          servicesRef.current = initialServices
           syncToCloud("services", initialServices)
         } else {
           setServices(cloudServices)
+          servicesRef.current = cloudServices
         }
       }
       if (Array.isArray(cloudBlogPosts)) {
         if (cloudBlogPosts.length === 0) {
           setBlogPosts(initialBlogPosts)
+          blogPostsRef.current = initialBlogPosts
           syncToCloud("blog_posts", initialBlogPosts)
         } else {
           setBlogPosts(cloudBlogPosts)
+          blogPostsRef.current = cloudBlogPosts
         }
       }
       if (
@@ -445,19 +503,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         typeof cloudSettings === "object" &&
         Object.keys(cloudSettings).length > 0
       ) {
-        setSettings((prev) => ({
-          ...prev,
-          ...cloudSettings,
-          announcementText:
-            cloudSettings.announcementText !== undefined
-              ? cloudSettings.announcementText
-              : prev.announcementText ||
-                "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN",
-          featuredDrop:
-            cloudSettings.featuredDrop ||
-            prev.featuredDrop ||
-            initialSettings.featuredDrop,
-        }))
+        setSettings((prev) => {
+          const next = {
+            ...prev,
+            ...cloudSettings,
+            announcementText:
+              cloudSettings.announcementText !== undefined
+                ? cloudSettings.announcementText
+                : prev.announcementText ||
+                  "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN",
+            featuredDrop:
+              cloudSettings.featuredDrop ||
+              prev.featuredDrop ||
+              initialSettings.featuredDrop,
+          }
+          settingsRef.current = next
+          return next
+        })
       }
       if (Array.isArray(cloudBookings)) {
         setBookings((prev) => {
@@ -467,7 +529,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             const ageMs = Date.now() - new Date(b.createdAt || 0).getTime()
             return !isNaN(ageMs) && ageMs < 60000
           })
-          return [...recentLocal, ...cloudBookings]
+          const merged = [...recentLocal, ...cloudBookings]
+          bookingsRef.current = merged
+          return merged
         })
       }
       if (Array.isArray(cloudOrders)) {
@@ -478,7 +542,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             const ageMs = Date.now() - new Date(o.createdAt || 0).getTime()
             return !isNaN(ageMs) && ageMs < 60000
           })
-          return [...recentLocal, ...cloudOrders]
+          const merged = [...recentLocal, ...cloudOrders]
+          ordersRef.current = merged
+          return merged
         })
       }
       if (Array.isArray(cloudInquiries)) {
@@ -490,7 +556,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             const ageMs = Date.now() - new Date(created || 0).getTime()
             return !isNaN(ageMs) && ageMs < 60000
           })
-          return [...recentLocal, ...cloudInquiries]
+          const merged = [...recentLocal, ...cloudInquiries]
+          inquiriesRef.current = merged
+          return merged
         })
       }
       setLastSyncedAt(new Date())
@@ -501,18 +569,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     }
   }
 
-  // Revalidate with Neon cloud store on mount and on window focus
+  // Multi-device sync: Revalidate with Neon cloud on mount, focus, tab visibility, and 30s background polling
   useEffect(() => {
-    let isMounted = true
     fetchCloudData()
 
-    const handleFocus = () => {
-      fetchCloudData()
+    const handleFocusOrVisible = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchCloudData()
+      }
     }
-    window.addEventListener("focus", handleFocus)
+
+    window.addEventListener("focus", handleFocusOrVisible)
+    document.addEventListener("visibilitychange", handleFocusOrVisible)
+
+    // Periodic 30s background poll so open devices stay continuously in sync
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchCloudData()
+      }
+    }, 30000)
+
     return () => {
-      isMounted = false
-      window.removeEventListener("focus", handleFocus)
+      window.removeEventListener("focus", handleFocusOrVisible)
+      document.removeEventListener("visibilitychange", handleFocusOrVisible)
+      clearInterval(interval)
     }
   }, [])
 
@@ -662,11 +742,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const updateBookingStatus = (id: string, status: BookingItem["status"]) => {
-    let next: BookingItem[] = []
-    setBookings((prev) => {
-      next = prev.map((b) => (b.id === id ? { ...b, status } : b))
-      return next
-    })
+    const next = bookingsRef.current.map((b) =>
+      b.id === id ? { ...b, status } : b,
+    )
+    bookingsRef.current = next
+    setBookings(next)
     syncToCloud("bookings", next)
     showToast(
       "Booking Updated",
@@ -676,11 +756,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const deleteBooking = (id: string) => {
-    let next: BookingItem[] = []
-    setBookings((prev) => {
-      next = prev.filter((b) => b.id !== id)
-      return next
-    })
+    const next = bookingsRef.current.filter((b) => b.id !== id)
+    bookingsRef.current = next
+    setBookings(next)
     syncToCloud("bookings", next)
     showToast("Booking Deleted", `Booking #${id} has been removed.`, "info")
   }
@@ -734,10 +812,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     const savedRecord = await persistPublicRecord("orders", newOrder)
 
     // Commit to local state and clear cart only upon successful persistence
-    setOrders((prev) => {
-      if (prev.some((o) => o.id === savedRecord.id)) return prev
-      return [savedRecord, ...prev]
-    })
+    const next = [savedRecord, ...ordersRef.current]
+    ordersRef.current = next
+    setOrders(next)
     clearCart()
     // NOTE: Do not call setIsCartOpen(false) here - allows CartDrawer to display order confirmation view
     showToast(
@@ -748,11 +825,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const updateOrderStatus = (id: string, status: OrderItem["status"]) => {
-    let next: OrderItem[] = []
-    setOrders((prev) => {
-      next = prev.map((o) => (o.id === id ? { ...o, status } : o))
-      return next
-    })
+    const next = ordersRef.current.map((o) =>
+      o.id === id ? { ...o, status } : o,
+    )
+    ordersRef.current = next
+    setOrders(next)
     syncToCloud("orders", next)
     showToast(
       "Order Updated",
@@ -765,11 +842,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     id: string,
     paymentStatus: "Paid" | "Pending" | "Refunded",
   ) => {
-    let next: OrderItem[] = []
-    setOrders((prev) => {
-      next = prev.map((o) => (o.id === id ? { ...o, paymentStatus } : o))
-      return next
-    })
+    const next = ordersRef.current.map((o) =>
+      o.id === id ? { ...o, paymentStatus } : o,
+    )
+    ordersRef.current = next
+    setOrders(next)
     syncToCloud("orders", next)
     showToast(
       "Payment Status Updated",
@@ -779,11 +856,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const deleteOrder = (id: string) => {
-    let next: OrderItem[] = []
-    setOrders((prev) => {
-      next = prev.filter((o) => o.id !== id)
-      return next
-    })
+    const next = ordersRef.current.filter((o) => o.id !== id)
+    ordersRef.current = next
+    setOrders(next)
     syncToCloud("orders", next)
     showToast("Order Deleted", `Order #${id} removed.`, "info")
   }
@@ -792,32 +867,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addService = (serviceData: Omit<Service, "id">): Service => {
     const id = serviceData.title.toLowerCase().replace(/[^a-z0-9]/g, "-")
     const newService: Service = { ...serviceData, id }
-    let next: Service[] = []
-    setServices((prev) => {
-      next = [...prev, newService]
-      return next
-    })
+    const next = [...servicesRef.current, newService]
+    servicesRef.current = next
+    setServices(next)
     syncToCloud("services", next)
     showToast("Service Added", `Service "${newService.title}" created.`)
     return newService
   }
 
   const updateService = (id: string, updated: Partial<Service>) => {
-    let next: Service[] = []
-    setServices((prev) => {
-      next = prev.map((s) => (s.id === id ? { ...s, ...updated } : s))
-      return next
-    })
+    const next = servicesRef.current.map((s) =>
+      s.id === id ? { ...s, ...updated } : s,
+    )
+    servicesRef.current = next
+    setServices(next)
     syncToCloud("services", next)
     showToast("Service Saved", "Service details updated.")
   }
 
   const deleteService = (id: string) => {
-    let next: Service[] = []
-    setServices((prev) => {
-      next = prev.filter((s) => s.id !== id)
-      return next
-    })
+    const next = servicesRef.current.filter((s) => s.id !== id)
+    servicesRef.current = next
+    setServices(next)
     syncToCloud("services", next)
     showToast("Service Removed", "Service deleted.", "info")
   }
@@ -826,22 +897,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addProduct = (prodData: Omit<Product, "id">): Product => {
     const id = `prod-${Date.now().toString().slice(-4)}`
     const newProduct: Product = { ...prodData, id }
-    let next: Product[] = []
-    setProducts((prev) => {
-      next = [newProduct, ...prev]
-      return next
-    })
+    const next = [newProduct, ...productsRef.current]
+    productsRef.current = next
+    setProducts(next)
     syncToCloud("products", next)
     showToast("Product Added", `Product "${newProduct.name}" added to catalog.`)
     return newProduct
   }
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
-    let next: Product[] = []
-    setProducts((prev) => {
-      next = prev.map((p) => (p.id === id ? { ...p, ...updated } : p))
-      return next
-    })
+    const next = productsRef.current.map((p) =>
+      p.id === id ? { ...p, ...updated } : p,
+    )
+    productsRef.current = next
+    setProducts(next)
     syncToCloud("products", next)
     showToast("Product Updated", "Product catalog entry updated.")
   }
@@ -849,25 +918,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const updateProductsBatch = (
     updates: { id: string; changes: Partial<Product> }[],
   ) => {
-    let next: Product[] = []
-    setProducts((prev) => {
-      const map = new Map(updates.map((u) => [u.id, u.changes]))
-      next = prev.map((p) => {
-        const changes = map.get(p.id)
-        return changes ? { ...p, ...changes } : p
-      })
-      return next
+    const map = new Map(updates.map((u) => [u.id, u.changes]))
+    const next = productsRef.current.map((p) => {
+      const changes = map.get(p.id)
+      return changes ? { ...p, ...changes } : p
     })
+    productsRef.current = next
+    setProducts(next)
     syncToCloud("products", next)
     showToast("Batch Updated", "Product prices & inventory updated successfully.")
   }
 
   const deleteProduct = (id: string) => {
-    let next: Product[] = []
-    setProducts((prev) => {
-      next = prev.filter((p) => p.id !== id)
-      return next
-    })
+    const next = productsRef.current.filter((p) => p.id !== id)
+    productsRef.current = next
+    setProducts(next)
     syncToCloud("products", next)
     showToast("Product Deleted", "Product removed from catalog.", "info")
   }
@@ -876,32 +941,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const addBlogPost = (postData: Omit<BlogPost, "id">): BlogPost => {
     const id = `post-${Date.now().toString().slice(-4)}`
     const newPost: BlogPost = { status: "published", ...postData, id }
-    let next: BlogPost[] = []
-    setBlogPosts((prev) => {
-      next = [newPost, ...prev]
-      return next
-    })
+    const next = [newPost, ...blogPostsRef.current]
+    blogPostsRef.current = next
+    setBlogPosts(next)
     syncToCloud("blog_posts", next)
     showToast("Blog Published", `Article "${newPost.title}" published.`)
     return newPost
   }
 
   const updateBlogPost = (id: string, updated: Partial<BlogPost>) => {
-    let next: BlogPost[] = []
-    setBlogPosts((prev) => {
-      next = prev.map((b) => (b.id === id ? { ...b, ...updated } : b))
-      return next
-    })
+    const next = blogPostsRef.current.map((b) =>
+      b.id === id ? { ...b, ...updated } : b,
+    )
+    blogPostsRef.current = next
+    setBlogPosts(next)
     syncToCloud("blog_posts", next)
     showToast("Article Saved", "Blog post updated.")
   }
 
   const deleteBlogPost = (id: string) => {
-    let next: BlogPost[] = []
-    setBlogPosts((prev) => {
-      next = prev.filter((b) => b.id !== id)
-      return next
-    })
+    const next = blogPostsRef.current.filter((b) => b.id !== id)
+    blogPostsRef.current = next
+    setBlogPosts(next)
     syncToCloud("blog_posts", next)
     showToast("Article Deleted", "Post removed.", "info")
   }
@@ -926,10 +987,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     const savedRecord = await persistPublicRecord("inquiries", newInquiry)
 
     // Commit to local state only upon successful persistence
-    setInquiries((prev) => {
-      if (prev.some((i) => i.id === savedRecord.id)) return prev
-      return [savedRecord, ...prev]
-    })
+    const next = [savedRecord, ...inquiriesRef.current]
+    inquiriesRef.current = next
+    setInquiries(next)
     showToast(
       "Message Sent!",
       "Thank you for reaching out. We will get back to you shortly.",
@@ -938,51 +998,52 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const markInquiryAsRead = (id: string, read = true) => {
-    let next: Inquiry[] = []
-    setInquiries((prev) => {
-      next = prev.map((inq) => (inq.id === id ? { ...inq, read } : inq))
-      return next
-    })
+    const next = inquiriesRef.current.map((inq) =>
+      inq.id === id ? { ...inq, read } : inq,
+    )
+    inquiriesRef.current = next
+    setInquiries(next)
     syncToCloud("inquiries", next)
   }
 
   const respondToInquiry = async (id: string, response: string) => {
-    let next: Inquiry[] = []
     const respondedAt = new Date().toISOString()
-    setInquiries((prev) => {
-      next = prev.map((inq) =>
-        inq.id === id
-          ? { ...inq, response, respondedAt, read: true }
-          : inq,
-      )
-      return next
-    })
+    const next = inquiriesRef.current.map((inq) =>
+      inq.id === id
+        ? { ...inq, response, respondedAt, read: true }
+        : inq,
+    )
+    inquiriesRef.current = next
+    setInquiries(next)
     await syncToCloud("inquiries", next)
     showToast("Response Logged", `Response saved for inquiry #${id}.`)
   }
 
   const deleteInquiry = (id: string) => {
-    let next: Inquiry[] = []
-    setInquiries((prev) => {
-      next = prev.filter((inq) => inq.id !== id)
-      return next
-    })
+    const next = inquiriesRef.current.filter((inq) => inq.id !== id)
+    inquiriesRef.current = next
+    setInquiries(next)
     syncToCloud("inquiries", next)
     showToast("Inquiry Deleted", "Message removed.", "info")
   }
 
   // Settings
   const updateSettings = (newSettings: Partial<StoreSettings>) => {
-    let next: StoreSettings = settings
-    setSettings((prev) => {
-      next = { ...prev, ...newSettings }
-      return next
-    })
+    const next: StoreSettings = { ...settingsRef.current, ...newSettings }
+    settingsRef.current = next
+    setSettings(next)
     syncToCloud("settings", next)
     showToast("Settings Saved", "Store configuration updated.")
   }
 
   const resetAllData = () => {
+    productsRef.current = initialProducts
+    servicesRef.current = initialServices
+    bookingsRef.current = initialBookings
+    ordersRef.current = initialOrders
+    blogPostsRef.current = initialBlogPosts
+    inquiriesRef.current = initialInquiries
+    settingsRef.current = initialSettings
     setProducts(initialProducts)
     setServices(initialServices)
     setBookings(initialBookings)
@@ -992,6 +1053,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     setSettings(initialSettings)
     setCart([])
     localStorage.clear()
+    syncToCloud("products", initialProducts)
+    syncToCloud("services", initialServices)
+    syncToCloud("blog_posts", initialBlogPosts)
+    syncToCloud("settings", initialSettings)
     showToast(
       "Reset Complete",
       "All data has been restored to default seeds.",

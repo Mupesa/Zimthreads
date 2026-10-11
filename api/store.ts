@@ -301,6 +301,17 @@ export default async function handler(req: any, res: any) {
           return res.status(400).json({ error: "Missing key or data" })
         }
 
+        if (
+          (key === "products" || key === "services" || key === "blog_posts") &&
+          Array.isArray(data) &&
+          data.length === 0 &&
+          !body.forceEmpty
+        ) {
+          return res.status(400).json({
+            error: `Refusing to overwrite collection '${key}' with an empty array. Pass forceEmpty: true if this is intentional.`,
+          })
+        }
+
         const query = `
           INSERT INTO public.zimthreads_store (key, data, updated_at)
           VALUES ($1, $2::jsonb, NOW())

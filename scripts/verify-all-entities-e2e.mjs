@@ -384,7 +384,7 @@ async function runEndToEndVerification() {
       (p) => p.id && p.id.startsWith("prod-jacket-"),
     )
     assert(racingJackets.length === 14, `Must have exactly 14 Archival Racing Jackets, found ${racingJackets.length}`)
-    logStep(`Catalog baseline confirmed: 16 total products, exactly 14 Archival Racing Jackets`)
+    logStep(`Catalog baseline confirmed: ${baseline.products.length} total products, exactly 14 Archival Racing Jackets`)
     passCount++
 
     // 3.2 Add Test Product via Admin Sync
@@ -468,7 +468,7 @@ async function runEndToEndVerification() {
       const foundInSql = freshSql.data.find((p) => p.id === testProductId)
       assert(!foundInSql, `Test product ${testProductId} must be deleted from Neon DB`)
       assert(freshSql.data.length === baseline.products.length, `Product catalog count must return to baseline ${baseline.products.length}`)
-      logStep(`Test product deleted; catalog returned to exact 16 products baseline`, performance.now() - tStart)
+      logStep(`Test product deleted; catalog returned to exact ${baseline.products.length} products baseline`, performance.now() - tStart)
       passCount++
     }
 

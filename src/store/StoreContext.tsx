@@ -274,8 +274,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [products, setProducts] = useState<Product[]>(() => {
-    const loaded = getStored(STORAGE_KEYS.PRODUCTS, initialProducts)
-    return loaded.map((p) => {
+    const loaded = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, initialProducts)
+    const effective =
+      Array.isArray(loaded) && loaded.length > 0 ? loaded : initialProducts
+    return effective.map((p) => {
       if (
         p.id === "prod-4" &&
         (!p.img ||
@@ -301,8 +303,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     })
   })
   const [services, setServices] = useState<Service[]>(() => {
-    const loaded = getStored(STORAGE_KEYS.SERVICES, initialServices)
-    return loaded.map((s) => {
+    const loaded = getStored<Service[]>(STORAGE_KEYS.SERVICES, initialServices)
+    const effective =
+      Array.isArray(loaded) && loaded.length > 0 ? loaded : initialServices
+    return effective.map((s) => {
       if (
         s.id === "restore" &&
         (!s.img || s.img.includes("photo-1556906781-9a412961a28c"))
@@ -321,9 +325,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const [orders, setOrders] = useState<OrderItem[]>(() =>
     getStored(STORAGE_KEYS.ORDERS, initialOrders),
   )
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() =>
-    getStored(STORAGE_KEYS.BLOG_POSTS, initialBlogPosts),
-  )
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => {
+    const loaded = getStored<BlogPost[]>(
+      STORAGE_KEYS.BLOG_POSTS,
+      initialBlogPosts,
+    )
+    return Array.isArray(loaded) && loaded.length > 0
+      ? loaded
+      : initialBlogPosts
+  })
   const [inquiries, setInquiries] = useState<Inquiry[]>(() =>
     getStored(STORAGE_KEYS.INQUIRIES, initialInquiries),
   )
@@ -395,8 +405,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       } = result.data
 
       if (Array.isArray(cloudProducts)) {
-        if (cloudProducts.length === 16) {
-          const cloudIds = new Set(cloudProducts.map((p) => p.id))
+        if (cloudProducts.length === 0) {
+          // Cloud catalog was empty, seed with initial canonical products
+          setProducts(initialProducts)
+          syncToCloud("products", initialProducts)
+        } else {
+          // Cloud has products: merge any missing canonical products into cloud data
+          const cloudIds = new Set(cloudProducts.map((p: any) => p.id))
           const missingCanonical = initialProducts.filter(
             (p) => !cloudIds.has(p.id),
           )
@@ -407,15 +422,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           } else {
             setProducts(cloudProducts)
           }
-        } else {
-          setProducts(cloudProducts)
         }
       }
       if (Array.isArray(cloudServices)) {
-        setServices(cloudServices)
+        if (cloudServices.length === 0) {
+          setServices(initialServices)
+          syncToCloud("services", initialServices)
+        } else {
+          setServices(cloudServices)
+        }
       }
       if (Array.isArray(cloudBlogPosts)) {
-        setBlogPosts(cloudBlogPosts)
+        if (cloudBlogPosts.length === 0) {
+          setBlogPosts(initialBlogPosts)
+          syncToCloud("blog_posts", initialBlogPosts)
+        } else {
+          setBlogPosts(cloudBlogPosts)
+        }
       }
       if (
         cloudSettings &&

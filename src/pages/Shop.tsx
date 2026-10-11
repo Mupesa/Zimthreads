@@ -92,7 +92,12 @@ export default function Shop() {
     (!searchQuery.trim() ||
       "the paddock archive racing jackets retro vintage motorsport jacket"
         .toLowerCase()
-        .includes(searchQuery.toLowerCase().trim()))
+        .includes(searchQuery.toLowerCase().trim()) ||
+      activeJacketProds.some(
+        (j) =>
+          j.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          j.description.toLowerCase().includes(searchQuery.toLowerCase()),
+      ))
 
   const handleQuickAdd = (e: React.MouseEvent, p: Product) => {
     e.stopPropagation()

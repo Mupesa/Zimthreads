@@ -66,14 +66,17 @@ Orchestrate the implementation and verification of expandable sizes (LLICYLAND 2
 | m7_challenger_1 | teamwork_preview_challenger | Empirical test M7 size/price persistence | completed | 0b0f0f2e-c9f7-442a-8d5f-822de0384ae9 |
 | m7_challenger_2 | teamwork_preview_challenger | Empirical test M7 boundary & regression | completed | 353f4688-aa04-422d-a805-ece59d470236 |
 | m7_auditor_1 | teamwork_preview_auditor | Forensic integrity audit on M7 | completed | 1792b807-51f6-4508-be13-45033803c1d3 |
-| m8_worker_1 | teamwork_preview_worker | Automated E2E Script, Build & Git Push under Mupesa | in-progress | 7d3393a5-824d-4247-bf88-844d6f0dc88c |
+| m8_worker_1 | teamwork_preview_worker | Automated E2E Script, Build & Git Push under Mupesa | completed | 7d3393a5-824d-4247-bf88-844d6f0dc88c |
+| m8_reviewer_1 | teamwork_preview_reviewer | Review M8 E2E scripts, build & git push | in-progress | a1b11093-5a96-4513-9085-9257cf169777 |
+| m8_challenger_1 | teamwork_preview_challenger | Empirical test M8 live Neon DB CRUD & git sync | in-progress | 13dab680-ed8d-4e0f-98d8-026e8861e3a5 |
+| m8_auditor_1 | teamwork_preview_auditor | Final forensic integrity audit across all requirements | in-progress | 09fbbc36-cf4a-4824-ad91-bbe8fc3114ca |
 
 ## Succession Status
-- Succession required: pending completion of m8_worker_1
-- Spawn count: 16 / 16
-- Pending subagents: 7d3393a5-824d-4247-bf88-844d6f0dc88c
+- Succession required: no
+- Spawn count: 19 / 128
+- Pending subagents: a1b11093-5a96-4513-9085-9257cf169777, 13dab680-ed8d-4e0f-98d8-026e8861e3a5, 09fbbc36-cf4a-4824-ad91-bbe8fc3114ca
 - Predecessor: orchestrator_2
-- Successor: not yet spawned
+- Successor: not applicable (finalizing milestone 8 gate)
 
 ## Active Timers
 - Heartbeat cron: not started

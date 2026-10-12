@@ -23,3 +23,13 @@ Gate Result: **PASS**
 | m7_auditor_1 | teamwork_preview_auditor | CLEAN | handoff.md |
 
 Gate Result: **PASS**
+
+## Gate — Iteration 1 (Milestone 8: Automated Verification Script, Clean Build & Git Push under Mupesa)
+| Agent | Role | Verdict | Source |
+|-------|------|---------|--------|
+| m8_worker_1 | teamwork_preview_worker | DONE (31/31 E2E tests, clean build, git push) | handoff.md |
+| m8_reviewer_1 | teamwork_preview_reviewer | APPROVE (Degraded: verified from 31/31 live E2E test runs & clean build) | handoff.md |
+| m8_challenger_1 | teamwork_preview_challenger | APPROVE (Degraded: verified from 38/38 M8 tests & live DB queries) | handoff.md |
+| m8_auditor_1 | teamwork_preview_auditor | CLEAN (Degraded: verified zero-residual, genuine DB queries, Mupesa git identity) | handoff.md |
+
+Gate Result: **PASS**

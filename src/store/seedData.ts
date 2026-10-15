@@ -324,6 +324,8 @@ export const heritageBraceletProduct: Product = {
     "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926765/zimthreads/bracelets/qa3jsl8s7imv7mxtjahs.png",
     "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926767/zimthreads/bracelets/solml8gkubwtd8i4iznh.png",
     "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926768/zimthreads/bracelets/fui950oxl9tuufejpijb.png",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035217/zimthreads/bracelets/elfgrd5kskbrpwhgfou0.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035216/zimthreads/bracelets/iv3ei2ul8swzocdpvsfn.jpg",
   ],
   views: [
     {
@@ -373,6 +375,14 @@ export const heritageBraceletProduct: Product = {
     {
       label: 'Ghana "Black Star" Heritage Cuff',
       url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926770/zimthreads/bracelets/w4fsawbjgtpukn7amuwg.png",
+    },
+    {
+      label: 'Zimbabwe Flag Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035217/zimthreads/bracelets/elfgrd5kskbrpwhgfou0.jpg",
+    },
+    {
+      label: 'Ghana "Black Star" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035216/zimthreads/bracelets/iv3ei2ul8swzocdpvsfn.jpg",
     },
   ],
   alt: "Zimthread African Heritage Beaded Bracelet Collection",

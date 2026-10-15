@@ -23,6 +23,7 @@ import {
   initialBlogPosts,
   initialInquiries,
   initialSettings,
+  heritageBraceletProduct,
 } from "./seedData"
 
 declare module "./seedData" {
@@ -329,6 +330,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           sizes: finalSizes,
         }
       }
+      if (p.id === "prod-brace-heritage") {
+        const localViews = Array.isArray(p.views) ? p.views : []
+        const canonicalViews = heritageBraceletProduct.views || []
+        const existingUrls = new Set(localViews.map((v: any) => v.url))
+        const missingViews = canonicalViews.filter((v: any) => !existingUrls.has(v.url))
+        if (missingViews.length > 0) {
+          return {
+            ...p,
+            views: [...localViews, ...missingViews],
+            images: Array.from(new Set([...(p.images || []), ...(heritageBraceletProduct.images || [])])),
+          }
+        }
+      }
       return p
     })
   })
@@ -475,6 +489,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             if (!has2XL || !hasXXL) {
               const merged = Array.from(new Set([...sizes, "S", "M", "L", "XL", "2XL", "XXL"]))
               return { ...p, sizes: merged }
+            }
+          }
+          if (p && p.id === "prod-brace-heritage") {
+            const cloudViews = Array.isArray(p.views) ? p.views : []
+            const canonicalViews = heritageBraceletProduct.views || []
+            const existingUrls = new Set(cloudViews.map((v: any) => v.url))
+            const missingViews = canonicalViews.filter((v: any) => !existingUrls.has(v.url))
+            if (missingViews.length > 0) {
+              const mergedViews = [...cloudViews, ...missingViews]
+              const mergedImages = Array.from(new Set([...(p.images || []), ...(heritageBraceletProduct.images || [])]))
+              return { ...p, views: mergedViews, images: mergedImages }
             }
           }
           return p

@@ -14,9 +14,14 @@ export default function ShopHero({
   onScrollToCatalog,
 }: ShopHeroProps) {
   // Use the new LLICYLAND high-fashion editorial hero image
-  const heroImage =
-    banner?.imageUrl ||
+  const editorialHeroFallback =
     "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792407895/zimthreads/banners/wjn81t1rzt0h6boikoxd.jpg"
+
+  // Only use banner.imageUrl if it exists and is an editorial banner (not an old product photo)
+  const heroImage =
+    banner?.imageUrl && !banner.imageUrl.includes("/products/")
+      ? banner.imageUrl
+      : editorialHeroFallback
 
   const handleScrollToSpotlight = () => {
     if (onScrollToSpotlight) {
@@ -39,7 +44,7 @@ export default function ShopHero({
   }
 
   return (
-    <section className="relative w-full h-[78vh] sm:h-[86vh] lg:h-[90vh] bg-[#0a0c0b] overflow-hidden border-b border-[#242b25] flex flex-col justify-between">
+    <section className="relative w-full h-[64vh] sm:h-[82vh] lg:h-[88vh] bg-[#0a0c0b] overflow-hidden border-b border-[#242b25] flex flex-col justify-between">
       {/* 1. Unobstructed High-Fashion Editorial Hero Visual */}
       <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
         {/* Subtle background glow/grid */}
@@ -55,11 +60,11 @@ export default function ShopHero({
         <img
           src={heroImage}
           alt={banner?.title || "Zimthreads Atelier Streetwear Hero"}
-          className="w-full h-full object-contain sm:object-cover object-top sm:object-center transition-transform duration-700 hover:scale-[1.01]"
+          className="w-full h-full object-cover object-top sm:object-center transition-transform duration-700 hover:scale-[1.01]"
         />
 
         {/* Minimal bottom edge vignette so bottom controls are readable without obstructing the subject */}
-        <div className="absolute inset-x-0 bottom-0 h-36 sm:h-44 bg-gradient-to-t from-[#0a0c0b] via-[#0a0c0b]/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-28 sm:h-44 bg-gradient-to-t from-[#0a0c0b] via-[#0a0c0b]/85 to-transparent pointer-events-none" />
       </div>
 
       {/* 2. Top Minimalist Status Strip (Floating quietly at top edge) */}
@@ -77,13 +82,13 @@ export default function ShopHero({
       </div>
 
       {/* 3. Bottom Minimalist Action Bar (Anchored at very bottom edge, keeping the photo clear) */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full pb-6 sm:pb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-4 border-t border-white/10">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full pb-4 sm:pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-white/10">
           <div>
-            <p className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-[#86a84e] mb-1">
+            <p className="text-[9px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-[#86a84e] mb-1">
               Bespoke Streetwear & Cultural Kits
             </p>
-            <h1 className="font-display text-2xl sm:text-4xl font-black uppercase text-white tracking-wide">
+            <h1 className="font-display text-xl sm:text-4xl font-black uppercase text-white tracking-wide">
               THE ATELIER STORE
             </h1>
           </div>
@@ -92,15 +97,15 @@ export default function ShopHero({
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={handleScrollToSpotlight}
-              className="px-5 py-2.5 sm:py-3 bg-[#86a84e] hover:bg-[#97bd59] text-[#0a0c0b] font-display text-[11px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[#86a84e]/20 flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 sm:px-5 sm:py-3 bg-[#86a84e] hover:bg-[#97bd59] text-[#0a0c0b] font-display text-[10px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[#86a84e]/20 flex items-center gap-1.5 sm:gap-2 cursor-pointer"
             >
               <span>FEATURED DROP</span>
-              <ArrowRightIcon className="w-3.5 h-3.5" />
+              <ArrowRightIcon className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
             </button>
 
             <button
               onClick={handleScrollToCatalog}
-              className="px-5 py-2.5 sm:py-3 bg-black/60 hover:bg-black/90 text-white border border-white/20 hover:border-white font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer backdrop-blur-md"
+              className="px-4 py-2 sm:px-5 sm:py-3 bg-black/60 hover:bg-black/90 text-white border border-white/20 hover:border-white font-mono text-[10px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer backdrop-blur-md"
             >
               <span>ALL PRODUCTS</span>
               <span>↓</span>

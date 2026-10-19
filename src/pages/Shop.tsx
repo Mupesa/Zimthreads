@@ -146,7 +146,7 @@ export default function Shop() {
       {/* 4. Complete Catalog Section */}
       <div
         id="shop-catalog-section"
-        className="max-w-7xl mx-auto px-4 sm:px-6 py-16"
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-16"
       >
         <div className="mb-8 text-center sm:text-left">
           <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-[0.3em] uppercase text-[#4a5c2d] mb-1">

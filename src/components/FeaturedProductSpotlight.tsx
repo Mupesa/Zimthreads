@@ -63,7 +63,7 @@ export default function FeaturedProductSpotlight({
   const [quantity, setQuantity] = useState(1)
   const [isCustomizing, setIsCustomizing] = useState(false)
   const [customName, setCustomName] = useState("")
-  const [openAccordion, setOpenAccordion] = useState<string | null>("story")
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null)
 
   const activeImage = gallery[activeImageIdx] || gallery[0]
 
@@ -98,54 +98,54 @@ export default function FeaturedProductSpotlight({
   return (
     <section
       id="featured-product-spotlight"
-      className="py-16 sm:py-24 bg-[#111412] text-[#f5f2ec] border-b border-[#242b25]"
+      className="py-6 sm:py-16 bg-[#111412] text-[#f5f2ec] border-b border-[#242b25]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Top Header Kicker */}
-        <div className="mb-10 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-[0.3em] uppercase text-[#86a84e] mb-2">
+        <div className="mb-4 sm:mb-8 text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 text-[9px] sm:text-[10px] font-mono tracking-[0.25em] uppercase text-[#86a84e] mb-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#86a84e]" />
             <span>DIRECT ATELIER SPOTLIGHT</span>
           </div>
-          <h2 className="font-display text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
+          <h2 className="font-display text-xl sm:text-4xl font-black uppercase tracking-tight text-white">
             FLAGSHIP DROP SHOWCASE
           </h2>
         </div>
 
         {/* 2-Column Split: Gallery on Left, Sticky Purchase Card on Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
           {/* ===================== LEFT: MEDIA GALLERY ===================== */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
+          <div className="lg:col-span-7 flex flex-col gap-3 sm:gap-4">
             {/* Primary Main Image Frame */}
-            <div className="relative aspect-[4/5] sm:aspect-square w-full bg-[#181d19] border border-[#2a322b] overflow-hidden group">
+            <div className="relative aspect-square sm:aspect-square max-h-[320px] sm:max-h-none w-full bg-[#181d19] border border-[#2a322b] overflow-hidden group">
               <img
                 src={activeImage.url}
                 alt={`${displayTitle} - ${activeImage.label}`}
-                className="w-full h-full object-cover object-center transition-all duration-500"
+                className="w-full h-full object-contain p-3 sm:p-6 object-center transition-all duration-500"
               />
 
               {/* Badge Overlay */}
-              <div className="absolute top-4 left-4 z-10">
-                <span className="bg-[#86a84e] text-[#121513] text-[9px] font-black uppercase px-3 py-1 tracking-wider shadow-md flex items-center gap-1.5">
+              <div className="absolute top-3 left-3 z-10">
+                <span className="bg-[#86a84e] text-[#121513] text-[9px] font-black uppercase px-2.5 py-0.5 sm:px-3 sm:py-1 tracking-wider shadow-md flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#121513] animate-pulse" />
                   <span>{displayBadge}</span>
                 </span>
               </div>
 
               {/* View Label Tag */}
-              <div className="absolute bottom-4 right-4 z-10 bg-[#121513]/85 backdrop-blur-xs px-3 py-1 border border-[#2a322b] text-[10px] font-mono uppercase tracking-wider text-[#d1d5db]">
+              <div className="absolute bottom-3 right-3 z-10 bg-[#121513]/85 backdrop-blur-xs px-2.5 py-0.5 border border-[#2a322b] text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#d1d5db]">
                 {activeImage.label}
               </div>
             </div>
 
             {/* Thumbnail Row */}
             {gallery.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-2 scrollbar-hide">
                 {gallery.map((view, idx) => (
                   <button
                     key={`${view.label}-${idx}`}
                     onClick={() => setActiveImageIdx(idx)}
-                    className={`relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 border overflow-hidden cursor-pointer transition-all ${
+                    className={`relative w-14 h-14 sm:w-24 sm:h-24 shrink-0 border overflow-hidden cursor-pointer transition-all ${
                       activeImageIdx === idx
                         ? "border-[#86a84e] ring-2 ring-[#86a84e]/30 scale-102"
                         : "border-[#2a322b] opacity-60 hover:opacity-100 bg-[#181d19]"
@@ -154,9 +154,9 @@ export default function FeaturedProductSpotlight({
                     <img
                       src={view.url}
                       alt={view.label}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-1"
                     />
-                    <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] font-mono text-center uppercase py-0.5 text-white truncate px-1">
+                    <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[7px] sm:text-[8px] font-mono text-center uppercase py-0.5 text-white truncate px-0.5">
                       {view.label}
                     </span>
                   </button>
@@ -166,10 +166,10 @@ export default function FeaturedProductSpotlight({
           </div>
 
           {/* ===================== RIGHT: STICKY PURCHASE PANEL ===================== */}
-          <div className="lg:col-span-5 bg-[#181d19] border border-[#2a322b] p-6 sm:p-8 lg:sticky lg:top-24">
+          <div className="lg:col-span-5 bg-[#181d19] border border-[#2a322b] p-4 sm:p-6 lg:p-8 lg:sticky lg:top-24">
             {/* Category / Collection Tag */}
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#86a84e] font-bold">
+            <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.25em] text-[#86a84e] font-bold">
                 {targetProduct.category} // BESPOKE
               </span>
               {targetProduct.isPreorder && (
@@ -180,37 +180,37 @@ export default function FeaturedProductSpotlight({
             </div>
 
             {/* Title */}
-            <h3 className="font-display text-2xl sm:text-3xl font-black uppercase text-white tracking-wide mb-2">
+            <h3 className="font-display text-xl sm:text-2xl lg:text-3xl font-black uppercase text-white tracking-wide mb-1.5 sm:mb-2">
               {displayTitle}
             </h3>
 
             {/* Live Pricing */}
-            <div className="flex items-baseline gap-3 mb-6 pb-6 border-b border-[#2a322b]">
-              <span className="font-display text-3xl font-extrabold text-[#86a84e]">
+            <div className="flex items-baseline gap-3 mb-4 pb-4 sm:mb-6 sm:pb-6 border-b border-[#2a322b]">
+              <span className="font-display text-2xl sm:text-3xl font-extrabold text-[#86a84e]">
                 Rs {unitPrice}
               </span>
               {isCustomActive && (
-                <span className="text-[11px] font-mono text-[#9ca3af]">
-                  (Includes +Rs {customPrice} Personalization)
+                <span className="text-[10px] sm:text-[11px] font-mono text-[#9ca3af]">
+                  (+Rs {customPrice} Custom Name)
                 </span>
               )}
             </div>
 
             {/* Size Selector */}
             {targetProduct.sizes && targetProduct.sizes.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-[#9ca3af] mb-2.5">
+              <div className="mb-4 sm:mb-6">
+                <div className="flex items-center justify-between text-[11px] sm:text-xs font-mono uppercase tracking-wider text-[#9ca3af] mb-2">
                   <span>SELECT SIZE</span>
                   <span className="text-[10px] text-[#86a84e]">
                     Selected: {selectedSize || "None"}
                   </span>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {targetProduct.sizes.map((s) => (
                     <button
                       key={s}
                       onClick={() => setSelectedSize(s)}
-                      className={`py-2 text-xs font-mono font-bold uppercase transition-all cursor-pointer border ${
+                      className={`flex-1 min-w-[42px] py-1.5 sm:py-2 text-[11px] sm:text-xs font-mono font-bold uppercase text-center transition-all cursor-pointer border ${
                         selectedSize === s
                           ? "bg-[#86a84e] text-[#121513] border-[#86a84e] shadow-sm font-black"
                           : "bg-[#121513] text-[#d1d5db] border-[#2a322b] hover:border-[#86a84e]"
@@ -225,21 +225,21 @@ export default function FeaturedProductSpotlight({
 
             {/* Custom Name Personalization (if supported) */}
             {targetProduct.allowCustomName && (
-              <div className="mb-6 p-4 bg-[#121513] border border-[#2a322b]">
-                <label className="flex items-center gap-2 cursor-pointer mb-2">
+              <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-[#121513] border border-[#2a322b]">
+                <label className="flex items-center gap-2 cursor-pointer mb-1.5">
                   <input
                     type="checkbox"
                     checked={isCustomizing}
                     onChange={(e) => setIsCustomizing(e.target.checked)}
                     className="w-4 h-4 rounded text-[#86a84e] bg-[#181d19] border-[#374151] focus:ring-0"
                   />
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                  <span className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-white">
                     Personalize Custom Name (+Rs {customPrice})
                   </span>
                 </label>
 
                 {isCustomizing && (
-                  <div className="mt-3">
+                  <div className="mt-2.5">
                     <input
                       type="text"
                       maxLength={12}
@@ -248,10 +248,10 @@ export default function FeaturedProductSpotlight({
                         setCustomName(e.target.value.toUpperCase())
                       }
                       placeholder="ENTER NAME (E.G. MUPESA)"
-                      className="w-full bg-[#181d19] border border-[#374151] px-3 py-2 text-xs font-mono uppercase text-white focus:outline-none focus:border-[#86a84e] tracking-widest"
+                      className="w-full bg-[#181d19] border border-[#374151] px-3 py-1.5 text-xs font-mono uppercase text-white focus:outline-none focus:border-[#86a84e] tracking-widest"
                     />
                     {customName.trim() && (
-                      <p className="mt-2 text-[10px] font-mono text-[#86a84e]">
+                      <p className="mt-1.5 text-[10px] font-mono text-[#86a84e]">
                         ✓ Printed above &apos;02&apos; on jersey back:{" "}
                         <span className="font-bold">{customName.trim()}</span>
                       </p>
@@ -262,20 +262,20 @@ export default function FeaturedProductSpotlight({
             )}
 
             {/* Quantity & Add to Cart Controls */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center border border-[#2a322b] bg-[#121513]">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <div className="flex items-center border border-[#2a322b] bg-[#121513] shrink-0">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-10 h-12 text-sm text-[#9ca3af] hover:text-white transition-colors cursor-pointer"
+                  className="w-8 sm:w-10 h-10 sm:h-12 text-sm text-[#9ca3af] hover:text-white transition-colors cursor-pointer"
                 >
                   -
                 </button>
-                <span className="w-10 text-center font-mono text-xs font-bold text-white">
+                <span className="w-8 sm:w-10 text-center font-mono text-xs font-bold text-white">
                   {quantity}
                 </span>
                 <button
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="w-10 h-12 text-sm text-[#9ca3af] hover:text-white transition-colors cursor-pointer"
+                  className="w-8 sm:w-10 h-10 sm:h-12 text-sm text-[#9ca3af] hover:text-white transition-colors cursor-pointer"
                 >
                   +
                 </button>
@@ -283,7 +283,7 @@ export default function FeaturedProductSpotlight({
 
               <button
                 onClick={handleAddToCart}
-                className="flex-1 h-12 bg-[#86a84e] hover:bg-[#97bd59] text-[#121513] font-display font-black tracking-widest text-xs uppercase transition-all shadow-md hover:shadow-[#86a84e]/20 flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 h-10 sm:h-12 bg-[#86a84e] hover:bg-[#97bd59] text-[#121513] font-display font-black tracking-widest text-[11px] sm:text-xs uppercase transition-all shadow-md hover:shadow-[#86a84e]/20 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>ADD TO CART · RS {unitPrice * quantity}</span>
                 <span>→</span>

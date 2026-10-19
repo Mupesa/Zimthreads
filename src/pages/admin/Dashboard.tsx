@@ -75,6 +75,8 @@ export default function Dashboard() {
     updateSettings,
     resetAllData,
     showToast,
+    addCustomer,
+    deleteCustomer,
   } = useStore()
 
   // Authentication state
@@ -136,6 +138,46 @@ export default function Dashboard() {
   const [viewInquiry, setViewInquiry] = useState<Inquiry | null>(null)
   const [inquiryResponseText, setInquiryResponseText] = useState("")
   const [viewOrder, setViewOrder] = useState<OrderItem | null>(null)
+  const [newCustomerModal, setNewCustomerModal] = useState(false)
+  const [customerForm, setCustomerForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    status: "Active" as "Active" | "VIP" | "New",
+    totalSpent: 0,
+    notes: "",
+  })
+  const [isAddingCustomer, setIsAddingCustomer] = useState(false)
+
+  const handleCreateCustomer = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!customerForm.name.trim() || !customerForm.email.trim()) {
+      showToast("Missing Fields", "Customer name and email are required.", "error")
+      return
+    }
+    setIsAddingCustomer(true)
+    try {
+      addCustomer({
+        name: customerForm.name.trim(),
+        email: customerForm.email.trim().toLowerCase(),
+        phone: customerForm.phone.trim(),
+        status: customerForm.status,
+        totalSpent: Number(customerForm.totalSpent) || 0,
+        notes: customerForm.notes.trim(),
+      })
+      setCustomerForm({
+        name: "",
+        email: "",
+        phone: "",
+        status: "Active",
+        totalSpent: 0,
+        notes: "",
+      })
+      setNewCustomerModal(false)
+    } finally {
+      setIsAddingCustomer(false)
+    }
+  }
 
   // Form states for creators
   const [isCreatingBooking, setIsCreatingBooking] = useState(false)
@@ -2448,14 +2490,23 @@ export default function Dashboard() {
                     Calculated lifetime value, booking counts, and order activity
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => openPitchModal()}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-lg"
-                >
-                  <MailIcon className="w-4 h-4" />
-                  <span>+ Compose Product Pitch</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewCustomerModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#111827] hover:bg-[#374151] text-white border border-[#374151] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-md"
+                  >
+                    <span>+ Add Customer</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openPitchModal()}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-lg"
+                  >
+                    <MailIcon className="w-4 h-4" />
+                    <span>+ Compose Product Pitch</span>
+                  </button>
+                </div>
               </div>
 
               <div className="bg-[#1f2937] border border-[#374151] overflow-x-auto">
@@ -2478,15 +2529,15 @@ export default function Dashboard() {
                           colSpan={7}
                           className="p-8 text-center text-xs text-[#9ca3af]"
                         >
-                          No customer profiles recorded yet. Profiles will
-                          automatically generate when bookings or orders are
-                          placed.
+                          No customer profiles recorded yet. Click "+ Add Customer"
+                          or profiles will automatically generate when bookings or
+                          orders are placed.
                         </td>
                       </tr>
                     ) : (
                       customers.map((c) => (
                         <tr
-                          key={c.email || c.name}
+                          key={c.id || c.email || c.name}
                           className="hover:bg-[#111827]/40 transition-colors"
                         >
                           <td className="p-4">
@@ -2494,9 +2545,23 @@ export default function Dashboard() {
                               <div className="w-8 h-8 rounded-full bg-[#4a5c2d] flex items-center justify-center font-bold text-white text-xs">
                                 {c.name[0]}
                               </div>
-                              <span className="font-bold text-white">
-                                {c.name}
-                              </span>
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold text-white">
+                                    {c.name}
+                                  </span>
+                                  {c.isManual && (
+                                    <span className="text-[9px] bg-[#374151] text-[#9ca3af] px-1.5 py-0.2 rounded font-mono uppercase">
+                                      Manual
+                                    </span>
+                                  )}
+                                </div>
+                                {c.notes && (
+                                  <p className="text-[10px] text-[#9ca3af] italic truncate max-w-[180px]">
+                                    {c.notes}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="p-4 text-[#9ca3af]">
@@ -2528,15 +2593,35 @@ export default function Dashboard() {
                             </span>
                           </td>
                           <td className="p-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => openPitchModal(c)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold transition-colors cursor-pointer"
-                              title="Send Product Showcase Email"
-                            >
-                              <MailIcon className="w-3.5 h-3.5" />
-                              <span>Pitch Products</span>
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => openPitchModal(c)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold transition-colors cursor-pointer"
+                                title="Send Product Showcase Email"
+                              >
+                                <MailIcon className="w-3.5 h-3.5" />
+                                <span>Pitch</span>
+                              </button>
+                              {c.isManual && c.id && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (
+                                      confirm(
+                                        `Are you sure you want to delete customer "${c.name}"?`
+                                      )
+                                    ) {
+                                      deleteCustomer(c.id!)
+                                    }
+                                  }}
+                                  className="px-2 py-1.5 bg-[#111827] hover:bg-rose-900/40 text-[#9ca3af] hover:text-rose-400 border border-[#374151] text-xs font-bold transition-colors cursor-pointer"
+                                  title="Delete manual customer profile"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -5625,6 +5710,154 @@ export default function Dashboard() {
               >
                 Save Article Changes
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 9. Add Manual Customer Modal */}
+      {newCustomerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-lg p-6 text-white shadow-2xl animate-scale-up">
+            <div className="flex justify-between items-center pb-3 border-b border-[#374151]">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-[#4a5c2d] text-white rounded">
+                  <UsersIcon className="w-4 h-4" />
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase">
+                  Add New Customer
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNewCustomerModal(false)}
+                className="text-sm font-bold text-[#9ca3af] hover:text-white cursor-pointer px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCustomer} className="space-y-3.5 text-xs mt-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Full Customer Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={customerForm.name}
+                  onChange={(e) =>
+                    setCustomerForm({ ...customerForm, name: e.target.value })
+                  }
+                  placeholder="e.g. Jean-Luc Dupont"
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={customerForm.email}
+                    onChange={(e) =>
+                      setCustomerForm({ ...customerForm, email: e.target.value })
+                    }
+                    placeholder="client@example.com"
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={customerForm.phone}
+                    onChange={(e) =>
+                      setCustomerForm({ ...customerForm, phone: e.target.value })
+                    }
+                    placeholder="+230 5..."
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Tier Status
+                  </label>
+                  <select
+                    value={customerForm.status}
+                    onChange={(e) =>
+                      setCustomerForm({
+                        ...customerForm,
+                        status: e.target.value as "Active" | "VIP" | "New",
+                      })
+                    }
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white cursor-pointer"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="VIP">VIP</option>
+                    <option value="New">New</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                    Initial Spend (Rs)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={customerForm.totalSpent}
+                    onChange={(e) =>
+                      setCustomerForm({
+                        ...customerForm,
+                        totalSpent: Number(e.target.value) || 0,
+                      })
+                    }
+                    placeholder="0"
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                  Styling Notes / Preferences
+                </label>
+                <textarea
+                  rows={2}
+                  value={customerForm.notes}
+                  onChange={(e) =>
+                    setCustomerForm({ ...customerForm, notes: e.target.value })
+                  }
+                  placeholder="e.g. Prefers size XL jackets, loves Ferrari / Marlboro embroidery..."
+                  className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#374151]">
+                <button
+                  type="button"
+                  onClick={() => setNewCustomerModal(false)}
+                  className="px-4 py-2 bg-[#374151] hover:bg-gray-600 text-white text-xs font-bold uppercase cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isAddingCustomer}
+                  className="px-5 py-2 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-lg disabled:opacity-50"
+                >
+                  {isAddingCustomer ? "Saving..." : "Save Customer"}
+                </button>
+              </div>
             </form>
           </div>
         </div>

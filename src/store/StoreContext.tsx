@@ -49,7 +49,19 @@ export interface ToastMessage {
   message: string
 }
 
+export interface CustomCustomer {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  status?: "Active" | "VIP" | "New"
+  totalSpent?: number
+  notes?: string
+  createdAt?: string
+}
+
 export interface CustomerSummary {
+  id?: string
   name: string
   email: string
   phone: string
@@ -58,6 +70,8 @@ export interface CustomerSummary {
   totalSpent: number
   joinedDate: string
   status: "Active" | "VIP" | "New"
+  isManual?: boolean
+  notes?: string
 }
 
 export interface StoreContextType {
@@ -170,6 +184,11 @@ export interface StoreContextType {
 
   // Cloud revalidation
   refreshCloudData: () => Promise<void>
+
+  // Customer actions
+  customCustomers: CustomCustomer[]
+  addCustomer: (customer: Omit<CustomCustomer, "id">) => CustomCustomer
+  deleteCustomer: (id: string) => void
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -183,6 +202,7 @@ const STORAGE_KEYS = {
   INQUIRIES: "zimthread_inquiries_v7",
   SETTINGS: "zimthread_settings_v7",
   CART: "zimthread_cart_v7",
+  CUSTOM_CUSTOMERS: "zimthread_custom_customers_v7",
 }
 
 function getStored<T>(key: string, fallback: T): T {
@@ -423,6 +443,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const blogPostsRef = useRef<BlogPost[]>(blogPosts)
   const inquiriesRef = useRef<Inquiry[]>(inquiries)
   const settingsRef = useRef<StoreSettings>(settings)
+  const [customCustomers, setCustomCustomers] = useState<CustomCustomer[]>(() =>
+    getStored(STORAGE_KEYS.CUSTOM_CUSTOMERS, []),
+  )
+  const customCustomersRef = useRef<CustomCustomer[]>(customCustomers)
 
   useEffect(() => {
     productsRef.current = products
@@ -471,6 +495,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     setStored(STORAGE_KEYS.CART, cart)
   }, [cart])
+  useEffect(() => {
+    customCustomersRef.current = customCustomers
+    setStored(STORAGE_KEYS.CUSTOM_CUSTOMERS, customCustomers)
+  }, [customCustomers])
 
   // Full 7-Entity Cloud Hydration from Neon PostgreSQL
   const fetchCloudData = async () => {
@@ -489,6 +517,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         bookings: cloudBookings,
         orders: cloudOrders,
         inquiries: cloudInquiries,
+        custom_customers: cloudCustomCustomers,
       } = result.data
 
       if (Array.isArray(cloudProducts)) {
@@ -635,6 +664,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           inquiriesRef.current = merged
           return merged
         })
+      }
+      if (Array.isArray(cloudCustomCustomers)) {
+        setCustomCustomers(cloudCustomCustomers)
+        customCustomersRef.current = cloudCustomCustomers
       }
       setLastSyncedAt(new Date())
     } catch (err) {
@@ -1125,6 +1158,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     showToast("Inquiry Deleted", "Message removed.", "info")
   }
 
+  // Customer actions
+  const addCustomer = (customerData: Omit<CustomCustomer, "id">): CustomCustomer => {
+    const id = `cust-${Date.now().toString().slice(-4)}`
+    const newCustomer: CustomCustomer = {
+      ...customerData,
+      id,
+      createdAt: customerData.createdAt || new Date().toISOString(),
+    }
+    const next = [newCustomer, ...customCustomersRef.current]
+    customCustomersRef.current = next
+    setCustomCustomers(next)
+    syncToCloud("custom_customers", next)
+    showToast("Customer Added", `Profile for "${newCustomer.name}" created successfully.`)
+    return newCustomer
+  }
+
+  const deleteCustomer = (id: string) => {
+    const next = customCustomersRef.current.filter((c) => c.id !== id)
+    customCustomersRef.current = next
+    setCustomCustomers(next)
+    syncToCloud("custom_customers", next)
+    showToast("Customer Removed", "Customer profile deleted.", "info")
+  }
+
   // Settings
   const updateSettings = (newSettings: Partial<StoreSettings>) => {
     const next: StoreSettings = { ...settingsRef.current, ...newSettings }
@@ -1214,9 +1271,35 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       customerMap.set(key, existing)
     })
 
+    // From manually added customers
+    ;(customCustomers || []).forEach((c) => {
+      const key = (c.email || c.name || "").toLowerCase()
+      if (!key) return
+      const existing = customerMap.get(key) || {
+        id: c.id,
+        name: c.name || "Anonymous",
+        email: c.email || "",
+        phone: c.phone || "",
+        bookingsCount: 0,
+        ordersCount: 0,
+        totalSpent: c.totalSpent || 0,
+        joinedDate: (c.createdAt || new Date().toISOString()).split("T")[0],
+        status: c.status || "Active",
+        isManual: true,
+        notes: c.notes || "",
+      }
+      if (c.status) existing.status = c.status
+      if (c.totalSpent) existing.totalSpent = Math.max(existing.totalSpent, c.totalSpent)
+      if (c.phone && !existing.phone) existing.phone = c.phone
+      if (c.notes) existing.notes = c.notes
+      existing.id = c.id
+      existing.isManual = true
+      customerMap.set(key, existing)
+    })
+
     return Array.from(customerMap.values()).map((c) => {
       const totalActivities = c.bookingsCount + c.ordersCount
-      const status: "Active" | "VIP" | "New" =
+      const derivedStatus: "Active" | "VIP" | "New" =
         c.totalSpent > 3000 || totalActivities >= 3
           ? "VIP"
           : totalActivities >= 2
@@ -1224,10 +1307,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             : "New"
       return {
         ...c,
-        status,
+        status: (c as any).isManual && (c as any).status ? (c as any).status : derivedStatus,
       }
     })
-  }, [bookings, orders])
+  }, [bookings, orders, customCustomers])
 
   return (
     <StoreContext.Provider
@@ -1280,6 +1363,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         showToast,
         removeToast,
         refreshCloudData: fetchCloudData,
+        customCustomers,
+        addCustomer,
+        deleteCustomer,
       }}
     >
       {children}

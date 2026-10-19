@@ -44,7 +44,8 @@ export async function ensureDbInitialized() {
         ('products', '[]'::jsonb, NOW()),
         ('services', '[]'::jsonb, NOW()),
         ('blog_posts', '[]'::jsonb, NOW()),
-        ('settings', '{}'::jsonb, NOW())
+        ('settings', '{}'::jsonb, NOW()),
+        ('custom_customers', '[]'::jsonb, NOW())
       ON CONFLICT (key) DO NOTHING;
     `)
     isInitialized = true

@@ -88,7 +88,7 @@ async function computeSha1(text: string): Promise<string> {
  */
 export async function uploadImageToCloudinary(
   file: File | Blob,
-  options: { folder?: string; tags?: string[] } = {},
+  options: { folder?: string tags?: string[] } = {},
 ): Promise<CloudinaryUploadResult> {
   const config = getCloudinaryConfig()
 

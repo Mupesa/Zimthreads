@@ -116,7 +116,10 @@ export default function Dashboard() {
   const [orderSearch, setOrderSearch] = useState("")
   const [productSearch, setProductSearch] = useState("")
   const [productCategoryFilter, setProductCategoryFilter] = useState("All")
-  const [batchPrices, setBatchPrices] = useState<Record<string, { price: number; stock: number }>>({})
+  const [batchPrices, setBatchPrices] = useState<Record<string, {
+    price: number
+    stock: number
+  }>>({})
   const [showBatchPricingDesk, setShowBatchPricingDesk] = useState(true)
   const [inquiryFilter, setInquiryFilter] = useState<"All" | "Unread" | "Read">(
     "All",
@@ -175,7 +178,9 @@ export default function Dashboard() {
     setEditProduct({
       ...product,
       sizes: Array.isArray(product.sizes) ? [...product.sizes] : [],
-      priceOptions: Array.isArray(product.priceOptions) ? [...product.priceOptions] : [],
+      priceOptions: Array.isArray(product.priceOptions)
+        ? [...product.priceOptions]
+        : [],
     })
     setEditProductCustomSize("")
     setEditProductPriceLabel("")
@@ -423,7 +428,8 @@ export default function Dashboard() {
         : undefined
 
     const priceOptionsArray =
-      Array.isArray(productForm.priceOptions) && productForm.priceOptions.length > 0
+      Array.isArray(productForm.priceOptions) &&
+      productForm.priceOptions.length > 0
         ? productForm.priceOptions
         : undefined
 
@@ -469,7 +475,8 @@ export default function Dashboard() {
         ? editProduct.sizes
         : []
     const priceOptionsArray =
-      Array.isArray(editProduct.priceOptions) && editProduct.priceOptions.length > 0
+      Array.isArray(editProduct.priceOptions) &&
+      editProduct.priceOptions.length > 0
         ? editProduct.priceOptions
         : []
 
@@ -973,7 +980,8 @@ export default function Dashboard() {
                             <>
                               <p className="mb-1">No orders placed yet.</p>
                               <p className="text-[10px] text-[#6b7280]">
-                                Test the cart & checkout flow by purchasing gear at{" "}
+                                Test the cart & checkout flow by purchasing gear
+                                at{" "}
                                 <Link
                                   to="/shop"
                                   className="text-[#86a84e] underline"
@@ -1436,16 +1444,15 @@ export default function Dashboard() {
                                   onChange={(e) =>
                                     updateOrderPaymentStatus(
                                       o.id,
-                                      e.target.value as
-                                        | "Paid"
-                                        | "Pending"
-                                        | "Refunded",
+                                      e.target
+                                        .value as "Paid" | "Pending" | "Refunded",
                                     )
                                   }
                                   className={`text-[9px] font-bold uppercase px-1.5 py-0.5 border rounded-none cursor-pointer w-fit ${
                                     (o.paymentStatus || "Paid") === "Paid"
                                       ? "bg-emerald-950 text-emerald-400 border-emerald-800"
-                                      : (o.paymentStatus || "Paid") === "Refunded"
+                                      : (o.paymentStatus || "Paid") ===
+                                          "Refunded"
                                         ? "bg-red-950 text-red-400 border-red-800"
                                         : "bg-amber-950 text-amber-400 border-amber-800"
                                   }`}
@@ -1623,460 +1630,501 @@ export default function Dashboard() {
           )}
 
           {/* ===================== PRODUCTS SECTION ===================== */}
-          {active === "products" && (() => {
-            const jacketProducts = products.filter(
-              (p) =>
-                p.collectionId === "racing-jackets" ||
-                p.id.startsWith("prod-jacket-"),
-            )
-            const coreProducts = products.filter(
-              (p) =>
-                p.collectionId !== "racing-jackets" &&
-                !p.id.startsWith("prod-jacket-"),
-            )
-
-            const filteredProducts = products.filter((p) => {
-              const matchesSearch =
-                p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-                p.description.toLowerCase().includes(productSearch.toLowerCase()) ||
-                (p.badge && p.badge.toLowerCase().includes(productSearch.toLowerCase()))
-
-              if (!matchesSearch) return false
-
-              if (productCategoryFilter === "All") return true
-              if (productCategoryFilter === "Active") return !p.hidden
-              if (productCategoryFilter === "Hidden") return p.hidden === true
-              if (productCategoryFilter === "Motorsport")
-                return (
+          {active === "products" &&
+            (() => {
+              const jacketProducts = products.filter(
+                (p) =>
                   p.collectionId === "racing-jackets" ||
-                  p.id.startsWith("prod-jacket-")
-                )
-              if (productCategoryFilter === "Core")
-                return (
+                  p.id.startsWith("prod-jacket-"),
+              )
+              const coreProducts = products.filter(
+                (p) =>
                   p.collectionId !== "racing-jackets" &&
-                  !p.id.startsWith("prod-jacket-")
-                )
-              return p.category === productCategoryFilter
-            })
+                  !p.id.startsWith("prod-jacket-"),
+              )
 
-            const handleBatchPriceChange = (
-              productId: string,
-              field: "price" | "stock",
-              value: number,
-            ) => {
-              setBatchPrices((prev) => ({
-                ...prev,
-                [productId]: {
-                  price:
-                    field === "price"
-                      ? value
-                      : prev[productId]?.price ??
-                        products.find((p) => p.id === productId)?.price ??
-                        0,
-                  stock:
-                    field === "stock"
-                      ? value
-                      : prev[productId]?.stock ??
-                        products.find((p) => p.id === productId)?.stock ??
-                        0,
-                },
-              }))
-            }
+              const filteredProducts = products.filter((p) => {
+                const matchesSearch =
+                  p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+                  p.description
+                    .toLowerCase()
+                    .includes(productSearch.toLowerCase()) ||
+                  (p.badge &&
+                    p.badge.toLowerCase().includes(productSearch.toLowerCase()))
 
-            const handleSaveAllBatch = () => {
-              const updates = Object.entries(batchPrices).map(([id, data]) => ({
-                id,
-                changes: {
-                  price: data.price,
-                  stock: data.stock,
-                },
-              }))
-              if (updates.length === 0) {
-                showToast("No Changes", "No price or stock changes were made.", "info")
-                return
+                if (!matchesSearch) return false
+
+                if (productCategoryFilter === "All") return true
+                if (productCategoryFilter === "Active") return !p.hidden
+                if (productCategoryFilter === "Hidden") return p.hidden === true
+                if (productCategoryFilter === "Motorsport")
+                  return (
+                    p.collectionId === "racing-jackets" ||
+                    p.id.startsWith("prod-jacket-")
+                  )
+                if (productCategoryFilter === "Core")
+                  return (
+                    p.collectionId !== "racing-jackets" &&
+                    !p.id.startsWith("prod-jacket-")
+                  )
+                return p.category === productCategoryFilter
+              })
+
+              const handleBatchPriceChange = (
+                productId: string,
+                field: "price" | "stock",
+                value: number,
+              ) => {
+                setBatchPrices((prev) => ({
+                  ...prev,
+                  [productId]: {
+                    price:
+                      field === "price"
+                        ? value
+                        : (prev[productId]?.price ??
+                          products.find((p) => p.id === productId)?.price ??
+                          0),
+                    stock:
+                      field === "stock"
+                        ? value
+                        : (prev[productId]?.stock ??
+                          products.find((p) => p.id === productId)?.stock ??
+                          0),
+                  },
+                }))
               }
-              updateProductsBatch(updates)
-              setBatchPrices({})
-            }
 
-            return (
-              <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h1 className="font-display text-2xl font-extrabold uppercase text-[#f9fafb]">
-                      PRODUCTS & CATALOG ({products.length})
-                    </h1>
-                    <p className="text-xs text-[#9ca3af]">
-                      Manage Retro Motorsport Collectives, cleaning supplies, and custom apparel
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowBatchPricingDesk((prev) => !prev)}
-                      className="px-3.5 py-2 bg-[#1f2937] hover:bg-[#374151] border border-[#374151] text-[#86a84e] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
-                    >
-                      <span>🏎️</span>
-                      <span>
-                        {showBatchPricingDesk ? "Hide Pricing Desk" : "Collective Pricing Desk"}
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setNewProductModal(true)}
-                      className="px-4 py-2 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
-                    >
-                      + Add New Product
-                    </button>
-                  </div>
-                </div>
+              const handleSaveAllBatch = () => {
+                const updates = Object.entries(batchPrices).map(
+                  ([id, data]) => ({
+                    id,
+                    changes: {
+                      price: data.price,
+                      stock: data.stock,
+                    },
+                  }),
+                )
+                if (updates.length === 0) {
+                  showToast(
+                    "No Changes",
+                    "No price or stock changes were made.",
+                    "info",
+                  )
+                  return
+                }
+                updateProductsBatch(updates)
+                setBatchPrices({})
+              }
 
-                {/* ================= BATCH PRICING DESK FOR COLLECTIVES ================= */}
-                {showBatchPricingDesk && jacketProducts.length > 0 && (
-                  <div className="bg-[#111827] border-2 border-[#86a84e]/40 p-5 shadow-xl space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#374151]">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-[#86a84e] animate-pulse" />
-                          <h3 className="font-display text-base font-extrabold uppercase tracking-wide text-white">
-                            RETRO MOTORSPORT COLLECTIVE — BATCH PRICING & INVENTORY DESK
-                          </h3>
-                        </div>
-                        <p className="text-xs text-[#9ca3af] mt-0.5">
-                          Set your final prices and available quantities for all 14 jackets directly below.
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {Object.keys(batchPrices).length > 0 && (
-                          <span className="text-xs font-mono text-amber-400 font-bold">
-                            {Object.keys(batchPrices).length} unsaved edits
-                          </span>
-                        )}
-                        <button
-                          onClick={handleSaveAllBatch}
-                          className="px-4 py-2 bg-[#86a84e] hover:bg-[#9cc45e] text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-1.5"
-                        >
-                          <CheckIcon className="w-3.5 h-3.5 text-black" />
-                          <span>Save All Prices & Stock</span>
-                        </button>
-                      </div>
+              return (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h1 className="font-display text-2xl font-extrabold uppercase text-[#f9fafb]">
+                        PRODUCTS & CATALOG ({products.length})
+                      </h1>
+                      <p className="text-xs text-[#9ca3af]">
+                        Manage Retro Motorsport Collectives, cleaning supplies,
+                        and custom apparel
+                      </p>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowBatchPricingDesk((prev) => !prev)}
+                        className="px-3.5 py-2 bg-[#1f2937] hover:bg-[#374151] border border-[#374151] text-[#86a84e] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                      >
+                        <span>🏎️</span>
+                        <span>
+                          {showBatchPricingDesk
+                            ? "Hide Pricing Desk"
+                            : "Collective Pricing Desk"}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => setNewProductModal(true)}
+                        className="px-4 py-2 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
+                      >
+                        + Add New Product
+                      </button>
+                    </div>
+                  </div>
 
-                    {/* Compact Scrollable Pricing Table */}
-                    <div className="overflow-x-auto max-h-[460px] overflow-y-auto border border-[#374151]">
-                      <table className="w-full text-left text-xs text-white">
-                        <thead className="bg-[#1f2937] text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] sticky top-0 z-10 border-b border-[#374151]">
-                          <tr>
-                            <th className="py-2.5 px-3">Piece</th>
-                            <th className="py-2.5 px-3">Jacket Name & Line</th>
-                            <th className="py-2.5 px-3">Badge</th>
-                            <th className="py-2.5 px-3">Visibility</th>
-                            <th className="py-2.5 px-3">Price (Rs)</th>
-                            <th className="py-2.5 px-3">Stock (Qty)</th>
-                            <th className="py-2.5 px-3 text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#374151] bg-[#111827]">
-                          {jacketProducts.map((j) => {
-                            const pendingPrice = batchPrices[j.id]?.price ?? j.price
-                            const pendingStock = batchPrices[j.id]?.stock ?? j.stock
-                            const isDirty =
-                              batchPrices[j.id] !== undefined &&
-                              (batchPrices[j.id].price !== j.price ||
-                                batchPrices[j.id].stock !== j.stock)
+                  {/* ================= BATCH PRICING DESK FOR COLLECTIVES ================= */}
+                  {showBatchPricingDesk && jacketProducts.length > 0 && (
+                    <div className="bg-[#111827] border-2 border-[#86a84e]/40 p-5 shadow-xl space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#374151]">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#86a84e] animate-pulse" />
+                            <h3 className="font-display text-base font-extrabold uppercase tracking-wide text-white">
+                              RETRO MOTORSPORT COLLECTIVE — BATCH PRICING &
+                              INVENTORY DESK
+                            </h3>
+                          </div>
+                          <p className="text-xs text-[#9ca3af] mt-0.5">
+                            Set your final prices and available quantities for
+                            all 14 jackets directly below.
+                          </p>
+                        </div>
 
-                            return (
-                              <tr
-                                key={j.id}
-                                className={`hover:bg-[#1f2937]/60 transition-colors ${
-                                  isDirty ? "bg-[#1f2937]/90" : ""
-                                }`}
-                              >
-                                <td className="py-2 px-3">
-                                  <div className="w-10 h-10 rounded-xs bg-[#1f2937] overflow-hidden border border-[#374151] flex-shrink-0">
-                                    <img
-                                      src={j.img}
-                                      alt={j.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                </td>
-                                <td className="py-2 px-3">
-                                  <div className="font-semibold text-white leading-snug line-clamp-1 max-w-[280px]">
-                                    {j.name}
-                                  </div>
-                                  <div className="text-[10px] text-[#9ca3af] font-mono">
-                                    ID: {j.id}
-                                  </div>
-                                </td>
-                                <td className="py-2 px-3">
-                                  <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 bg-[#1f2937] border border-[#374151] text-[#86a84e]">
-                                    {j.badge || "COLLECTIVE"}
-                                  </span>
-                                </td>
-                                <td className="py-2 px-3">
-                                  <button
-                                    type="button"
-                                    onClick={() => updateProduct(j.id, { hidden: !j.hidden })}
-                                    className={`px-2 py-0.5 text-[9px] font-bold uppercase border transition-colors cursor-pointer ${
-                                      j.hidden
-                                        ? "bg-amber-950/80 text-amber-300 border-amber-600/60 hover:bg-amber-900"
-                                        : "bg-emerald-950/80 text-emerald-300 border-emerald-600/60 hover:bg-emerald-900"
-                                    }`}
-                                    title={j.hidden ? "Currently hidden from shop. Click to show." : "Currently live on shop. Click to hide."}
-                                  >
-                                    {j.hidden ? "👁️ Hidden" : "✓ Live"}
-                                  </button>
-                                </td>
-                                <td className="py-2 px-3">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-[#9ca3af] font-mono font-bold">
-                                      Rs
+                        <div className="flex items-center gap-2">
+                          {Object.keys(batchPrices).length > 0 && (
+                            <span className="text-xs font-mono text-amber-400 font-bold">
+                              {Object.keys(batchPrices).length} unsaved edits
+                            </span>
+                          )}
+                          <button
+                            onClick={handleSaveAllBatch}
+                            className="px-4 py-2 bg-[#86a84e] hover:bg-[#9cc45e] text-black font-extrabold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+                          >
+                            <CheckIcon className="w-3.5 h-3.5 text-black" />
+                            <span>Save All Prices & Stock</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Compact Scrollable Pricing Table */}
+                      <div className="overflow-x-auto max-h-[460px] overflow-y-auto border border-[#374151]">
+                        <table className="w-full text-left text-xs text-white">
+                          <thead className="bg-[#1f2937] text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] sticky top-0 z-10 border-b border-[#374151]">
+                            <tr>
+                              <th className="py-2.5 px-3">Piece</th>
+                              <th className="py-2.5 px-3">
+                                Jacket Name & Line
+                              </th>
+                              <th className="py-2.5 px-3">Badge</th>
+                              <th className="py-2.5 px-3">Visibility</th>
+                              <th className="py-2.5 px-3">Price (Rs)</th>
+                              <th className="py-2.5 px-3">Stock (Qty)</th>
+                              <th className="py-2.5 px-3 text-right">
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#374151] bg-[#111827]">
+                            {jacketProducts.map((j) => {
+                              const pendingPrice =
+                                batchPrices[j.id]?.price ?? j.price
+                              const pendingStock =
+                                batchPrices[j.id]?.stock ?? j.stock
+                              const isDirty =
+                                batchPrices[j.id] !== undefined &&
+                                (batchPrices[j.id].price !== j.price ||
+                                  batchPrices[j.id].stock !== j.stock)
+
+                              return (
+                                <tr
+                                  key={j.id}
+                                  className={`hover:bg-[#1f2937]/60 transition-colors ${
+                                    isDirty ? "bg-[#1f2937]/90" : ""
+                                  }`}
+                                >
+                                  <td className="py-2 px-3">
+                                    <div className="w-10 h-10 rounded-xs bg-[#1f2937] overflow-hidden border border-[#374151] flex-shrink-0">
+                                      <img
+                                        src={j.img}
+                                        alt={j.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  </td>
+                                  <td className="py-2 px-3">
+                                    <div className="font-semibold text-white leading-snug line-clamp-1 max-w-[280px]">
+                                      {j.name}
+                                    </div>
+                                    <div className="text-[10px] text-[#9ca3af] font-mono">
+                                      ID: {j.id}
+                                    </div>
+                                  </td>
+                                  <td className="py-2 px-3">
+                                    <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 bg-[#1f2937] border border-[#374151] text-[#86a84e]">
+                                      {j.badge || "COLLECTIVE"}
                                     </span>
+                                  </td>
+                                  <td className="py-2 px-3">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        updateProduct(j.id, {
+                                          hidden: !j.hidden,
+                                        })
+                                      }
+                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase border transition-colors cursor-pointer ${
+                                        j.hidden
+                                          ? "bg-amber-950/80 text-amber-300 border-amber-600/60 hover:bg-amber-900"
+                                          : "bg-emerald-950/80 text-emerald-300 border-emerald-600/60 hover:bg-emerald-900"
+                                      }`}
+                                      title={
+                                        j.hidden
+                                          ? "Currently hidden from shop. Click to show."
+                                          : "Currently live on shop. Click to hide."
+                                      }
+                                    >
+                                      {j.hidden ? "👁️ Hidden" : "✓ Live"}
+                                    </button>
+                                  </td>
+                                  <td className="py-2 px-3">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-xs text-[#9ca3af] font-mono font-bold">
+                                        Rs
+                                      </span>
+                                      <input
+                                        type="number"
+                                        value={pendingPrice}
+                                        onChange={(e) =>
+                                          handleBatchPriceChange(
+                                            j.id,
+                                            "price",
+                                            parseFloat(e.target.value) || 0,
+                                          )
+                                        }
+                                        className={`w-24 bg-[#1f2937] border px-2 py-1 text-xs text-white font-mono font-bold ${
+                                          isDirty
+                                            ? "border-amber-400 bg-amber-950/30"
+                                            : "border-[#374151]"
+                                        }`}
+                                      />
+                                    </div>
+                                  </td>
+                                  <td className="py-2 px-3">
                                     <input
                                       type="number"
-                                      value={pendingPrice}
+                                      value={pendingStock}
                                       onChange={(e) =>
                                         handleBatchPriceChange(
                                           j.id,
-                                          "price",
-                                          parseFloat(e.target.value) || 0,
+                                          "stock",
+                                          parseInt(e.target.value) || 0,
                                         )
                                       }
-                                      className={`w-24 bg-[#1f2937] border px-2 py-1 text-xs text-white font-mono font-bold ${
+                                      className={`w-18 bg-[#1f2937] border px-2 py-1 text-xs text-white font-mono text-center ${
                                         isDirty
                                           ? "border-amber-400 bg-amber-950/30"
                                           : "border-[#374151]"
                                       }`}
                                     />
-                                  </div>
-                                </td>
-                                <td className="py-2 px-3">
-                                  <input
-                                    type="number"
-                                    value={pendingStock}
-                                    onChange={(e) =>
-                                      handleBatchPriceChange(
-                                        j.id,
-                                        "stock",
-                                        parseInt(e.target.value) || 0,
-                                      )
-                                    }
-                                    className={`w-18 bg-[#1f2937] border px-2 py-1 text-xs text-white font-mono text-center ${
-                                      isDirty
-                                        ? "border-amber-400 bg-amber-950/30"
-                                        : "border-[#374151]"
-                                    }`}
-                                  />
-                                </td>
-                                <td className="py-2 px-3 text-right">
-                                  <div className="flex items-center justify-end gap-2">
-                                    {isDirty && (
+                                  </td>
+                                  <td className="py-2 px-3 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      {isDirty && (
+                                        <button
+                                          onClick={() => {
+                                            updateProduct(j.id, {
+                                              price: pendingPrice,
+                                              stock: pendingStock,
+                                            })
+                                            setBatchPrices((prev) => {
+                                              const next = { ...prev }
+                                              delete next[j.id]
+                                              return next
+                                            })
+                                          }}
+                                          className="text-[10px] bg-[#4a5c2d] hover:bg-[#5a7038] text-white px-2 py-1 font-bold uppercase cursor-pointer"
+                                        >
+                                          Save
+                                        </button>
+                                      )}
                                       <button
-                                        onClick={() => {
-                                          updateProduct(j.id, {
-                                            price: pendingPrice,
-                                            stock: pendingStock,
-                                          })
-                                          setBatchPrices((prev) => {
-                                            const next = { ...prev }
-                                            delete next[j.id]
-                                            return next
-                                          })
-                                        }}
-                                        className="text-[10px] bg-[#4a5c2d] hover:bg-[#5a7038] text-white px-2 py-1 font-bold uppercase cursor-pointer"
+                                        onClick={() => openEditProductModal(j)}
+                                        className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
                                       >
-                                        Save
+                                        Edit Full
                                       </button>
-                                    )}
-                                    <button
-                                      onClick={() => openEditProductModal(j)}
-                                      className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
-                                    >
-                                      Edit Full
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Filter and Search Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { id: "All", label: `All (${products.length})` },
+                        {
+                          id: "Active",
+                          label: `Active (${products.filter((p) => !p.hidden).length})`,
+                        },
+                        {
+                          id: "Hidden",
+                          label: `👁️ Hidden (${products.filter((p) => p.hidden).length})`,
+                        },
+                        {
+                          id: "Motorsport",
+                          label: `🏎️ Motorsport (${jacketProducts.length})`,
+                        },
+                        {
+                          id: "Core",
+                          label: `Core (${coreProducts.length})`,
+                        },
+                        { id: "Cleaning", label: "Cleaning" },
+                        { id: "Apparel", label: "Apparel" },
+                        { id: "Accessories", label: "Accessories" },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setProductCategoryFilter(tab.id)}
+                          className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-colors cursor-pointer ${
+                            productCategoryFilter === tab.id
+                              ? "bg-[#4a5c2d] text-white border-[#4a5c2d]"
+                              : "bg-[#1f2937] text-[#9ca3af] border-[#374151] hover:text-white"
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="w-full sm:w-64">
+                      <input
+                        type="text"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        placeholder="Search catalog..."
+                        className="w-full bg-[#111827] border border-[#374151] px-3 py-1.5 text-xs text-white placeholder-[#6b7280] focus:outline-none focus:border-[#4a5c2d]"
+                      />
                     </div>
                   </div>
-                )}
 
-                {/* Filter and Search Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { id: "All", label: `All (${products.length})` },
-                      {
-                        id: "Active",
-                        label: `Active (${products.filter((p) => !p.hidden).length})`,
-                      },
-                      {
-                        id: "Hidden",
-                        label: `👁️ Hidden (${products.filter((p) => p.hidden).length})`,
-                      },
-                      {
-                        id: "Motorsport",
-                        label: `🏎️ Motorsport (${jacketProducts.length})`,
-                      },
-                      {
-                        id: "Core",
-                        label: `Core (${coreProducts.length})`,
-                      },
-                      { id: "Cleaning", label: "Cleaning" },
-                      { id: "Apparel", label: "Apparel" },
-                      { id: "Accessories", label: "Accessories" },
-                    ].map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setProductCategoryFilter(tab.id)}
-                        className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-colors cursor-pointer ${
-                          productCategoryFilter === tab.id
-                            ? "bg-[#4a5c2d] text-white border-[#4a5c2d]"
-                            : "bg-[#1f2937] text-[#9ca3af] border-[#374151] hover:text-white"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Product Grid */}
+                  {filteredProducts.length === 0 ? (
+                    <div className="text-center py-12 bg-[#1f2937] border border-[#374151]">
+                      <p className="text-sm font-bold uppercase text-white mb-1">
+                        No Products Found
+                      </p>
+                      <p className="text-xs text-[#9ca3af]">
+                        Try clearing your search query or filter.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {filteredProducts.map((p) => {
+                        const isCollective =
+                          p.collectionId === "racing-jackets" ||
+                          p.id.startsWith("prod-jacket-")
 
-                  <div className="w-full sm:w-64">
-                    <input
-                      type="text"
-                      value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
-                      placeholder="Search catalog..."
-                      className="w-full bg-[#111827] border border-[#374151] px-3 py-1.5 text-xs text-white placeholder-[#6b7280] focus:outline-none focus:border-[#4a5c2d]"
-                    />
-                  </div>
+                        return (
+                          <div
+                            key={p.id}
+                            className="bg-[#1f2937] border border-[#374151] p-4 flex flex-col justify-between hover:border-[#86a84e] transition-colors"
+                          >
+                            <div>
+                              <div className="aspect-square bg-[#111827] overflow-hidden mb-3 relative">
+                                <img
+                                  src={p.img}
+                                  alt={p.alt || p.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                {isCollective && (
+                                  <span className="absolute top-2 left-2 bg-[#86a84e] text-black text-[8px] font-black uppercase px-2 py-0.5 tracking-wider">
+                                    {p.badge || "COLLECTIVE"}
+                                  </span>
+                                )}
+                                {p.hidden && (
+                                  <span className="absolute bottom-2 left-2 bg-amber-500 text-black text-[8px] font-black uppercase px-2 py-0.5 shadow-md z-10">
+                                    HIDDEN FROM SHOP
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-[10px] font-bold text-[#86a84e] uppercase tracking-wider">
+                                  {isCollective
+                                    ? "Motorsport Archive"
+                                    : p.category}
+                                </span>
+                                <span className="text-xs font-mono font-bold text-white">
+                                  Rs {p.price}
+                                </span>
+                              </div>
+                              <h4
+                                className="font-semibold text-sm text-white mb-1 leading-snug truncate"
+                                title={p.name}
+                              >
+                                {p.name}
+                              </h4>
+                              <p className="text-xs text-[#9ca3af] mb-3 line-clamp-2">
+                                {p.description}
+                              </p>
+                            </div>
+
+                            <div className="pt-3 border-t border-[#374151] flex items-center justify-between">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-[#9ca3af]">
+                                  Stock:
+                                </span>
+                                <input
+                                  type="number"
+                                  defaultValue={p.stock}
+                                  key={p.stock}
+                                  onBlur={(e) => {
+                                    const newStock =
+                                      parseInt(e.target.value) || 0
+                                    if (newStock !== p.stock) {
+                                      updateProduct(p.id, { stock: newStock })
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.currentTarget.blur()
+                                    }
+                                  }}
+                                  className="w-14 bg-[#111827] border border-[#374151] px-1.5 py-0.5 text-xs text-white text-center font-mono focus:border-[#86a84e]"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateProduct(p.id, { hidden: !p.hidden })
+                                  }
+                                  className={`text-xs font-bold cursor-pointer transition-colors ${
+                                    p.hidden
+                                      ? "text-amber-400 hover:text-amber-300 underline"
+                                      : "text-[#9ca3af] hover:text-white"
+                                  }`}
+                                  title={
+                                    p.hidden
+                                      ? "Unhide on storefront"
+                                      : "Hide from storefront without deleting"
+                                  }
+                                >
+                                  {p.hidden ? "Unhide" : "Hide"}
+                                </button>
+                                <button
+                                  onClick={() => openEditProductModal(p)}
+                                  className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (
+                                      window.confirm(
+                                        `Are you sure you want to delete product "${p.name}"?`,
+                                      )
+                                    ) {
+                                      deleteProduct(p.id)
+                                    }
+                                  }}
+                                  className="text-xs text-red-400 hover:text-red-300 font-bold cursor-pointer"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
-
-                {/* Product Grid */}
-                {filteredProducts.length === 0 ? (
-                  <div className="text-center py-12 bg-[#1f2937] border border-[#374151]">
-                    <p className="text-sm font-bold uppercase text-white mb-1">
-                      No Products Found
-                    </p>
-                    <p className="text-xs text-[#9ca3af]">
-                      Try clearing your search query or filter.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {filteredProducts.map((p) => {
-                      const isCollective =
-                        p.collectionId === "racing-jackets" ||
-                        p.id.startsWith("prod-jacket-")
-
-                      return (
-                        <div
-                          key={p.id}
-                          className="bg-[#1f2937] border border-[#374151] p-4 flex flex-col justify-between hover:border-[#86a84e] transition-colors"
-                        >
-                          <div>
-                            <div className="aspect-square bg-[#111827] overflow-hidden mb-3 relative">
-                              <img
-                                src={p.img}
-                                alt={p.alt || p.name}
-                                className="w-full h-full object-cover"
-                              />
-                              {isCollective && (
-                                <span className="absolute top-2 left-2 bg-[#86a84e] text-black text-[8px] font-black uppercase px-2 py-0.5 tracking-wider">
-                                  {p.badge || "COLLECTIVE"}
-                                </span>
-                              )}
-                              {p.hidden && (
-                                <span className="absolute bottom-2 left-2 bg-amber-500 text-black text-[8px] font-black uppercase px-2 py-0.5 shadow-md z-10">
-                                  HIDDEN FROM SHOP
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-[10px] font-bold text-[#86a84e] uppercase tracking-wider">
-                                {isCollective ? "Motorsport Archive" : p.category}
-                              </span>
-                              <span className="text-xs font-mono font-bold text-white">
-                                Rs {p.price}
-                              </span>
-                            </div>
-                            <h4 className="font-semibold text-sm text-white mb-1 leading-snug truncate" title={p.name}>
-                              {p.name}
-                            </h4>
-                            <p className="text-xs text-[#9ca3af] mb-3 line-clamp-2">
-                              {p.description}
-                            </p>
-                          </div>
-
-                          <div className="pt-3 border-t border-[#374151] flex items-center justify-between">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs text-[#9ca3af]">Stock:</span>
-                              <input
-                                type="number"
-                                defaultValue={p.stock}
-                                key={p.stock}
-                                onBlur={(e) => {
-                                  const newStock =
-                                    parseInt(e.target.value) || 0
-                                  if (newStock !== p.stock) {
-                                    updateProduct(p.id, { stock: newStock })
-                                  }
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.currentTarget.blur()
-                                  }
-                                }}
-                                className="w-14 bg-[#111827] border border-[#374151] px-1.5 py-0.5 text-xs text-white text-center font-mono focus:border-[#86a84e]"
-                              />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => updateProduct(p.id, { hidden: !p.hidden })}
-                                className={`text-xs font-bold cursor-pointer transition-colors ${
-                                  p.hidden
-                                    ? "text-amber-400 hover:text-amber-300 underline"
-                                    : "text-[#9ca3af] hover:text-white"
-                                }`}
-                                title={p.hidden ? "Unhide on storefront" : "Hide from storefront without deleting"}
-                              >
-                                {p.hidden ? "Unhide" : "Hide"}
-                              </button>
-                              <button
-                                onClick={() => openEditProductModal(p)}
-                                className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (
-                                    window.confirm(
-                                      `Are you sure you want to delete product "${p.name}"?`,
-                                    )
-                                  ) {
-                                    deleteProduct(p.id)
-                                  }
-                                }}
-                                className="text-xs text-red-400 hover:text-red-300 font-bold cursor-pointer"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )
-          })()}
-
+              )
+            })()}
 
           {/* ===================== BLOG CMS SECTION ===================== */}
           {active === "blog" && (
@@ -2150,9 +2198,7 @@ export default function Dashboard() {
                         onClick={() =>
                           updateBlogPost(post.id, {
                             status:
-                              post.status === "draft"
-                                ? "published"
-                                : "draft",
+                              post.status === "draft" ? "published" : "draft",
                           })
                         }
                         className={`px-3 py-1.5 text-xs font-bold uppercase cursor-pointer transition-colors ${
@@ -2369,7 +2415,9 @@ export default function Dashboard() {
                               </span>
                               <span>
                                 {inq.respondedAt
-                                  ? new Date(inq.respondedAt).toLocaleDateString()
+                                  ? new Date(
+                                      inq.respondedAt,
+                                    ).toLocaleDateString()
                                   : ""}
                               </span>
                             </div>
@@ -2400,7 +2448,9 @@ export default function Dashboard() {
                               View & Respond
                             </button>
                             <button
-                              onClick={() => markInquiryAsRead(inq.id, !inq.read)}
+                              onClick={() =>
+                                markInquiryAsRead(inq.id, !inq.read)
+                              }
                               className="text-xs text-[#9ca3af] hover:text-white font-semibold cursor-pointer"
                             >
                               {inq.read ? "Mark as Unread" : "Mark as Read"}
@@ -2503,10 +2553,10 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Linked Product */}
+                {/* Linked Spotlight Product */}
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
-                    Link to Catalog Product (Optional - opens product on click)
+                    Featured Spotlight Product (Homepage Showcase & Shop Banner)
                   </label>
                   <select
                     value={settingsForm.featuredDrop?.productId || ""}
@@ -2525,7 +2575,7 @@ export default function Dashboard() {
                     className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
                   >
                     <option value="">
-                      -- No linked product (Image banner only) --
+                      -- Automatic Default (Zimbabwe '02' Heritage Jersey) --
                     </option>
                     {products.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -2533,6 +2583,81 @@ export default function Dashboard() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Custom Badge Override */}
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                    Spotlight Badge Override (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={settingsForm.featuredDrop?.badge || ""}
+                    onChange={(e) => {
+                      const current =
+                        settingsForm.featuredDrop ||
+                        initialSettings.featuredDrop!
+                      setSettingsForm({
+                        ...settingsForm,
+                        featuredDrop: {
+                          ...current,
+                          badge: e.target.value,
+                        },
+                      })
+                    }}
+                    placeholder="e.g. HERITAGE ATELIER DROP"
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                  />
+                </div>
+
+                {/* Custom Title Override */}
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                    Spotlight Title Override (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={settingsForm.featuredDrop?.title || ""}
+                    onChange={(e) => {
+                      const current =
+                        settingsForm.featuredDrop ||
+                        initialSettings.featuredDrop!
+                      setSettingsForm({
+                        ...settingsForm,
+                        featuredDrop: {
+                          ...current,
+                          title: e.target.value,
+                        },
+                      })
+                    }}
+                    placeholder="e.g. ZIMBABWE '02' HERITAGE KIT"
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                  />
+                </div>
+
+                {/* Custom Description Override */}
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#9ca3af] block mb-1">
+                    Spotlight Story / Description Override (Optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={settingsForm.featuredDrop?.description || ""}
+                    onChange={(e) => {
+                      const current =
+                        settingsForm.featuredDrop ||
+                        initialSettings.featuredDrop!
+                      setSettingsForm({
+                        ...settingsForm,
+                        featuredDrop: {
+                          ...current,
+                          description: e.target.value,
+                        },
+                      })
+                    }}
+                    placeholder="Custom narrative or craftsmanship story..."
+                    className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
+                  />
                 </div>
 
                 {/* Mini Preview Box */}
@@ -2667,7 +2792,8 @@ export default function Dashboard() {
                     className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white focus:outline-none focus:border-[#86a84e]"
                   />
                   <p className="text-[10px] text-[#6b7280] mt-1">
-                    Appears across the top of all pages in the customer storefront.
+                    Appears across the top of all pages in the customer
+                    storefront.
                   </p>
                 </div>
 
@@ -3147,7 +3273,9 @@ export default function Dashboard() {
                 disabled={isCreatingBooking}
                 className="w-full py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] disabled:opacity-50 text-white font-bold uppercase tracking-widest mt-2 cursor-pointer transition-colors"
               >
-                {isCreatingBooking ? "Saving Walk-in Booking..." : "Save Booking"}
+                {isCreatingBooking
+                  ? "Saving Walk-in Booking..."
+                  : "Save Booking"}
               </button>
             </form>
           </div>
@@ -3258,30 +3386,32 @@ export default function Dashboard() {
                     Quick Presets:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {["S", "M", "L", "XL", "2XL", "XXL", "One Size"].map((preset) => {
-                      const isSelected = productForm.sizes.includes(preset)
-                      return (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => {
-                            setProductForm((prev) => ({
-                              ...prev,
-                              sizes: isSelected
-                                ? prev.sizes.filter((s) => s !== preset)
-                                : [...prev.sizes, preset],
-                            }))
-                          }}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase border transition-colors cursor-pointer ${
-                            isSelected
-                              ? "bg-[#86a84e] text-[#141715] border-[#86a84e]"
-                              : "bg-[#1f2937] text-gray-300 border-[#374151] hover:border-gray-400"
-                          }`}
-                        >
-                          {isSelected ? `✓ ${preset}` : `+ ${preset}`}
-                        </button>
-                      )
-                    })}
+                    {["S", "M", "L", "XL", "2XL", "XXL", "One Size"].map(
+                      (preset) => {
+                        const isSelected = productForm.sizes.includes(preset)
+                        return (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => {
+                              setProductForm((prev) => ({
+                                ...prev,
+                                sizes: isSelected
+                                  ? prev.sizes.filter((s) => s !== preset)
+                                  : [...prev.sizes, preset],
+                              }))
+                            }}
+                            className={`px-2.5 py-1 text-[10px] font-bold uppercase border transition-colors cursor-pointer ${
+                              isSelected
+                                ? "bg-[#86a84e] text-[#141715] border-[#86a84e]"
+                                : "bg-[#1f2937] text-gray-300 border-[#374151] hover:border-gray-400"
+                            }`}
+                          >
+                            {isSelected ? `✓ ${preset}` : `+ ${preset}`}
+                          </button>
+                        )
+                      },
+                    )}
                   </div>
                 </div>
 
@@ -3292,7 +3422,10 @@ export default function Dashboard() {
                     placeholder="Custom size (e.g. 3XL, 42 EU, Kids)"
                     value={productForm.customSizeInput}
                     onChange={(e) =>
-                      setProductForm({ ...productForm, customSizeInput: e.target.value })
+                      setProductForm({
+                        ...productForm,
+                        customSizeInput: e.target.value,
+                      })
                     }
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -3373,7 +3506,10 @@ export default function Dashboard() {
                       placeholder="Tier label (e.g. Standard, Member)"
                       value={productForm.newPriceLabel}
                       onChange={(e) =>
-                        setProductForm({ ...productForm, newPriceLabel: e.target.value })
+                        setProductForm({
+                          ...productForm,
+                          newPriceLabel: e.target.value,
+                        })
                       }
                       className="bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
                     />
@@ -3382,7 +3518,10 @@ export default function Dashboard() {
                       placeholder="Price (Rs)"
                       value={productForm.newPriceValue}
                       onChange={(e) =>
-                        setProductForm({ ...productForm, newPriceValue: e.target.value })
+                        setProductForm({
+                          ...productForm,
+                          newPriceValue: e.target.value,
+                        })
                       }
                       className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1 text-white text-xs focus:outline-none focus:border-[#86a84e]"
                     />
@@ -3404,7 +3543,9 @@ export default function Dashboard() {
                       }`}
                       title="Set active state for new price tier"
                     >
-                      {productForm.newPriceActive ? "✓ Active Tier" : "✕ Inactive / Deselected Tier"}
+                      {productForm.newPriceActive
+                        ? "✓ Active Tier"
+                        : "✕ Inactive / Deselected Tier"}
                     </button>
 
                     <button
@@ -3414,7 +3555,9 @@ export default function Dashboard() {
                         if (!isNaN(price) && price > 0) {
                           const newOpt: PriceOption = {
                             id: `tier-${Date.now()}`,
-                            label: productForm.newPriceLabel.trim() || `Tier Rs ${price}`,
+                            label:
+                              productForm.newPriceLabel.trim() ||
+                              `Tier Rs ${price}`,
                             price,
                             active: productForm.newPriceActive,
                           }
@@ -3450,10 +3593,14 @@ export default function Dashboard() {
                           <button
                             type="button"
                             onClick={() => {
-                              const updated = productForm.priceOptions.map((p, i) =>
-                                i === idx ? { ...p, active: !p.active } : p,
+                              const updated = productForm.priceOptions.map(
+                                (p, i) =>
+                                  i === idx ? { ...p, active: !p.active } : p,
                               )
-                              setProductForm({ ...productForm, priceOptions: updated })
+                              setProductForm({
+                                ...productForm,
+                                priceOptions: updated,
+                              })
                             }}
                             className={`px-2 py-0.5 text-[9px] font-extrabold uppercase border cursor-pointer transition-colors ${
                               opt.active
@@ -3462,11 +3609,15 @@ export default function Dashboard() {
                             }`}
                             title="Toggle active / deselected"
                           >
-                            {opt.active ? "✓ Active" : "✕ Inactive / Deselected"}
+                            {opt.active
+                              ? "✓ Active"
+                              : "✕ Inactive / Deselected"}
                           </button>
                           <span
                             className={`text-xs font-bold ${
-                              opt.active ? "text-white" : "text-gray-400 line-through"
+                              opt.active
+                                ? "text-white"
+                                : "text-gray-400 line-through"
                             }`}
                           >
                             {opt.label || `Option ${idx + 1}`} · Rs {opt.price}
@@ -3477,7 +3628,9 @@ export default function Dashboard() {
                           onClick={() => {
                             setProductForm({
                               ...productForm,
-                              priceOptions: productForm.priceOptions.filter((_, i) => i !== idx),
+                              priceOptions: productForm.priceOptions.filter(
+                                (_, i) => i !== idx,
+                              ),
                             })
                           }}
                           className="text-red-400 hover:text-red-300 text-xs px-1.5 py-0.5 cursor-pointer font-bold"
@@ -3640,31 +3793,33 @@ export default function Dashboard() {
                     Quick Presets:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {["S", "M", "L", "XL", "2XL", "XXL", "One Size"].map((preset) => {
-                      const currentSizes = editProduct.sizes || []
-                      const isSelected = currentSizes.includes(preset)
-                      return (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => {
-                            setEditProduct({
-                              ...editProduct,
-                              sizes: isSelected
-                                ? currentSizes.filter((s) => s !== preset)
-                                : [...currentSizes, preset],
-                            })
-                          }}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase border transition-colors cursor-pointer ${
-                            isSelected
-                              ? "bg-[#86a84e] text-[#141715] border-[#86a84e]"
-                              : "bg-[#1f2937] text-gray-300 border-[#374151] hover:border-gray-400"
-                          }`}
-                        >
-                          {isSelected ? `✓ ${preset}` : `+ ${preset}`}
-                        </button>
-                      )
-                    })}
+                    {["S", "M", "L", "XL", "2XL", "XXL", "One Size"].map(
+                      (preset) => {
+                        const currentSizes = editProduct.sizes || []
+                        const isSelected = currentSizes.includes(preset)
+                        return (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => {
+                              setEditProduct({
+                                ...editProduct,
+                                sizes: isSelected
+                                  ? currentSizes.filter((s) => s !== preset)
+                                  : [...currentSizes, preset],
+                              })
+                            }}
+                            className={`px-2.5 py-1 text-[10px] font-bold uppercase border transition-colors cursor-pointer ${
+                              isSelected
+                                ? "bg-[#86a84e] text-[#141715] border-[#86a84e]"
+                                : "bg-[#1f2937] text-gray-300 border-[#374151] hover:border-gray-400"
+                            }`}
+                          >
+                            {isSelected ? `✓ ${preset}` : `+ ${preset}`}
+                          </button>
+                        )
+                      },
+                    )}
                   </div>
                 </div>
 
@@ -3724,7 +3879,9 @@ export default function Dashboard() {
                           onClick={() => {
                             setEditProduct({
                               ...editProduct,
-                              sizes: (editProduct.sizes || []).filter((item) => item !== s),
+                              sizes: (editProduct.sizes || []).filter(
+                                (item) => item !== s,
+                              ),
                             })
                           }}
                           className="hover:text-red-400 cursor-pointer font-bold"
@@ -3778,7 +3935,9 @@ export default function Dashboard() {
                       }`}
                       title="Set active state for new price tier"
                     >
-                      {editProductPriceActive ? "✓ Active Tier" : "✕ Inactive / Deselected Tier"}
+                      {editProductPriceActive
+                        ? "✓ Active Tier"
+                        : "✕ Inactive / Deselected Tier"}
                     </button>
 
                     <button
@@ -3788,7 +3947,9 @@ export default function Dashboard() {
                         if (!isNaN(price) && price > 0) {
                           const newOpt: PriceOption = {
                             id: `tier-${Date.now()}`,
-                            label: editProductPriceLabel.trim() || `Tier Rs ${price}`,
+                            label:
+                              editProductPriceLabel.trim() ||
+                              `Tier Rs ${price}`,
                             price,
                             active: editProductPriceActive,
                           }
@@ -3825,7 +3986,9 @@ export default function Dashboard() {
                           <button
                             type="button"
                             onClick={() => {
-                              const updated = (editProduct.priceOptions || []).map((p, i) =>
+                              const updated = (
+                                editProduct.priceOptions || []
+                              ).map((p, i) =>
                                 i === idx ? { ...p, active: !p.active } : p,
                               )
                               setEditProduct({
@@ -3840,11 +4003,15 @@ export default function Dashboard() {
                             }`}
                             title="Toggle active / deselected"
                           >
-                            {opt.active ? "✓ Active" : "✕ Inactive / Deselected"}
+                            {opt.active
+                              ? "✓ Active"
+                              : "✕ Inactive / Deselected"}
                           </button>
                           <span
                             className={`text-xs font-bold ${
-                              opt.active ? "text-white" : "text-gray-400 line-through"
+                              opt.active
+                                ? "text-white"
+                                : "text-gray-400 line-through"
                             }`}
                           >
                             {opt.label || `Option ${idx + 1}`} · Rs {opt.price}
@@ -3855,7 +4022,9 @@ export default function Dashboard() {
                           onClick={() => {
                             setEditProduct({
                               ...editProduct,
-                              priceOptions: (editProduct.priceOptions || []).filter((_, i) => i !== idx),
+                              priceOptions: (
+                                editProduct.priceOptions || []
+                              ).filter((_, i) => i !== idx),
                             })
                           }}
                           className="text-red-400 hover:text-red-300 text-xs px-1.5 py-0.5 cursor-pointer font-bold"
@@ -4091,7 +4260,10 @@ export default function Dashboard() {
                 ✕
               </button>
             </div>
-            <form onSubmit={handleSaveEditService} className="space-y-3 text-xs">
+            <form
+              onSubmit={handleSaveEditService}
+              className="space-y-3 text-xs"
+            >
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                   Service Title *
@@ -4300,10 +4472,8 @@ export default function Dashboard() {
                     <select
                       value={viewOrder.paymentStatus || "Paid"}
                       onChange={(e) => {
-                        const newPayment = e.target.value as
-                          | "Paid"
-                          | "Pending"
-                          | "Refunded"
+                        const newPayment = e.target
+                          .value as "Paid" | "Pending" | "Refunded"
                         updateOrderPaymentStatus(viewOrder.id, newPayment)
                         setViewOrder({
                           ...viewOrder,

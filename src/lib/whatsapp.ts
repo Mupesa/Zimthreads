@@ -54,9 +54,7 @@ export function formatOrderWhatsAppMessage(
       (item) =>
         `• ${item.quantity}x ${item.name}${
           item.size ? ` (Size: ${item.size})` : ""
-        }${
-          item.priceOptionLabel ? ` [Option: ${item.priceOptionLabel}]` : ""
-        }${
+        }${item.priceOptionLabel ? ` [Option: ${item.priceOptionLabel}]` : ""}${
           item.customName ? ` [Custom Name: "${item.customName}"]` : ""
         } - Rs ${(item.price * item.quantity).toFixed(0)}`,
     )

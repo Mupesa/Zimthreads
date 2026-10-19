@@ -111,7 +111,9 @@ function AppRoutes() {
         {cleanPath === "/" && <Home />}
         {cleanPath === "/services" && <Services />}
         {cleanPath === "/shop" && <Shop />}
-        {cleanPath === "/collection/racing-jackets" && <JacketsCollectionPage />}
+        {cleanPath === "/collection/racing-jackets" && (
+          <JacketsCollectionPage />
+        )}
         {cleanPath === "/booking" && <Booking />}
         {cleanPath === "/blog" && <Blog />}
         {cleanPath === "/about" && <About />}

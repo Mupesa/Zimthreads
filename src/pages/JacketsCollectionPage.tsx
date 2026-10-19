@@ -13,7 +13,8 @@ export default function JacketsCollectionPage() {
     return products.find((p) => p.id === selectedProduct.id) || selectedProduct
   }, [products, selectedProduct])
 
-  const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({})
+  const [expandedDescIds, setExpandedDescIds] =
+    useState<Record<string, boolean>>({})
 
   // Retrieve all products belonging to this collection (excluding hidden pieces)
   const jacketProducts = useMemo(() => {
@@ -21,8 +22,8 @@ export default function JacketsCollectionPage() {
       (p) =>
         !p.hidden &&
         (p.collectionId === "racing-jackets" ||
-        racingJacketsCollection.productIds.includes(p.id) ||
-        p.id.startsWith("prod-jacket-")),
+          racingJacketsCollection.productIds.includes(p.id) ||
+          p.id.startsWith("prod-jacket-")),
     )
   }, [products])
 
@@ -85,10 +86,10 @@ export default function JacketsCollectionPage() {
               Vintage Motorsport & Retro Racing Jackets
             </p>
             <p className="mt-5 text-sm sm:text-base text-[#d1d5db] leading-relaxed max-w-2xl">
-              An archival collection of 14 iconic vintage motorsport racing garments.
-              Preserved in authentic 90s boxy racing silhouettes with heavy cowhide
-              leathers and technical paddock twills. Tap any piece to view its craftsmanship
-              story and sizing.
+              An archival collection of 14 iconic vintage motorsport racing
+              garments. Preserved in authentic 90s boxy racing silhouettes with
+              heavy cowhide leathers and technical paddock twills. Tap any piece
+              to view its craftsmanship story and sizing.
             </p>
 
             {/* Collection Metadata Strip */}
@@ -161,8 +162,14 @@ export default function JacketsCollectionPage() {
                 <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between text-[10px] font-mono text-[#6b7280] uppercase tracking-wider mb-1.5">
-                      <span>Edition {editionNumber} / {jacketProducts.length}</span>
-                      <span>{p.sizes ? `${p.sizes.length} Sizes (S–XXL)` : "Archival"}</span>
+                      <span>
+                        Edition {editionNumber} / {jacketProducts.length}
+                      </span>
+                      <span>
+                        {p.sizes
+                          ? `${p.sizes.length} Sizes (S–XXL)`
+                          : "Archival"}
+                      </span>
                     </div>
 
                     {/* Jacket Name */}
@@ -194,7 +201,9 @@ export default function JacketsCollectionPage() {
                     {/* Expandable Description when toggled */}
                     {isExpanded && (
                       <div className="mt-3 pt-3 border-t border-[#f5f2ec] text-xs text-[#6b7280] leading-relaxed">
-                        <p className="mb-2 whitespace-pre-line">{p.description}</p>
+                        <p className="mb-2 whitespace-pre-line">
+                          {p.description}
+                        </p>
                         <div className="text-[10px] font-mono text-[#9ca3af] uppercase">
                           Silhouette: Authentic 90s Boxy Pit Fit
                         </div>
@@ -227,8 +236,9 @@ export default function JacketsCollectionPage() {
               90s Boxy Fit Guide
             </h3>
             <p className="text-xs text-[#6b7280] leading-relaxed">
-              Cut in authentic vintage pit-lane proportions with structured chest width
-              and slightly cropped hem. True to size for tailored boxy structure.
+              Cut in authentic vintage pit-lane proportions with structured
+              chest width and slightly cropped hem. True to size for tailored
+              boxy structure.
             </p>
           </div>
 
@@ -237,8 +247,9 @@ export default function JacketsCollectionPage() {
               Material Authenticity
             </h3>
             <p className="text-xs text-[#6b7280] leading-relaxed">
-              Crafted with heavy top-grain cowhide leather, heavy satin twill, and
-              high-density embroidered sponsor heraldry with quilted diamond linings.
+              Crafted with heavy top-grain cowhide leather, heavy satin twill,
+              and high-density embroidered sponsor heraldry with quilted diamond
+              linings.
             </p>
           </div>
 
@@ -247,8 +258,9 @@ export default function JacketsCollectionPage() {
               Mauritius Atelier Care
             </h3>
             <p className="text-xs text-[#6b7280] leading-relaxed">
-              Specialist leather conditioning and dry-cleaning recommended. Zimthreads
-              provides complimentary footwear and garment care advice.
+              Specialist leather conditioning and dry-cleaning recommended.
+              Zimthreads provides complimentary footwear and garment care
+              advice.
             </p>
           </div>
         </div>

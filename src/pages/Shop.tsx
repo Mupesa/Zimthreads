@@ -45,8 +45,8 @@ export default function Shop() {
       (p) =>
         !p.hidden &&
         (p.collectionId === "racing-jackets" ||
-        racingJacketsCollection.productIds.includes(p.id) ||
-        p.id.startsWith("prod-jacket-")),
+          racingJacketsCollection.productIds.includes(p.id) ||
+          p.id.startsWith("prod-jacket-")),
     )
   }, [products])
 
@@ -368,7 +368,10 @@ export default function Shop() {
                                 .filter((opt) => opt.active)
                                 .map((opt) => opt.price),
                             )}
-                            {p.priceOptions.filter((opt) => opt.active).length > 1 ? "+" : ""}
+                            {p.priceOptions.filter((opt) => opt.active).length >
+                            1
+                              ? "+"
+                              : ""}
                           </span>
                         ) : (
                           <span className="text-xs font-bold text-[#9ca3af] line-through">

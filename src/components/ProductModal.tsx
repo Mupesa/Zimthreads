@@ -47,7 +47,9 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   const activeImage = gallery[activeImageIdx] || gallery[0]
 
-  const hasPriceOptions = Boolean(product.priceOptions && product.priceOptions.length > 0)
+  const hasPriceOptions = Boolean(
+    product.priceOptions && product.priceOptions.length > 0,
+  )
   const priceOptions = product.priceOptions || []
   const activePriceOptions = priceOptions.filter((po) => po.active)
 
@@ -69,7 +71,9 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const isPriceOptionUnavailable =
     hasPriceOptions && (!selectedPriceOption || !selectedPriceOption.active)
 
-  const basePrice = selectedPriceOption ? selectedPriceOption.price : product.price
+  const basePrice = selectedPriceOption
+    ? selectedPriceOption.price
+    : product.price
   const customPrice = product.customNamePrice ?? 50
   const isCustomActive = isCustomizing && customName.trim().length > 0
   const isCustomRequiredButEmpty = isCustomizing && !customName.trim()
@@ -348,16 +352,19 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   </label>
                   {selectedPriceOption && selectedPriceOption.active && (
                     <span className="text-[10px] font-bold text-[#4a5c2d]">
-                      {selectedPriceOption.label || "Selected Option"}: Rs {selectedPriceOption.price}
+                      {selectedPriceOption.label || "Selected Option"}: Rs{" "}
+                      {selectedPriceOption.price}
                     </span>
                   )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {priceOptions.map((opt, idx) => {
-                    const optKey = opt.id || `${opt.label || "tier"}-${opt.price}-${idx}`
+                    const optKey =
+                      opt.id || `${opt.label || "tier"}-${opt.price}-${idx}`
                     const isSelected = selectedPriceOption
                       ? (opt.id && selectedPriceOption.id === opt.id) ||
-                        (selectedPriceOption.label === opt.label && selectedPriceOption.price === opt.price)
+                        (selectedPriceOption.label === opt.label &&
+                          selectedPriceOption.price === opt.price)
                       : false
                     const isActive = opt.active
 
@@ -387,7 +394,9 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                       <button
                         key={optKey}
                         type="button"
-                        onClick={() => setSelectedPriceOptionId(opt.id || optKey)}
+                        onClick={() =>
+                          setSelectedPriceOptionId(opt.id || optKey)
+                        }
                         className={`p-2.5 text-left border transition-all cursor-pointer flex items-center justify-between ${
                           isSelected
                             ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"

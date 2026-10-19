@@ -47,7 +47,7 @@ export interface CollectiveCollection {
   previewImages: string[]
   productIds: string[]
   itemCount: number
-  priceRange: { min: number; max: number }
+  priceRange: { min: number max: number }
   badge: string
 }
 
@@ -377,7 +377,7 @@ export const heritageBraceletProduct: Product = {
       url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926770/zimthreads/bracelets/w4fsawbjgtpukn7amuwg.png",
     },
     {
-      label: 'Zimbabwe Flag Beaded Drawstring Bracelet',
+      label: "Zimbabwe Flag Beaded Drawstring Bracelet",
       url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035217/zimthreads/bracelets/elfgrd5kskbrpwhgfou0.jpg",
     },
     {

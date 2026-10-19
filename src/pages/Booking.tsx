@@ -155,7 +155,10 @@ export default function Booking() {
         err.message || "Failed to confirm booking. Please try again.",
       )
       setTimeout(() => {
-        formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        formTopRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        })
       }, 50)
     } finally {
       setIsSubmitting(false)
@@ -393,7 +396,8 @@ export default function Booking() {
                       details.email.trim().length > 0 &&
                       !isEmailValid && (
                         <p className="text-[10px] text-red-600 mt-1 font-medium">
-                          Please enter a valid email address (e.g. name@domain.com)
+                          Please enter a valid email address (e.g.
+                          name@domain.com)
                         </p>
                       )}
                   </div>

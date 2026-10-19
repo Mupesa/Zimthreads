@@ -1,30 +1,24 @@
 import { Link, useRouter } from "@/router"
 import { useStore } from "@/store/StoreContext"
 import {
-  ShieldCheckIcon,
-  LeafIcon,
-  LightningIcon,
-  SparklesIcon,
   CheckIcon,
   ClockIcon,
   ArrowRightIcon,
   WhatsAppIcon,
 } from "@/components/Icons"
+import EditorialHero from "@/components/EditorialHero"
+import CollectionRail from "@/components/CollectionRail"
+import FeaturedProductSpotlight from "@/components/FeaturedProductSpotlight"
 
 const categories = [
-  "CLEAN · RS 300",
+  "ZIMBABWE '02' PRE-ORDER",
+  "PADDOCK RACING JACKETS",
+  "BEADED HERITAGE BRACELETS",
+  "STANDARD CLEAN · RS 300",
   "DEEP CLEAN · RS 400",
   "RESTORE · RS 600+",
   "2 PAIRS COMBO · RS 500",
   "3 PAIRS COMBO · RS 800",
-  "CUSTOM APPAREL",
-]
-
-const badges = [
-  { icon: ShieldCheckIcon, label: "TRUSTED SERVICE" },
-  { icon: LeafIcon, label: "QUALITY CARE CHEMISTRY" },
-  { icon: SparklesIcon, label: "STUDENTS & SNEAKER LOVERS" },
-  { icon: LightningIcon, label: "CLEAN REPEAT ROTATION" },
 ]
 
 const whyUs = [
@@ -62,92 +56,64 @@ export default function Home() {
 
   return (
     <main>
-      {/* Hero */}
-      <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center overflow-hidden bg-[#f5f2ec]">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-10 pointer-events-none"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1400&h=900&fit=crop&auto=format')",
-          }}
-        />
+      {/* 1. Full-Bleed Dual-Identity Editorial Hero */}
+      <EditorialHero
+        onScrollToRail={() => {
+          document
+            .getElementById("collection-rail-section")
+            ?.scrollIntoView({ behavior: "smooth" })
+        }}
+        onScrollToServices={() => {
+          document
+            .getElementById("core-services-section")
+            ?.scrollIntoView({ behavior: "smooth" })
+        }}
+      />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center pt-8 pb-24 sm:py-24">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4a5c2d]/10 text-[#4a5c2d] text-[10px] font-bold tracking-[0.25em] uppercase mb-4">
-              Clothes · Sneakers · Community
-            </div>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase leading-[0.95] text-[#1a1a1a]">
-              CLEANER SHOES.
-              <br />
-              <span className="text-[#4a5c2d]">A STRONGER YOU.</span>
-            </h1>
-            <p className="mt-4 text-sm sm:text-base text-[#6b7280] max-w-md leading-relaxed">
-              Mauritius&apos; premier sneaker laundry, restoration, and custom
-              streetwear studio. Professional deep shoe cleaning, sole
-              un-yellowing, repainting, and island-wide drop-off points.
-            </p>
-          </div>
-
-          <div className="flex justify-center mt-4 lg:mt-0">
-            <div className="relative max-w-xs sm:max-w-md">
-              <div className="absolute -bottom-2 sm:-bottom-4 left-1/2 -translate-x-1/2 w-4/5 h-6 bg-black/15 blur-xl rounded-full pointer-events-none" />
-              <img
-                src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=500&fit=crop&auto=format"
-                alt="Clean white sneakers"
-                className="w-full object-contain drop-shadow-2xl relative z-1"
-              />
-              <div className="absolute top-1 right-1 sm:top-4 sm:right-4 w-20 h-20 sm:w-28 sm:h-28 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center bg-[#f5f2ec] shadow-lg z-2">
-                <div className="text-center">
-                  <div className="text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider leading-tight text-[#1a1a1a]">
-                    WE CLEAN.
-                    <br />
-                    <span className="text-[#4a5c2d]">YOU SHINE.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Trust badges */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xs border-t border-[#e5e1d8]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap justify-center sm:justify-between gap-3 sm:gap-6">
-            {badges.map((b) => {
-              const IconComp = b.icon
-              return (
-                <div
-                  key={b.label}
-                  className="flex items-center gap-1.5 sm:gap-2"
-                >
-                  <IconComp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#4a5c2d]" />
-                  <span className="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-[#1a1a1a]">
-                    {b.label}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Category bar */}
-      <section className="bg-[#1a1a1a] py-3.5 overflow-x-auto scrollbar-hide">
+      {/* 2. Minimalist Brand Ticker */}
+      <section className="bg-[#121513] border-b border-[#242b25] py-3 overflow-x-auto scrollbar-hide">
         <div className="flex gap-6 sm:gap-8 px-4 sm:px-6 min-w-max mx-auto justify-start sm:justify-center">
           {categories.map((c) => (
             <Link
               key={c}
-              to="/services"
-              className="text-[#9ca3af] hover:text-[#86a84e] transition-colors whitespace-nowrap text-[10px] sm:text-[11px] font-semibold tracking-widest uppercase"
+              to={
+                c.includes("CLEAN") ||
+                c.includes("RESTORE") ||
+                c.includes("COMBO")
+                  ? "/services"
+                  : "/shop"
+              }
+              className="text-[#9ca3af] hover:text-[#86a84e] transition-colors whitespace-nowrap text-[10px] sm:text-[11px] font-mono tracking-widest uppercase flex items-center gap-2"
             >
-              {c}
+              <span className="text-[#86a84e]">/</span>
+              <span>{c}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Core Services Section */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6">
+      {/* 3. The Right-Side Scrollable Collection Rail */}
+      <CollectionRail
+        onSelectSpotlight={() => {
+          document
+            .getElementById("featured-product-spotlight")
+            ?.scrollIntoView({ behavior: "smooth" })
+        }}
+        onSelectServices={() => {
+          document
+            .getElementById("core-services-section")
+            ?.scrollIntoView({ behavior: "smooth" })
+        }}
+      />
+
+      {/* 4. The In-Page Featured Product Spotlight ("That Card Below That") */}
+      <FeaturedProductSpotlight />
+
+      {/* 5. Core Shoe Restoration Treatments Section */}
+      <section
+        id="core-services-section"
+        className="py-20 max-w-7xl mx-auto px-4 sm:px-6"
+      >
         <div className="text-center mb-12">
           <p className="text-[11px] font-semibold tracking-[0.3em] uppercase text-[#4a5c2d] mb-2">
             Professional Shoe Cleaning Services

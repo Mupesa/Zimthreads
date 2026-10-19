@@ -139,7 +139,7 @@ export interface StoreContextType {
   addProduct: (product: Omit<Product, "id">) => Product
   updateProduct: (id: string, product: Partial<Product>) => void
   updateProductsBatch: (
-    updates: { id: string; changes: Partial<Product> }[],
+    updates: { id: string changes: Partial<Product> }[],
   ) => void
   deleteProduct: (id: string) => void
 
@@ -248,12 +248,15 @@ const persistPublicRecord = async <T,>(
     const errorMsg =
       errData.error ||
       `Server error (${res.status}): Failed to save ${entity} to database.`
-    console.warn(`[StoreContext] Failed to persist ${entity} to cloud:`, errorMsg)
+    console.warn(
+      `[StoreContext] Failed to persist ${entity} to cloud:`,
+      errorMsg,
+    )
     throw new Error(errorMsg)
   }
 
   const json = await res.json().catch(() => ({}))
-  return (json.record as T) || record
+  return json.record as T || record
 }
 
 // Authenticated sync helper for administrative operations
@@ -334,12 +337,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         const localViews = Array.isArray(p.views) ? p.views : []
         const canonicalViews = heritageBraceletProduct.views || []
         const existingUrls = new Set(localViews.map((v: any) => v.url))
-        const missingViews = canonicalViews.filter((v: any) => !existingUrls.has(v.url))
+        const missingViews = canonicalViews.filter(
+          (v: any) => !existingUrls.has(v.url),
+        )
         if (missingViews.length > 0) {
           return {
             ...p,
             views: [...localViews, ...missingViews],
-            images: Array.from(new Set([...(p.images || []), ...(heritageBraceletProduct.images || [])])),
+            images: Array.from(
+              new Set([
+                ...(p.images || []),
+                ...(heritageBraceletProduct.images || []),
+              ]),
+            ),
           }
         }
       }
@@ -487,7 +497,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             const has2XL = sizes.includes("2XL")
             const hasXXL = sizes.includes("XXL")
             if (!has2XL || !hasXXL) {
-              const merged = Array.from(new Set([...sizes, "S", "M", "L", "XL", "2XL", "XXL"]))
+              const merged = Array.from(
+                new Set([...sizes, "S", "M", "L", "XL", "2XL", "XXL"]),
+              )
               return { ...p, sizes: merged }
             }
           }
@@ -495,10 +507,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             const cloudViews = Array.isArray(p.views) ? p.views : []
             const canonicalViews = heritageBraceletProduct.views || []
             const existingUrls = new Set(cloudViews.map((v: any) => v.url))
-            const missingViews = canonicalViews.filter((v: any) => !existingUrls.has(v.url))
+            const missingViews = canonicalViews.filter(
+              (v: any) => !existingUrls.has(v.url),
+            )
             if (missingViews.length > 0) {
               const mergedViews = [...cloudViews, ...missingViews]
-              const mergedImages = Array.from(new Set([...(p.images || []), ...(heritageBraceletProduct.images || [])]))
+              const mergedImages = Array.from(
+                new Set([
+                  ...(p.images || []),
+                  ...(heritageBraceletProduct.images || []),
+                ]),
+              )
               return { ...p, views: mergedViews, images: mergedImages }
             }
           }
@@ -517,7 +536,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             (p) => !cloudIds.has(p.id),
           )
           if (missingCanonical.length > 0) {
-            const fullCanonical = [...sanitizedCloudProducts, ...missingCanonical]
+            const fullCanonical = [
+              ...sanitizedCloudProducts,
+              ...missingCanonical,
+            ]
             setProducts(fullCanonical)
             productsRef.current = fullCanonical
             syncToCloud("products", fullCanonical)
@@ -623,7 +645,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     fetchCloudData()
 
     const handleFocusOrVisible = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
         fetchCloudData()
       }
     }
@@ -633,7 +658,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
 
     // Periodic 30s background poll so open devices stay continuously in sync
     const interval = setInterval(() => {
-      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "visible"
+      ) {
         fetchCloudData()
       }
     }, 30000)
@@ -675,7 +703,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       ? customName.trim().toUpperCase()
       : undefined
     const extraPrice = formattedCustomName ? product.customNamePrice || 50 : 0
-    const basePrice = selectedPrice !== undefined ? selectedPrice : product.price
+    const basePrice =
+      selectedPrice !== undefined ? selectedPrice : product.price
     const finalPrice = basePrice + extraPrice
 
     setCart((prev) => {
@@ -840,7 +869,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     const summary = cart
       .map(
         (i) =>
-          `${i.name}${i.size ? ` [${i.size}]` : ""}${i.priceOptionLabel ? ` [${i.priceOptionLabel}]` : ""}${i.customName ? ` [Custom: "${i.customName}"]` : ""} (x${i.quantity})`,
+          `${i.name}${i.size ? ` [${i.size}]` : ""}${
+            i.priceOptionLabel ? ` [${i.priceOptionLabel}]` : ""
+          }${
+            i.customName ? ` [Custom: "${i.customName}"]` : ""
+          } (x${i.quantity})`,
       )
       .join(", ")
     const totalAmount =
@@ -976,7 +1009,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const updateProductsBatch = (
-    updates: { id: string; changes: Partial<Product> }[],
+    updates: { id: string changes: Partial<Product> }[],
   ) => {
     const map = new Map(updates.map((u) => [u.id, u.changes]))
     const next = productsRef.current.map((p) => {
@@ -986,7 +1019,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     productsRef.current = next
     setProducts(next)
     syncToCloud("products", next)
-    showToast("Batch Updated", "Product prices & inventory updated successfully.")
+    showToast(
+      "Batch Updated",
+      "Product prices & inventory updated successfully.",
+    )
   }
 
   const deleteProduct = (id: string) => {
@@ -1069,9 +1105,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   const respondToInquiry = async (id: string, response: string) => {
     const respondedAt = new Date().toISOString()
     const next = inquiriesRef.current.map((inq) =>
-      inq.id === id
-        ? { ...inq, response, respondedAt, read: true }
-        : inq,
+      inq.id === id ? { ...inq, response, respondedAt, read: true } : inq,
     )
     inquiriesRef.current = next
     setInquiries(next)

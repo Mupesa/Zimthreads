@@ -4,30 +4,19 @@ import { FeaturedDropBanner } from "@/store/seedData"
 
 interface ShopHeroProps {
   banner?: FeaturedDropBanner
-  onScrollToRail?: () => void
   onScrollToSpotlight?: () => void
   onScrollToCatalog?: () => void
 }
 
 export default function ShopHero({
   banner,
-  onScrollToRail,
   onScrollToSpotlight,
   onScrollToCatalog,
 }: ShopHeroProps) {
+  // Use the new LLICYLAND high-fashion editorial hero image
   const heroImage =
     banner?.imageUrl ||
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto,w_1920/v1791397726/zimthreads/jackets/fmyul3tffougz1obkara.png"
-
-  const handleScrollToRail = () => {
-    if (onScrollToRail) {
-      onScrollToRail()
-    } else {
-      document
-        .getElementById("collection-rail-section")
-        ?.scrollIntoView({ behavior: "smooth" })
-    }
-  }
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792407895/zimthreads/banners/wjn81t1rzt0h6boikoxd.jpg"
 
   const handleScrollToSpotlight = () => {
     if (onScrollToSpotlight) {
@@ -50,115 +39,72 @@ export default function ShopHero({
   }
 
   return (
-    <section className="relative min-h-[70vh] sm:min-h-[78vh] flex flex-col justify-between overflow-hidden bg-[#121513] text-[#f5f2ec] mb-12 border-b border-[#242b25]">
-      {/* Background Ambience & Full-Bleed Editorial Visual */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Subtle grid pattern */}
+    <section className="relative w-full h-[78vh] sm:h-[86vh] lg:h-[90vh] bg-[#0a0c0b] overflow-hidden border-b border-[#242b25] flex flex-col justify-between">
+      {/* 1. Unobstructed High-Fashion Editorial Hero Visual */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
+        {/* Subtle background glow/grid */}
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
             backgroundImage: `linear-gradient(#f5f2ec 1px, transparent 1px), linear-gradient(90deg, #f5f2ec 1px, transparent 1px)`,
             backgroundSize: "64px 64px",
           }}
         />
 
-        {/* Cinematic Vignette */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121513] via-[#121513]/70 to-[#121513]/40 z-1" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#121513] via-[#121513]/85 to-transparent z-1" />
-
+        {/* The Clean Hero Image (Centerpiece - no text covering the model or LLICYLAND graphic) */}
         <img
           src={heroImage}
-          alt={banner?.title || "Zimthreads Shop Editorial Hero"}
-          className="w-full h-full object-cover object-center lg:object-right filter brightness-[0.55] contrast-[1.1] scale-105"
+          alt={banner?.title || "Zimthreads Atelier Streetwear Hero"}
+          className="w-full h-full object-contain sm:object-cover object-top sm:object-center transition-transform duration-700 hover:scale-[1.01]"
         />
+
+        {/* Minimal bottom edge vignette so bottom controls are readable without obstructing the subject */}
+        <div className="absolute inset-x-0 bottom-0 h-36 sm:h-44 bg-gradient-to-t from-[#0a0c0b] via-[#0a0c0b]/80 to-transparent pointer-events-none" />
       </div>
 
-      {/* Top Identity Kicker */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full pt-8 sm:pt-12">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2a322b] pb-4">
-          <div className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-mono tracking-[0.25em] uppercase text-[#86a84e]">
-            <span className="w-2 h-2 rounded-full bg-[#86a84e] animate-pulse" />
+      {/* 2. Top Minimalist Status Strip (Floating quietly at top edge) */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full pt-4 sm:pt-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 sm:px-3.5 py-1.5 border border-white/10 text-[9px] sm:text-[10px] font-mono tracking-[0.25em] uppercase text-[#86a84e]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#86a84e] animate-pulse" />
             <span>ZIMTHREADS ATELIER // THE DROP STORE</span>
           </div>
 
-          <div className="flex items-center gap-3 text-[9px] sm:text-[10px] font-mono uppercase text-[#9ca3af]">
-            <span>HERITAGE KITS</span>
-            <span className="text-[#4a5c2d]">/</span>
-            <span>RACING ARCHIVES</span>
-            <span className="text-[#4a5c2d]">/</span>
-            <span>RESTORE LAB</span>
+          <div className="hidden sm:inline-flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 border border-white/10 text-[9px] font-mono tracking-wider uppercase text-[#9ca3af]">
+            <span>ISLAND-WIDE MAURITIUS DELIVERY</span>
           </div>
         </div>
       </div>
 
-      {/* Main Editorial Headline & Interactive Actions */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full py-10 sm:py-16 flex-1 flex flex-col justify-center">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#86a84e]/15 border border-[#86a84e]/30 text-[#86a84e] text-[10px] font-bold tracking-[0.25em] uppercase mb-4 sm:mb-6">
-            Bespoke Drops · Official Kits · Motorsport Archives
+      {/* 3. Bottom Minimalist Action Bar (Anchored at very bottom edge, keeping the photo clear) */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full pb-6 sm:pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-4 border-t border-white/10">
+          <div>
+            <p className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-[#86a84e] mb-1">
+              Bespoke Streetwear & Cultural Kits
+            </p>
+            <h1 className="font-display text-2xl sm:text-4xl font-black uppercase text-white tracking-wide">
+              THE ATELIER STORE
+            </h1>
           </div>
 
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-black uppercase leading-[0.92] tracking-tight text-white mb-5 sm:mb-6">
-            CURATED ATELIER.
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#86a84e] via-[#a3c965] to-[#f5f2ec]">
-              UNAPOLOGETIC
-            </span>
-            <br />
-            STREETWEAR.
-          </h1>
-
-          <p className="text-sm sm:text-base text-[#d1d5db] max-w-xl leading-relaxed mb-8 font-sans">
-            The official Zimthreads store. Shop limited-edition Zimbabwe
-            &apos;02&apos; pre-order kits with custom back-name printing,
-            archival 90s vintage motorsport jackets, handcrafted African
-            heritage beaded bracelets, and sneaker care products.
-          </p>
-
-          {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 max-w-md sm:max-w-none">
-            <button
-              onClick={handleScrollToRail}
-              className="px-6 py-3.5 bg-[#86a84e] hover:bg-[#96bd59] text-[#121513] font-display text-xs sm:text-sm font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-[#86a84e]/20"
-            >
-              <span>EXPLORE CAPSULES</span>
-              <ArrowRightIcon className="w-4 h-4" />
-            </button>
-
+          {/* Clean Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={handleScrollToSpotlight}
-              className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-[#374151] hover:border-white font-display text-xs sm:text-sm font-extrabold tracking-widest uppercase transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 sm:py-3 bg-[#86a84e] hover:bg-[#97bd59] text-[#0a0c0b] font-display text-[11px] sm:text-xs font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[#86a84e]/20 flex items-center gap-2 cursor-pointer"
             >
-              <span>FLAGSHIP DROP SPOTLIGHT</span>
-              <span>↓</span>
+              <span>FEATURED DROP</span>
+              <ArrowRightIcon className="w-3.5 h-3.5" />
             </button>
 
             <button
               onClick={handleScrollToCatalog}
-              className="px-5 py-3.5 bg-transparent hover:bg-white/5 text-[#9ca3af] hover:text-white border border-[#2a322b] font-mono text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer"
+              className="px-5 py-2.5 sm:py-3 bg-black/60 hover:bg-black/90 text-white border border-white/20 hover:border-white font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all cursor-pointer backdrop-blur-md"
             >
-              <span>FULL CATALOG</span>
+              <span>ALL PRODUCTS</span>
               <span>↓</span>
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating Status Bar */}
-      <div className="relative z-10 border-t border-[#242b25] bg-[#121513]/95 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4 text-[10px] font-mono uppercase">
-          <div className="flex items-center gap-2 text-[#86a84e]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#86a84e] animate-ping" />
-            <span>
-              ZIMBABWE &apos;02&apos; HERITAGE KIT PRE-ORDERS NOW OPEN
-            </span>
-          </div>
-
-          <div className="text-[#9ca3af]">
-            <span>
-              FREE COLLECTION AT ALL MAURITIUS DROP POINTS · ISLAND-WIDE
-              DELIVERY
-            </span>
           </div>
         </div>
       </div>

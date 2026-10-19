@@ -934,7 +934,7 @@ export const initialSettings: StoreSettings = {
     description:
       "Crafted from heavyweight combed cotton with drop-shoulder silhouette, iconic red dice LLICYLAND typography, and woven Zimthread atelier tag.",
     imageUrl:
-      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790345314/zimthreads/banners/mhaqhzz1ijwqn25gslkp.jpg",
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792407895/zimthreads/banners/wjn81t1rzt0h6boikoxd.jpg",
     productId: "prod-5",
     priceText: "Rs 650",
     ctaText: "Shop This Drop",

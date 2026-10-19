@@ -4,7 +4,6 @@ import { useStore } from "@/store/StoreContext"
 import { Product, racingJacketsCollection } from "@/store/seedData"
 import ProductModal from "@/components/ProductModal"
 import ShopHero from "@/components/ShopHero"
-import CollectionRail from "@/components/CollectionRail"
 import FeaturedProductSpotlight from "@/components/FeaturedProductSpotlight"
 
 const categories = [
@@ -129,11 +128,6 @@ export default function Shop() {
       {/* 1. Full-Bleed Editorial Shop Hero */}
       <ShopHero
         banner={settings.featuredDrop}
-        onScrollToRail={() => {
-          document
-            .getElementById("collection-rail-section")
-            ?.scrollIntoView({ behavior: "smooth" })
-        }}
         onScrollToSpotlight={() => {
           document
             .getElementById("featured-product-spotlight")
@@ -146,25 +140,7 @@ export default function Shop() {
         }}
       />
 
-      {/* 2. Right-Side Scrollable Collection Rail */}
-      <CollectionRail
-        onSelectSpotlight={() => {
-          document
-            .getElementById("featured-product-spotlight")
-            ?.scrollIntoView({ behavior: "smooth" })
-        }}
-        onSelectCategory={(cat) => {
-          setActiveCategory(cat)
-          document
-            .getElementById("shop-catalog-section")
-            ?.scrollIntoView({ behavior: "smooth" })
-        }}
-        onSelectServices={() => {
-          navigate("/services")
-        }}
-      />
-
-      {/* 3. In-Page Featured Product Spotlight ("The Card Below That") */}
+      {/* 2. In-Page Featured Product Spotlight ("The Card Below That") */}
       <FeaturedProductSpotlight banner={settings.featuredDrop} />
 
       {/* 4. Complete Catalog Section */}

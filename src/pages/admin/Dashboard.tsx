@@ -284,6 +284,205 @@ export default function Dashboard() {
     } catch {}
   }
 
+  // Email Product Pitch Modal State & Logic
+  const [pitchModalOpen, setPitchModalOpen] = useState(false)
+  const [pitchRecipientMode, setPitchRecipientMode] = useState<"individual" | "all" | "vip" | "active">("individual")
+  const [pitchCustomEmail, setPitchCustomEmail] = useState("")
+  const [pitchCustomName, setPitchCustomName] = useState("")
+  const [pitchSubject, setPitchSubject] = useState("✨ Handpicked Zimthreads Curations Just for You")
+  const [pitchHeadline, setPitchHeadline] = useState("Exclusive Zimthreads Showcase")
+  const [pitchIntroMessage, setPitchIntroMessage] = useState(
+    "We have handpicked these signature streetwear pieces and sneaker care solutions from our workshop, curated exclusively for your style."
+  )
+  const [pitchSelectedProductIds, setPitchSelectedProductIds] = useState<string[]>([])
+  const [pitchActiveTab, setPitchActiveTab] = useState<"compose" | "preview">("compose")
+  const [pitchProductSearch, setPitchProductSearch] = useState("")
+  const [pitchCategoryFilter, setPitchCategoryFilter] = useState("All")
+  const [pitchIsSending, setPitchIsSending] = useState(false)
+  const [pitchPreviewHtml, setPitchPreviewHtml] = useState("")
+  const [pitchLoadingPreview, setPitchLoadingPreview] = useState(false)
+  const [pitchCopySuccess, setPitchCopySuccess] = useState(false)
+
+  const openPitchModal = (customer?: { name: string; email: string; phone?: string }) => {
+    if (customer) {
+      setPitchCustomName(customer.name)
+      setPitchCustomEmail(customer.email)
+      setPitchRecipientMode("individual")
+    } else {
+      setPitchCustomName("")
+      setPitchCustomEmail("")
+      setPitchRecipientMode("individual")
+    }
+    // Pre-select top 2-3 visible products
+    const defaultIds = products
+      .filter((p) => !p.hidden)
+      .slice(0, 3)
+      .map((p) => p.id)
+    setPitchSelectedProductIds(defaultIds)
+    setPitchActiveTab("compose")
+    setPitchPreviewHtml("")
+    setPitchModalOpen(true)
+  }
+
+  const togglePitchProduct = (id: string) => {
+    setPitchSelectedProductIds((prev) =>
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+    )
+  }
+
+  const loadPitchPreview = async () => {
+    setPitchLoadingPreview(true)
+    try {
+      const selectedProducts = products.filter((p) => pitchSelectedProductIds.includes(p.id))
+      const targetName =
+        pitchRecipientMode === "individual"
+          ? pitchCustomName.trim() || "Valued Client"
+          : `${pitchRecipientMode.toUpperCase()} Clients`
+      const targetEmail =
+        pitchRecipientMode === "individual"
+          ? pitchCustomEmail.trim() || "client@example.com"
+          : "zimthreadmu@gmail.com"
+
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adminToken: ADMIN_PASSWORD,
+          to: targetEmail,
+          recipientName: targetName,
+          subject: pitchSubject,
+          headline: pitchHeadline,
+          introMessage: pitchIntroMessage,
+          products: selectedProducts,
+          previewOnly: true,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success && data.html) {
+        setPitchPreviewHtml(data.html)
+      } else {
+        showToast("Preview Error", data.error || "Failed to generate preview", "error")
+      }
+    } catch (err: any) {
+      showToast("Preview Error", err.message || "Failed to load preview", "error")
+    } finally {
+      setPitchLoadingPreview(false)
+    }
+  }
+
+  const handleSendPitchEmail = async (overrideRecipient?: string) => {
+    if (pitchSelectedProductIds.length === 0) {
+      showToast("No Products Selected", "Please select at least 1 product to include in the showcase.", "error")
+      return
+    }
+
+    let recipients: string[] = []
+    if (overrideRecipient) {
+      recipients = [overrideRecipient]
+    } else if (pitchRecipientMode === "individual") {
+      const email = pitchCustomEmail.trim()
+      if (!email) {
+        showToast("Missing Email", "Please enter a valid recipient email address.", "error")
+        return
+      }
+      recipients = [email]
+    } else if (pitchRecipientMode === "vip") {
+      recipients = customers
+        .filter((c) => c.status === "VIP" && c.email)
+        .map((c) => c.email.trim())
+    } else if (pitchRecipientMode === "active") {
+      recipients = customers
+        .filter((c) => c.status === "Active" && c.email)
+        .map((c) => c.email.trim())
+    } else {
+      recipients = customers
+        .filter((c) => c.email)
+        .map((c) => c.email.trim())
+    }
+
+    if (recipients.length === 0) {
+      showToast("No Recipients Found", "No customer email addresses found for the selected segment.", "error")
+      return
+    }
+
+    setPitchIsSending(true)
+    try {
+      const selectedProducts = products.filter((p) => pitchSelectedProductIds.includes(p.id))
+      const targetName =
+        overrideRecipient
+          ? "Zimthreads Admin Test"
+          : pitchRecipientMode === "individual"
+            ? pitchCustomName.trim() || "Valued Client"
+            : "Zimthreads VIP"
+
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adminToken: ADMIN_PASSWORD,
+          to: recipients.length === 1 ? recipients[0] : recipients,
+          recipientName: targetName,
+          subject: pitchSubject,
+          headline: pitchHeadline,
+          introMessage: pitchIntroMessage,
+          products: selectedProducts,
+          previewOnly: false,
+        }),
+      })
+
+      const data = await res.json()
+      if (res.ok && data.success) {
+        showToast(
+          "Email Dispatched!",
+          `Product showcase email successfully sent to ${recipients.length} client(s) via Resend.`,
+          "success"
+        )
+        setPitchModalOpen(false)
+      } else {
+        showToast("Send Failed", data.error || "Failed to dispatch email via Resend", "error")
+      }
+    } catch (err: any) {
+      showToast("Dispatch Error", err.message || "Failed to contact email API", "error")
+    } finally {
+      setPitchIsSending(false)
+    }
+  }
+
+  const handleCopyPitchHtml = async () => {
+    try {
+      let html = pitchPreviewHtml
+      if (!html) {
+        const selectedProducts = products.filter((p) => pitchSelectedProductIds.includes(p.id))
+        const res = await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            adminToken: ADMIN_PASSWORD,
+            to: pitchCustomEmail || "client@example.com",
+            recipientName: pitchCustomName || "Valued Client",
+            subject: pitchSubject,
+            headline: pitchHeadline,
+            introMessage: pitchIntroMessage,
+            products: selectedProducts,
+            previewOnly: true,
+          }),
+        })
+        const data = await res.json()
+        html = data.html
+      }
+
+      if (html) {
+        await navigator.clipboard.writeText(html)
+        setPitchCopySuccess(true)
+        showToast("HTML Copied!", "Full formatted HTML email copied to clipboard. Ready to paste into your mail app.", "success")
+        setTimeout(() => setPitchCopySuccess(false), 3000)
+      }
+    } catch (err: any) {
+      showToast("Copy Failed", err.message || "Failed to copy HTML", "error")
+    }
+  }
+
   // Navigation Items
   const unreadInquiriesCount = useMemo(
     () => inquiries.filter((i) => !i.read).length,
@@ -2240,17 +2439,27 @@ export default function Dashboard() {
           {/* ===================== CUSTOMERS SECTION ===================== */}
           {active === "customers" && (
             <div className="space-y-6">
-              <div>
-                <h1 className="font-display text-2xl font-extrabold uppercase text-[#f9fafb]">
-                  CUSTOMER DIRECTORY ({customers.length})
-                </h1>
-                <p className="text-xs text-[#9ca3af]">
-                  Calculated lifetime value, booking counts, and order activity
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="font-display text-2xl font-extrabold uppercase text-[#f9fafb]">
+                    CUSTOMER DIRECTORY ({customers.length})
+                  </h1>
+                  <p className="text-xs text-[#9ca3af]">
+                    Calculated lifetime value, booking counts, and order activity
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openPitchModal()}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-lg"
+                >
+                  <MailIcon className="w-4 h-4" />
+                  <span>+ Compose Product Pitch</span>
+                </button>
               </div>
 
               <div className="bg-[#1f2937] border border-[#374151] overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[700px]">
+                <table className="w-full text-left border-collapse min-w-[760px]">
                   <thead>
                     <tr className="border-b border-[#374151] bg-[#111827]/60 text-[10px] uppercase font-bold tracking-widest text-[#9ca3af]">
                       <th className="p-4">Customer</th>
@@ -2259,13 +2468,14 @@ export default function Dashboard() {
                       <th className="p-4">Store Orders</th>
                       <th className="p-4">Lifetime Spend</th>
                       <th className="p-4">Tier Status</th>
+                      <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#374151] text-xs">
                     {customers.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={7}
                           className="p-8 text-center text-xs text-[#9ca3af]"
                         >
                           No customer profiles recorded yet. Profiles will
@@ -2316,6 +2526,17 @@ export default function Dashboard() {
                             >
                               {c.status}
                             </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => openPitchModal(c)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold transition-colors cursor-pointer"
+                              title="Send Product Showcase Email"
+                            >
+                              <MailIcon className="w-3.5 h-3.5" />
+                              <span>Pitch Products</span>
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -4815,7 +5036,462 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 7. Edit Blog Post Modal */}
+      {/* 8. Product Showcase Emailer Modal (Powered by Resend) */}
+      {pitchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs">
+          <div className="bg-[#1f2937] border border-[#374151] w-full max-w-4xl p-5 sm:p-6 text-white shadow-2xl max-h-[92vh] flex flex-col animate-scale-up">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-start pb-4 border-b border-[#374151] shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-[#4a5c2d] text-white rounded">
+                    <MailIcon className="w-4 h-4" />
+                  </span>
+                  <h3 className="font-display text-lg font-bold uppercase tracking-wide">
+                    Product Showcase & Pitch Emailer
+                  </h3>
+                  <span className="text-[10px] bg-[#4a5c2d]/40 text-[#86a84e] px-2 py-0.5 rounded font-mono font-bold border border-[#4a5c2d]">
+                    Resend API
+                  </span>
+                </div>
+                <p className="text-xs text-[#9ca3af] mt-1">
+                  Deliver curated product selections and personalized pitches directly to your clients.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPitchModalOpen(false)}
+                className="text-base font-bold text-[#9ca3af] hover:text-white cursor-pointer px-2 py-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Mode Tabs */}
+            <div className="flex items-center gap-2 mt-4 pb-2 border-b border-[#374151] shrink-0">
+              <button
+                type="button"
+                onClick={() => setPitchActiveTab("compose")}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                  pitchActiveTab === "compose"
+                    ? "bg-[#4a5c2d] text-white"
+                    : "bg-[#111827] text-[#9ca3af] hover:text-white hover:bg-[#374151]"
+                }`}
+              >
+                1. Compose & Pick Products ({pitchSelectedProductIds.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPitchActiveTab("preview")
+                  loadPitchPreview()
+                }}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  pitchActiveTab === "preview"
+                    ? "bg-[#4a5c2d] text-white"
+                    : "bg-[#111827] text-[#9ca3af] hover:text-white hover:bg-[#374151]"
+                }`}
+              >
+                <SparklesIcon className="w-3.5 h-3.5 text-[#86a84e]" />
+                <span>2. Live Email Preview</span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto py-4 pr-1">
+              {pitchActiveTab === "compose" ? (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-xs">
+                  
+                  {/* Left Column: Target Audience & Copy */}
+                  <div className="lg:col-span-6 space-y-4">
+                    {/* Audience Selector */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1.5">
+                        Target Audience
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                        {[
+                          { id: "individual", label: "Individual" },
+                          {
+                            id: "vip",
+                            label: `VIP (${customers.filter((c) => c.status === "VIP" && c.email).length})`,
+                          },
+                          {
+                            id: "active",
+                            label: `Active (${customers.filter((c) => c.status === "Active" && c.email).length})`,
+                          },
+                          {
+                            id: "all",
+                            label: `All (${customers.filter((c) => c.email).length})`,
+                          },
+                        ].map((mode) => (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() =>
+                              setPitchRecipientMode(
+                                mode.id as "individual" | "all" | "vip" | "active"
+                              )
+                            }
+                            className={`py-1.5 px-2 text-[11px] font-bold text-center border transition-all cursor-pointer ${
+                              pitchRecipientMode === mode.id
+                                ? "bg-[#4a5c2d] text-white border-[#86a84e]"
+                                : "bg-[#111827] text-[#9ca3af] border-[#374151] hover:border-gray-500"
+                            }`}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Individual Client Details */}
+                    {pitchRecipientMode === "individual" && (
+                      <div className="p-3 bg-[#111827] border border-[#374151] space-y-2.5 rounded-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                              Client Name
+                            </label>
+                            <input
+                              type="text"
+                              value={pitchCustomName}
+                              onChange={(e) => setPitchCustomName(e.target.value)}
+                              placeholder="e.g. Sarah Jenkins"
+                              className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1.5 text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                              Client Email *
+                            </label>
+                            <input
+                              type="email"
+                              required
+                              value={pitchCustomEmail}
+                              onChange={(e) => setPitchCustomEmail(e.target.value)}
+                              placeholder="client@example.com"
+                              className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1.5 text-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Quick pick from existing customer list */}
+                        {customers.length > 0 && (
+                          <div>
+                            <label className="block text-[10px] font-semibold text-[#9ca3af] mb-1">
+                              Or pick registered client:
+                            </label>
+                            <select
+                              value={pitchCustomEmail}
+                              onChange={(e) => {
+                                const selected = customers.find(
+                                  (c) => c.email === e.target.value
+                                )
+                                if (selected) {
+                                  setPitchCustomName(selected.name)
+                                  setPitchCustomEmail(selected.email)
+                                } else {
+                                  setPitchCustomEmail(e.target.value)
+                                }
+                              }}
+                              className="w-full bg-[#1f2937] border border-[#374151] px-2 py-1.5 text-white text-[11px] cursor-pointer"
+                            >
+                              <option value="">-- Choose from Customer Directory --</option>
+                              {customers
+                                .filter((c) => c.email)
+                                .map((c) => (
+                                  <option key={c.email} value={c.email}>
+                                    {c.name} ({c.email}) - {c.status}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Email Subject */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                        Email Subject Line *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={pitchSubject}
+                        onChange={(e) => setPitchSubject(e.target.value)}
+                        placeholder="e.g. ✨ Handpicked Zimthreads Curations Just for You"
+                        className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                      />
+                    </div>
+
+                    {/* Email Headline */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                        Banner Headline
+                      </label>
+                      <input
+                        type="text"
+                        value={pitchHeadline}
+                        onChange={(e) => setPitchHeadline(e.target.value)}
+                        placeholder="e.g. Exclusive Zimthreads Showcase"
+                        className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
+                      />
+                    </div>
+
+                    {/* Intro Note */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                        Personal Pitch Note / Message *
+                      </label>
+                      <textarea
+                        rows={4}
+                        required
+                        value={pitchIntroMessage}
+                        onChange={(e) => setPitchIntroMessage(e.target.value)}
+                        placeholder="Write a personalized note about why you selected these pieces for them..."
+                        className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right Column: Visual Product Picker */}
+                  <div className="lg:col-span-6 space-y-3">
+                    <div className="flex items-center justify-between pb-1 border-b border-[#374151]">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-white">
+                          Select Products ({pitchSelectedProductIds.length} chosen)
+                        </span>
+                        <p className="text-[10px] text-[#9ca3af]">
+                          Click cards to add or remove from email
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const jacketIds = products
+                              .filter(
+                                (p) =>
+                                  p.category?.toLowerCase().includes("jacket") ||
+                                  p.name?.toLowerCase().includes("jacket")
+                              )
+                              .map((p) => p.id)
+                            setPitchSelectedProductIds(jacketIds)
+                          }}
+                          className="text-[10px] px-2 py-1 bg-[#111827] hover:bg-[#374151] text-[#86a84e] border border-[#374151] cursor-pointer"
+                        >
+                          All Jackets
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPitchSelectedProductIds([])}
+                          className="text-[10px] px-2 py-1 bg-[#111827] hover:bg-[#374151] text-[#9ca3af] border border-[#374151] cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Search & Category Filter */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={pitchProductSearch}
+                        onChange={(e) => setPitchProductSearch(e.target.value)}
+                        placeholder="Search products..."
+                        className="flex-1 bg-[#111827] border border-[#374151] px-2.5 py-1 text-white text-[11px]"
+                      />
+                      <select
+                        value={pitchCategoryFilter}
+                        onChange={(e) => setPitchCategoryFilter(e.target.value)}
+                        className="bg-[#111827] border border-[#374151] px-2 py-1 text-white text-[11px] cursor-pointer"
+                      >
+                        <option value="All">All Categories</option>
+                        {Array.from(
+                          new Set(products.map((p) => p.category).filter(Boolean))
+                        ).map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Product Cards Grid */}
+                    <div className="grid grid-cols-2 gap-2 max-h-[360px] overflow-y-auto p-1 bg-[#111827]/40 border border-[#374151]">
+                      {products
+                        .filter((p) => {
+                          const matchesSearch =
+                            !pitchProductSearch ||
+                            p.name.toLowerCase().includes(pitchProductSearch.toLowerCase()) ||
+                            p.category?.toLowerCase().includes(pitchProductSearch.toLowerCase())
+                          const matchesCat =
+                            pitchCategoryFilter === "All" || p.category === pitchCategoryFilter
+                          return matchesSearch && matchesCat
+                        })
+                        .map((p) => {
+                          const isSelected = pitchSelectedProductIds.includes(p.id)
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={() => togglePitchProduct(p.id)}
+                              className={`p-2 border cursor-pointer transition-all flex items-start gap-2 relative ${
+                                isSelected
+                                  ? "bg-[#4a5c2d]/25 border-[#86a84e] shadow-xs"
+                                  : "bg-[#1f2937] border-[#374151] hover:border-gray-500 opacity-80 hover:opacity-100"
+                              }`}
+                            >
+                              <img
+                                src={p.img}
+                                alt={p.name}
+                                className="w-12 h-12 object-cover rounded-xs border border-[#374151] shrink-0"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[11px] font-bold text-white truncate leading-tight">
+                                  {p.name}
+                                </p>
+                                <p className="text-[9px] text-[#86a84e] uppercase font-semibold">
+                                  {p.category}
+                                </p>
+                                <p className="text-[11px] font-mono font-bold text-white mt-1">
+                                  Rs {Number(p.price).toLocaleString()}
+                                </p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {}} // handled by parent div
+                                className="accent-[#4a5c2d] mt-0.5 pointer-events-none"
+                              />
+                            </div>
+                          )
+                        })}
+                    </div>
+                  </div>
+
+                </div>
+              ) : (
+                /* Live Email Preview Tab */
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between bg-[#111827] p-2.5 border border-[#374151]">
+                    <div className="text-xs">
+                      <span className="text-[#9ca3af]">Recipient: </span>
+                      <strong className="text-white">
+                        {pitchRecipientMode === "individual"
+                          ? pitchCustomEmail || "No email entered"
+                          : `${pitchRecipientMode.toUpperCase()} Clients Segment`}
+                      </strong>
+                      <span className="mx-2 text-[#4b5563]">|</span>
+                      <span className="text-[#9ca3af]">Subject: </span>
+                      <span className="text-white font-medium">{pitchSubject}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={loadPitchPreview}
+                      disabled={pitchLoadingPreview}
+                      className="px-3 py-1 bg-[#374151] hover:bg-gray-600 text-white text-[11px] font-semibold cursor-pointer"
+                    >
+                      {pitchLoadingPreview ? "Refreshing..." : "↻ Refresh Preview"}
+                    </button>
+                  </div>
+
+                  {pitchLoadingPreview ? (
+                    <div className="h-[460px] flex items-center justify-center bg-[#0b0f17] border border-[#374151]">
+                      <div className="text-center space-y-2">
+                        <div className="w-8 h-8 border-2 border-[#4a5c2d] border-t-transparent rounded-full animate-spin mx-auto" />
+                        <p className="text-xs text-[#9ca3af]">Generating responsive luxury email preview...</p>
+                      </div>
+                    </div>
+                  ) : pitchPreviewHtml ? (
+                    <div className="border border-[#374151] bg-[#0b0f17] rounded overflow-hidden">
+                      <iframe
+                        srcDoc={pitchPreviewHtml}
+                        title="Email Live Preview"
+                        className="w-full h-[480px] border-0"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-[460px] flex items-center justify-center bg-[#0b0f17] border border-[#374151]">
+                      <button
+                        type="button"
+                        onClick={loadPitchPreview}
+                        className="px-4 py-2 bg-[#4a5c2d] text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+                      >
+                        Generate Preview Now
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer Controls */}
+            <div className="pt-4 border-t border-[#374151] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyPitchHtml}
+                  className="px-3 py-2 bg-[#111827] hover:bg-[#374151] text-[#86a84e] border border-[#374151] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Copy compiled HTML for Gmail or Outlook"
+                >
+                  {pitchCopySuccess ? (
+                    <>
+                      <CheckIcon className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>HTML Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>📋 Copy Formatted HTML</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendPitchEmail("zimthreadmu@gmail.com")}
+                  disabled={pitchIsSending}
+                  className="px-3 py-2 bg-[#111827] hover:bg-[#374151] text-[#9ca3af] hover:text-white border border-[#374151] text-xs font-medium transition-colors cursor-pointer"
+                  title="Dispatch a test email to zimthreadmu@gmail.com via Resend"
+                >
+                  Send Test to zimthreadmu@gmail.com
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setPitchModalOpen(false)}
+                  className="px-4 py-2 bg-[#374151] hover:bg-gray-600 text-white text-xs font-bold uppercase cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendPitchEmail()}
+                  disabled={pitchIsSending}
+                  className="px-5 py-2 bg-[#4a5c2d] hover:bg-[#5a7038] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-lg disabled:opacity-50"
+                >
+                  {pitchIsSending ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Sending via Resend...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MailIcon className="w-3.5 h-3.5" />
+                      <span>Send Product Pitch</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {editBlog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
           <div className="bg-[#1f2937] border border-[#374151] w-full max-w-xl p-6 text-white shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-up">

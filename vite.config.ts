@@ -426,7 +426,7 @@ function viteDevStoreApiPlugin(): Plugin {
         const url = req.url || ""
         const [pathname] = url.split("?")
 
-        if (pathname !== "/api/store") {
+        if (!pathname.startsWith("/api/")) {
           return next()
         }
 
@@ -488,12 +488,13 @@ function viteDevStoreApiPlugin(): Plugin {
             return this
           }
 
-          // Delegate to api/store.ts via Vite SSR module loader
-          const storeModule = await server.ssrLoadModule("/api/store.ts")
-          const handler = storeModule.default || storeModule
+          // Delegate to the matching /api/*.ts handler via Vite SSR module loader
+          const routeFile = `${pathname}.ts`
+          const apiModule = await server.ssrLoadModule(routeFile)
+          const handler = apiModule.default || apiModule
           await handler(req, res)
         } catch (err: any) {
-          console.error("[Vite Dev Store API] Error handling request:", err)
+          console.error(`[Vite Dev API] Error handling request to ${pathname}:`, err)
           if (!res.headersSent) {
             res.statusCode = 500
             res.setHeader("Content-Type", "application/json; charset=utf-8")

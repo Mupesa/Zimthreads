@@ -65,7 +65,7 @@ export function renderZimthreadsProductShowcaseEmail(params: {
 }): string {
   const { recipientName, headline, introMessage, products, ctaText, ctaUrl } = params
   const primaryCta = ctaText || "Explore Full Collection"
-  const primaryUrl = ctaUrl || "https://zimthreads.vercel.app/shop"
+  const primaryUrl = ctaUrl || "https://zimthreads.online/shop"
 
   // Product cards HTML
   const productRows = products
@@ -297,7 +297,7 @@ export default async function handler(req: any, res: any) {
         "We've curated this exclusive selection of handcrafted streetwear and archival pieces tailored to your style.",
       products: Array.isArray(products) ? products : [],
       ctaText: ctaText || "Explore Full Collection",
-      ctaUrl: ctaUrl || "https://zimthreads.vercel.app/shop",
+      ctaUrl: ctaUrl || "https://zimthreads.online/shop",
     })
 
     // If client only requested HTML preview

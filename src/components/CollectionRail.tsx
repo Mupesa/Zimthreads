@@ -5,6 +5,7 @@ import { ArrowRightIcon } from "@/components/Icons"
 interface CollectionRailProps {
   onSelectSpotlight?: () => void
   onSelectServices?: () => void
+  onSelectCategory?: (category: string) => void
 }
 
 interface CapsuleItem {
@@ -15,13 +16,15 @@ interface CapsuleItem {
   pricing: string
   imageUrl: string
   alt: string
-  actionType: "spotlight" | "services" | "link"
+  actionType: "spotlight" | "services" | "link" | "category"
+  category?: string
   href?: string
 }
 
 export default function CollectionRail({
   onSelectSpotlight,
   onSelectServices,
+  onSelectCategory,
 }: CollectionRailProps) {
   const { navigate } = useRouter()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -62,7 +65,8 @@ export default function CollectionRail({
       imageUrl:
         "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto,w_800/v1790926754/zimthreads/bracelets/maabu3xpq1t58u2xky6i.png",
       alt: "Zimthread African Heritage Beaded Bracelet",
-      actionType: "link",
+      actionType: "category",
+      category: "Apparel",
       href: "/shop",
     },
     {
@@ -102,6 +106,16 @@ export default function CollectionRail({
         } else {
           navigate("/shop")
         }
+      }
+    } else if (
+      capsule.actionType === "category" &&
+      capsule.category &&
+      onSelectCategory
+    ) {
+      onSelectCategory(capsule.category)
+      const el = document.getElementById("shop-catalog-section")
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" })
       }
     } else if (capsule.actionType === "services") {
       if (onSelectServices) {

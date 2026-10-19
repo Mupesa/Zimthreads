@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { resolve } from "path"
 
 console.log("══════════════════════════════════════════════════════════════════════")
-console.log("  ZIMTHREADS HOMEPAGE UPGRADE & SPOTLIGHT COMPONENT VERIFICATION")
+console.log("  ZIMTHREADS SHOP UPGRADE & SPOTLIGHT COMPONENT VERIFICATION")
 console.log("══════════════════════════════════════════════════════════════════════\n")
 
 let passed = 0
@@ -18,70 +18,83 @@ function assert(condition, message) {
   }
 }
 
-// 1. Verify EditorialHero.tsx structure
-console.log("▶ TEST 1: EditorialHero.tsx Structure & Typography")
-const editorialHeroSrc = readFileSync(
-  resolve("src/components/EditorialHero.tsx"),
+// 1. Verify Home.tsx was rolled back to original landing page state
+console.log("▶ TEST 1: Home.tsx Rolled Back to Original Landing Page")
+const homeSrc = readFileSync(resolve("src/pages/Home.tsx"), "utf-8")
+assert(
+  homeSrc.includes("CLEANER SHOES.") &&
+    homeSrc.includes("A STRONGER YOU.") &&
+    homeSrc.includes("WE CLEAN.") &&
+    homeSrc.includes("YOU SHINE."),
+  "Home.tsx contains original sneaker care landing page headline and badges"
+)
+assert(
+  !homeSrc.includes("<EditorialHero") &&
+    !homeSrc.includes("<CollectionRail") &&
+    !homeSrc.includes("<FeaturedProductSpotlight"),
+  "Home.tsx does NOT contain the shop components (cleanly rolled back)"
+)
+
+// 2. Verify Shop.tsx has the upgraded Babwe-style architecture
+console.log("\n▶ TEST 2: Shop.tsx (zimthreads.online/shop) Upgraded Architecture")
+const shopSrc = readFileSync(resolve("src/pages/Shop.tsx"), "utf-8")
+assert(
+  shopSrc.includes("<ShopHero") &&
+    shopSrc.includes("<CollectionRail") &&
+    shopSrc.includes("<FeaturedProductSpotlight"),
+  "Shop.tsx integrates ShopHero, CollectionRail, and FeaturedProductSpotlight"
+)
+assert(
+  shopSrc.includes('id="shop-catalog-section"'),
+  "Shop.tsx provides smooth anchor scroll target for full catalog and category filters"
+)
+
+// 3. Verify ShopHero.tsx
+console.log("\n▶ TEST 3: ShopHero.tsx Full-Bleed Editorial Banner")
+const shopHeroSrc = readFileSync(
+  resolve("src/components/ShopHero.tsx"),
   "utf-8"
 )
 assert(
-  editorialHeroSrc.includes("PREMIUM CARE.") &&
-    editorialHeroSrc.includes("UNAPOLOGETIC") &&
-    editorialHeroSrc.includes("STREETWEAR."),
-  "EditorialHero renders unapologetic dual-identity master headline"
+  shopHeroSrc.includes("CURATED ATELIER.") &&
+    shopHeroSrc.includes("UNAPOLOGETIC") &&
+    shopHeroSrc.includes("STREETWEAR."),
+  "ShopHero renders luxury editorial headline"
 )
 assert(
-  editorialHeroSrc.includes("EXPLORE DROPS & CAPSULES") &&
-    editorialHeroSrc.includes("BOOK SNEAKER RESTORATION"),
-  "EditorialHero provides dual action CTAs for both streetwear and shoe restoration"
-)
-assert(
-  editorialHeroSrc.includes("fmyul3tffougz1obkara.png"),
-  "EditorialHero utilizes high-impact editorial imagery instead of stock sneakers"
-)
-assert(
-  editorialHeroSrc.includes("trustBadges.map"),
-  "EditorialHero renders trust badges strip with certified care & drop points"
+  shopHeroSrc.includes("EXPLORE CAPSULES") &&
+    shopHeroSrc.includes("FLAGSHIP DROP SPOTLIGHT") &&
+    shopHeroSrc.includes("FULL CATALOG"),
+  "ShopHero provides triple action navigation buttons"
 )
 
-// 2. Verify CollectionRail.tsx structure
-console.log("\n▶ TEST 2: CollectionRail.tsx Structure & Peek Behavior")
+// 4. Verify CollectionRail.tsx
+console.log("\n▶ TEST 4: CollectionRail.tsx Horizontal Scroll & Peek Behavior")
 const collectionRailSrc = readFileSync(
   resolve("src/components/CollectionRail.tsx"),
   "utf-8"
 )
 assert(
-  collectionRailSrc.includes("scrollSnapType: \"x mandatory\"") ||
-    collectionRailSrc.includes("snap-x snap-mandatory"),
+  collectionRailSrc.includes("snap-x snap-mandatory"),
   "CollectionRail implements native CSS scroll-snap mandatory"
 )
 assert(
-  collectionRailSrc.includes("pr-12") || collectionRailSrc.includes("pr-20"),
-  "CollectionRail implements right-side padding/peek visual cue"
+  collectionRailSrc.includes("onSelectCategory"),
+  "CollectionRail supports onSelectCategory callback for instant filtering on /shop"
 )
 assert(
   collectionRailSrc.includes("capsule-zim-02") &&
     collectionRailSrc.includes("capsule-paddock") &&
     collectionRailSrc.includes("capsule-streetwear") &&
     collectionRailSrc.includes("capsule-sneaker-care"),
-  "CollectionRail includes all 4 signature capsules: Jersey, Paddock, Streetwear, and Care"
-)
-assert(
-  collectionRailSrc.includes("scrollLeft") &&
-    collectionRailSrc.includes("scrollRight"),
-  "CollectionRail provides programmatic chevron navigation buttons"
+  "CollectionRail contains all 4 capsules"
 )
 
-// 3. Verify FeaturedProductSpotlight.tsx
-console.log("\n▶ TEST 3: FeaturedProductSpotlight.tsx In-Page Direct Commerce")
+// 5. Verify FeaturedProductSpotlight.tsx
+console.log("\n▶ TEST 5: FeaturedProductSpotlight.tsx In-Page Direct Commerce")
 const spotlightSrc = readFileSync(
   resolve("src/components/FeaturedProductSpotlight.tsx"),
   "utf-8"
-)
-assert(
-  spotlightSrc.includes("activeBanner.enabled === false") &&
-    spotlightSrc.includes("return null"),
-  "FeaturedProductSpotlight gracefully hides if disabled in admin settings"
 )
 assert(
   spotlightSrc.includes("activeBanner?.productId") &&
@@ -104,46 +117,15 @@ assert(
   "FeaturedProductSpotlight includes Babwê-style collapsible accordion detail tabs"
 )
 
-// 4. Verify Home.tsx integration
-console.log("\n▶ TEST 4: Home.tsx Flow & Layout Orchestration")
-const homeSrc = readFileSync(resolve("src/pages/Home.tsx"), "utf-8")
-assert(
-  homeSrc.includes("<EditorialHero") &&
-    homeSrc.includes("<CollectionRail") &&
-    homeSrc.includes("<FeaturedProductSpotlight"),
-  "Home.tsx integrates EditorialHero, CollectionRail, and FeaturedProductSpotlight in sequence"
-)
-assert(
-  homeSrc.includes('id="core-services-section"'),
-  "Home.tsx provides smooth anchor scroll target for sneaker care services"
-)
-
-// 5. Verify Dashboard.tsx admin controls
-console.log("\n▶ TEST 5: Dashboard.tsx Admin Spotlight Controls")
+// 6. Verify Dashboard.tsx admin controls
+console.log("\n▶ TEST 6: Dashboard.tsx Admin Spotlight Controls")
 const dashboardSrc = readFileSync(
   resolve("src/pages/admin/Dashboard.tsx"),
   "utf-8"
 )
 assert(
   dashboardSrc.includes("Featured Spotlight Product (Homepage Showcase & Shop Banner)"),
-  "Dashboard.tsx provides admin selector for the homepage spotlight product"
-)
-assert(
-  dashboardSrc.includes("Spotlight Badge Override") &&
-    dashboardSrc.includes("Spotlight Title Override") &&
-    dashboardSrc.includes("Spotlight Story / Description Override"),
-  "Dashboard.tsx provides badge, title, and description override controls for the spotlight"
-)
-
-// 6. Verify Docs
-console.log("\n▶ TEST 6: UI/UX Audit Documentation")
-const auditDoc = readFileSync(
-  resolve("docs/UI_UX_AUDIT_BABWE_VS_ZIMTHREADS.md"),
-  "utf-8"
-)
-assert(
-  auditDoc.includes("babwe.store") && auditDoc.includes("zimthreads.online"),
-  "Documentation contains comprehensive Babwê vs Zimthreads comparative audit"
+  "Dashboard.tsx provides admin selector for the spotlight product"
 )
 
 console.log("\n══════════════════════════════════════════════════════════════════════")

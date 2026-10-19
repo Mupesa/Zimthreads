@@ -14,14 +14,9 @@ export default function ShopHero({
   onScrollToCatalog,
 }: ShopHeroProps) {
   // Use the new LLICYLAND high-fashion editorial hero image
-  const editorialHeroFallback =
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792407895/zimthreads/banners/wjn81t1rzt0h6boikoxd.jpg"
-
-  // Only use banner.imageUrl if it exists and is an editorial banner (not an old product photo)
+  // Strict requirement: Use the uploaded high-fashion LLICYLAND editorial hero photo
   const heroImage =
-    banner?.imageUrl && !banner.imageUrl.includes("/products/")
-      ? banner.imageUrl
-      : editorialHeroFallback
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792407895/zimthreads/banners/wjn81t1rzt0h6boikoxd.jpg"
 
   const handleScrollToSpotlight = () => {
     if (onScrollToSpotlight) {

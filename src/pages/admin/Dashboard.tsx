@@ -2781,7 +2781,7 @@ export default function Dashboard() {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN"
+                    placeholder="e.g. SPECIAL DROP THIS WEEKEND ⚡ LIMITED QUANTITIES"
                     value={settingsForm.announcementText || ""}
                     onChange={(e) =>
                       setSettingsForm({

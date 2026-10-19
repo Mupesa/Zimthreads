@@ -47,7 +47,7 @@ export interface CollectiveCollection {
   previewImages: string[]
   productIds: string[]
   itemCount: number
-  priceRange: { min: number max: number }
+  priceRange: { min: number; max: number }
   badge: string
 }
 

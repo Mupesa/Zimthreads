@@ -139,7 +139,7 @@ export interface StoreContextType {
   addProduct: (product: Omit<Product, "id">) => Product
   updateProduct: (id: string, product: Partial<Product>) => void
   updateProductsBatch: (
-    updates: { id: string changes: Partial<Product> }[],
+    updates: { id: string; changes: Partial<Product> }[],
   ) => void
   deleteProduct: (id: string) => void
 
@@ -393,12 +393,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   )
   const [settings, setSettings] = useState<StoreSettings>(() => {
     const loaded = getStored(STORAGE_KEYS.SETTINGS, initialSettings)
+    const rawAnnouncement = loaded?.announcementText
+    const isOldHardcoded =
+      rawAnnouncement ===
+      "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN"
     return {
       ...initialSettings,
-      announcementText:
-        loaded.announcementText ||
-        "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN",
       ...loaded,
+      announcementText: isOldHardcoded ? "" : (rawAnnouncement ?? ""),
       featuredDrop: loaded.featuredDrop || initialSettings.featuredDrop,
     }
   })
@@ -580,9 +582,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             ...cloudSettings,
             announcementText:
               cloudSettings.announcementText !== undefined
-                ? cloudSettings.announcementText
-                : prev.announcementText ||
-                  "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN",
+                ? (cloudSettings.announcementText ===
+                  "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN"
+                    ? ""
+                    : cloudSettings.announcementText)
+                : (prev.announcementText ?? ""),
             featuredDrop:
               cloudSettings.featuredDrop ||
               prev.featuredDrop ||
@@ -1009,7 +1013,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const updateProductsBatch = (
-    updates: { id: string changes: Partial<Product> }[],
+    updates: { id: string; changes: Partial<Product> }[],
   ) => {
     const map = new Map(updates.map((u) => [u.id, u.changes]))
     const next = productsRef.current.map((p) => {

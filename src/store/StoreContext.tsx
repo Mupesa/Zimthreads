@@ -153,7 +153,7 @@ export interface StoreContextType {
   addProduct: (product: Omit<Product, "id">) => Product
   updateProduct: (id: string, product: Partial<Product>) => void
   updateProductsBatch: (
-    updates: { id: string; changes: Partial<Product> }[],
+    updates: { id: string changes: Partial<Product> }[],
   ) => void
   deleteProduct: (id: string) => void
 
@@ -611,10 +611,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             ...cloudSettings,
             announcementText:
               cloudSettings.announcementText !== undefined
-                ? (cloudSettings.announcementText ===
+                ? cloudSettings.announcementText ===
                   "FREE ISLANDWIDE DELIVERY ON ORDERS OVER RS 1,500 ⚡ SNEAKER RESTORATION ATELIER OPEN"
-                    ? ""
-                    : cloudSettings.announcementText)
+                  ? ""
+                  : cloudSettings.announcementText
                 : (prev.announcementText ?? ""),
             featuredDrop:
               cloudSettings.featuredDrop ||
@@ -1046,7 +1046,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   const updateProductsBatch = (
-    updates: { id: string; changes: Partial<Product> }[],
+    updates: { id: string changes: Partial<Product> }[],
   ) => {
     const map = new Map(updates.map((u) => [u.id, u.changes]))
     const next = productsRef.current.map((p) => {
@@ -1159,7 +1159,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   }
 
   // Customer actions
-  const addCustomer = (customerData: Omit<CustomCustomer, "id">): CustomCustomer => {
+  const addCustomer = (
+    customerData: Omit<CustomCustomer, "id">,
+  ): CustomCustomer => {
     const id = `cust-${Date.now().toString().slice(-4)}`
     const newCustomer: CustomCustomer = {
       ...customerData,
@@ -1170,7 +1172,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     customCustomersRef.current = next
     setCustomCustomers(next)
     syncToCloud("custom_customers", next)
-    showToast("Customer Added", `Profile for "${newCustomer.name}" created successfully.`)
+    showToast(
+      "Customer Added",
+      `Profile for "${newCustomer.name}" created successfully.`,
+    )
     return newCustomer
   }
 
@@ -1289,7 +1294,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         notes: c.notes || "",
       }
       if (c.status) existing.status = c.status
-      if (c.totalSpent) existing.totalSpent = Math.max(existing.totalSpent, c.totalSpent)
+      if (c.totalSpent)
+        existing.totalSpent = Math.max(existing.totalSpent, c.totalSpent)
       if (c.phone && !existing.phone) existing.phone = c.phone
       if (c.notes) existing.notes = c.notes
       existing.id = c.id
@@ -1307,7 +1313,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
             : "New"
       return {
         ...c,
-        status: (c as any).isManual && (c as any).status ? (c as any).status : derivedStatus,
+        status:
+          (c as any).isManual && (c as any).status
+            ? (c as any).status
+            : derivedStatus,
       }
     })
   }, [bookings, orders, customCustomers])

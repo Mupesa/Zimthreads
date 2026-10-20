@@ -95,6 +95,92 @@ assert(
     spotlightSrc.includes("Sizing & Fit Advice"),
   "FeaturedProductSpotlight includes Babwê-style collapsible accordion detail tabs"
 )
+assert(
+  spotlightSrc.includes("touch-pan-y") && !spotlightSrc.includes("touch-pan-x"),
+  "FeaturedProductSpotlight uses touch-pan-y to prevent vertical scroll locking on mobile"
+)
+assert(
+  !spotlightSrc.includes("targetSlide.scrollIntoView") &&
+    spotlightSrc.includes("mobileScrollRef.current.scrollTo"),
+  "FeaturedProductSpotlight scrolls mobile container directly without shifting vertical page scroll"
+)
+assert(
+  spotlightSrc.includes("snap-always") &&
+    spotlightSrc.includes('scrollSnapStop: "always"'),
+  "FeaturedProductSpotlight configures snap-always for clean single-slide touch flings"
+)
+assert(
+  spotlightSrc.includes("flex flex-wrap gap-2") &&
+    spotlightSrc.includes("drawer-${s}"),
+  "FeaturedProductSpotlight drawer employs responsive flex-wrap size pill layout"
+)
+assert(
+  spotlightSrc.includes("[targetProduct.id]") &&
+    spotlightSrc.includes("setActiveImageIdx(0)"),
+  "FeaturedProductSpotlight resets active index and sizing state when targetProduct changes"
+)
+assert(
+  spotlightSrc.includes('role="dialog"') &&
+    spotlightSrc.includes('aria-modal="true"') &&
+    spotlightSrc.includes('aria-labelledby="spotlight-drawer-title"'),
+  "FeaturedProductSpotlight drawer implements complete accessible dialog semantics"
+)
+assert(
+  spotlightSrc.includes('aria-haspopup="dialog"') &&
+    spotlightSrc.includes("aria-controls=\"spotlight-mobile-drawer\""),
+  "FeaturedProductSpotlight trigger button has proper aria-haspopup and aria-controls attributes"
+)
+assert(
+  spotlightSrc.includes('role="tablist"') &&
+    spotlightSrc.includes('role="tab"') &&
+    spotlightSrc.includes("aria-selected={activeImageIdx === idx}"),
+  "FeaturedProductSpotlight pagination dots implement accessible tablist/tab semantics"
+)
+assert(
+  spotlightSrc.includes("overscroll-contain") &&
+    spotlightSrc.includes("max-h-[85dvh]"),
+  "FeaturedProductSpotlight mobile drawer includes overscroll containment and dynamic viewport height"
+)
+assert(
+  spotlightSrc.includes("aria-expanded={openAccordion ===") &&
+    spotlightSrc.includes("aria-controls=\"spotlight-"),
+  "FeaturedProductSpotlight accordion triggers wire aria-expanded and aria-controls"
+)
+assert(
+  spotlightSrc.includes("aria-pressed={selectedSize === s}"),
+  "FeaturedProductSpotlight size selector buttons declare aria-pressed state"
+)
+assert(
+  spotlightSrc.includes("handleTrapKeyDown") &&
+    spotlightSrc.includes("triggerButtonRef") &&
+    spotlightSrc.includes("previousActiveElementRef"),
+  "FeaturedProductSpotlight implements WCAG 2.1 AA focus trap and focus restoration"
+)
+assert(
+  spotlightSrc.includes("w-full pt-3 pb-1 flex justify-center shrink-0") &&
+    spotlightSrc.includes("w-10 h-1 bg-[#d1d5db] rounded-full"),
+  "FeaturedProductSpotlight mobile drawer pull handle is centered across entire sheet surface"
+)
+assert(
+  spotlightSrc.includes("min-w-0 flex-1 mr-3") &&
+    spotlightSrc.includes("id=\"spotlight-drawer-title\"") &&
+    spotlightSrc.includes("shrink-0"),
+  "FeaturedProductSpotlight drawer header title wraps/truncates flexibly without colliding with close button"
+)
+assert(
+  spotlightSrc.includes("handleCustomNameChange") &&
+    spotlightSrc.includes("replace(/[^A-Z0-9 '\\-]/g, \"\")"),
+  "FeaturedProductSpotlight strictly sanitizes custom jersey name input against emoji and special characters"
+)
+assert(
+  spotlightSrc.includes("role=\"tabpanel\"") &&
+    spotlightSrc.includes("aria-controls={`spotlight-slide-${idx}`}"),
+  "FeaturedProductSpotlight carousel connects tab controls to slide tabpanels via ARIA attributes"
+)
+assert(
+  spotlightSrc.includes("relative aspect-square w-full bg-white border border-[#e5e1d8] overflow-hidden group"),
+  "FeaturedProductSpotlight desktop primary image container uses pure studio white background"
+)
 
 console.log("\n══════════════════════════════════════════════════════════════════════")
 console.log(`  SUMMARY: ${passed} Passed, ${failed} Failed`)

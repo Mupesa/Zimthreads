@@ -152,7 +152,11 @@ export default function Dashboard() {
   const handleCreateCustomer = (e: React.FormEvent) => {
     e.preventDefault()
     if (!customerForm.name.trim() || !customerForm.email.trim()) {
-      showToast("Missing Fields", "Customer name and email are required.", "error")
+      showToast(
+        "Missing Fields",
+        "Customer name and email are required.",
+        "error",
+      )
       return
     }
     setIsAddingCustomer(true)
@@ -328,16 +332,24 @@ export default function Dashboard() {
 
   // Email Product Pitch Modal State & Logic
   const [pitchModalOpen, setPitchModalOpen] = useState(false)
-  const [pitchRecipientMode, setPitchRecipientMode] = useState<"individual" | "all" | "vip" | "active">("individual")
+  const [pitchRecipientMode, setPitchRecipientMode] =
+    useState<"individual" | "all" | "vip" | "active">("individual")
   const [pitchCustomEmail, setPitchCustomEmail] = useState("")
   const [pitchCustomName, setPitchCustomName] = useState("")
-  const [pitchSubject, setPitchSubject] = useState("✨ Handpicked Zimthreads Curations Just for You")
-  const [pitchHeadline, setPitchHeadline] = useState("Exclusive Zimthreads Showcase")
-  const [pitchIntroMessage, setPitchIntroMessage] = useState(
-    "We have handpicked these signature streetwear pieces and sneaker care solutions from our workshop, curated exclusively for your style."
+  const [pitchSubject, setPitchSubject] = useState(
+    "✨ Handpicked Zimthreads Curations Just for You",
   )
-  const [pitchSelectedProductIds, setPitchSelectedProductIds] = useState<string[]>([])
-  const [pitchActiveTab, setPitchActiveTab] = useState<"compose" | "preview">("compose")
+  const [pitchHeadline, setPitchHeadline] = useState(
+    "Exclusive Zimthreads Showcase",
+  )
+  const [pitchIntroMessage, setPitchIntroMessage] = useState(
+    "We have handpicked these signature streetwear pieces and sneaker care solutions from our workshop, curated exclusively for your style.",
+  )
+  const [pitchSelectedProductIds, setPitchSelectedProductIds] =
+    useState<string[]>([])
+  const [pitchActiveTab, setPitchActiveTab] = useState<"compose" | "preview">(
+    "compose",
+  )
   const [pitchProductSearch, setPitchProductSearch] = useState("")
   const [pitchCategoryFilter, setPitchCategoryFilter] = useState("All")
   const [pitchIsSending, setPitchIsSending] = useState(false)
@@ -345,7 +357,11 @@ export default function Dashboard() {
   const [pitchLoadingPreview, setPitchLoadingPreview] = useState(false)
   const [pitchCopySuccess, setPitchCopySuccess] = useState(false)
 
-  const openPitchModal = (customer?: { name: string; email: string; phone?: string }) => {
+  const openPitchModal = (customer?: {
+    name: string
+    email: string
+    phone?: string
+  }) => {
     if (customer) {
       setPitchCustomName(customer.name)
       setPitchCustomEmail(customer.email)
@@ -368,14 +384,16 @@ export default function Dashboard() {
 
   const togglePitchProduct = (id: string) => {
     setPitchSelectedProductIds((prev) =>
-      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id],
     )
   }
 
   const loadPitchPreview = async () => {
     setPitchLoadingPreview(true)
     try {
-      const selectedProducts = products.filter((p) => pitchSelectedProductIds.includes(p.id))
+      const selectedProducts = products.filter((p) =>
+        pitchSelectedProductIds.includes(p.id),
+      )
       const targetName =
         pitchRecipientMode === "individual"
           ? pitchCustomName.trim() || "Valued Client"
@@ -404,10 +422,18 @@ export default function Dashboard() {
       if (data.success && data.html) {
         setPitchPreviewHtml(data.html)
       } else {
-        showToast("Preview Error", data.error || "Failed to generate preview", "error")
+        showToast(
+          "Preview Error",
+          data.error || "Failed to generate preview",
+          "error",
+        )
       }
     } catch (err: any) {
-      showToast("Preview Error", err.message || "Failed to load preview", "error")
+      showToast(
+        "Preview Error",
+        err.message || "Failed to load preview",
+        "error",
+      )
     } finally {
       setPitchLoadingPreview(false)
     }
@@ -415,7 +441,11 @@ export default function Dashboard() {
 
   const handleSendPitchEmail = async (overrideRecipient?: string) => {
     if (pitchSelectedProductIds.length === 0) {
-      showToast("No Products Selected", "Please select at least 1 product to include in the showcase.", "error")
+      showToast(
+        "No Products Selected",
+        "Please select at least 1 product to include in the showcase.",
+        "error",
+      )
       return
     }
 
@@ -425,7 +455,11 @@ export default function Dashboard() {
     } else if (pitchRecipientMode === "individual") {
       const email = pitchCustomEmail.trim()
       if (!email) {
-        showToast("Missing Email", "Please enter a valid recipient email address.", "error")
+        showToast(
+          "Missing Email",
+          "Please enter a valid recipient email address.",
+          "error",
+        )
         return
       }
       recipients = [email]
@@ -438,25 +472,28 @@ export default function Dashboard() {
         .filter((c) => c.status === "Active" && c.email)
         .map((c) => c.email.trim())
     } else {
-      recipients = customers
-        .filter((c) => c.email)
-        .map((c) => c.email.trim())
+      recipients = customers.filter((c) => c.email).map((c) => c.email.trim())
     }
 
     if (recipients.length === 0) {
-      showToast("No Recipients Found", "No customer email addresses found for the selected segment.", "error")
+      showToast(
+        "No Recipients Found",
+        "No customer email addresses found for the selected segment.",
+        "error",
+      )
       return
     }
 
     setPitchIsSending(true)
     try {
-      const selectedProducts = products.filter((p) => pitchSelectedProductIds.includes(p.id))
-      const targetName =
-        overrideRecipient
-          ? "Zimthreads Admin Test"
-          : pitchRecipientMode === "individual"
-            ? pitchCustomName.trim() || "Valued Client"
-            : "Zimthreads VIP"
+      const selectedProducts = products.filter((p) =>
+        pitchSelectedProductIds.includes(p.id),
+      )
+      const targetName = overrideRecipient
+        ? "Zimthreads Admin Test"
+        : pitchRecipientMode === "individual"
+          ? pitchCustomName.trim() || "Valued Client"
+          : "Zimthreads VIP"
 
       const res = await fetch("/api/send-email", {
         method: "POST",
@@ -478,14 +515,22 @@ export default function Dashboard() {
         showToast(
           "Email Dispatched!",
           `Product showcase email successfully sent to ${recipients.length} client(s) via Resend.`,
-          "success"
+          "success",
         )
         setPitchModalOpen(false)
       } else {
-        showToast("Send Failed", data.error || "Failed to dispatch email via Resend", "error")
+        showToast(
+          "Send Failed",
+          data.error || "Failed to dispatch email via Resend",
+          "error",
+        )
       }
     } catch (err: any) {
-      showToast("Dispatch Error", err.message || "Failed to contact email API", "error")
+      showToast(
+        "Dispatch Error",
+        err.message || "Failed to contact email API",
+        "error",
+      )
     } finally {
       setPitchIsSending(false)
     }
@@ -495,7 +540,9 @@ export default function Dashboard() {
     try {
       let html = pitchPreviewHtml
       if (!html) {
-        const selectedProducts = products.filter((p) => pitchSelectedProductIds.includes(p.id))
+        const selectedProducts = products.filter((p) =>
+          pitchSelectedProductIds.includes(p.id),
+        )
         const res = await fetch("/api/send-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -517,7 +564,11 @@ export default function Dashboard() {
       if (html) {
         await navigator.clipboard.writeText(html)
         setPitchCopySuccess(true)
-        showToast("HTML Copied!", "Full formatted HTML email copied to clipboard. Ready to paste into your mail app.", "success")
+        showToast(
+          "HTML Copied!",
+          "Full formatted HTML email copied to clipboard. Ready to paste into your mail app.",
+          "success",
+        )
         setTimeout(() => setPitchCopySuccess(false), 3000)
       }
     } catch (err: any) {
@@ -2487,7 +2538,8 @@ export default function Dashboard() {
                     CUSTOMER DIRECTORY ({customers.length})
                   </h1>
                   <p className="text-xs text-[#9ca3af]">
-                    Calculated lifetime value, booking counts, and order activity
+                    Calculated lifetime value, booking counts, and order
+                    activity
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -2529,9 +2581,9 @@ export default function Dashboard() {
                           colSpan={7}
                           className="p-8 text-center text-xs text-[#9ca3af]"
                         >
-                          No customer profiles recorded yet. Click "+ Add Customer"
-                          or profiles will automatically generate when bookings or
-                          orders are placed.
+                          No customer profiles recorded yet. Click "+ Add
+                          Customer" or profiles will automatically generate when
+                          bookings or orders are placed.
                         </td>
                       </tr>
                     ) : (
@@ -2609,7 +2661,7 @@ export default function Dashboard() {
                                   onClick={() => {
                                     if (
                                       confirm(
-                                        `Are you sure you want to delete customer "${c.name}"?`
+                                        `Are you sure you want to delete customer "${c.name}"?`,
                                       )
                                     ) {
                                       deleteCustomer(c.id!)
@@ -5125,7 +5177,6 @@ export default function Dashboard() {
       {pitchModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs">
           <div className="bg-[#1f2937] border border-[#374151] w-full max-w-4xl p-5 sm:p-6 text-white shadow-2xl max-h-[92vh] flex flex-col animate-scale-up">
-            
             {/* Modal Header */}
             <div className="flex justify-between items-start pb-4 border-b border-[#374151] shrink-0">
               <div>
@@ -5141,7 +5192,8 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <p className="text-xs text-[#9ca3af] mt-1">
-                  Deliver curated product selections and personalized pitches directly to your clients.
+                  Deliver curated product selections and personalized pitches
+                  directly to your clients.
                 </p>
               </div>
               <button
@@ -5187,7 +5239,6 @@ export default function Dashboard() {
             <div className="flex-1 overflow-y-auto py-4 pr-1">
               {pitchActiveTab === "compose" ? (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-xs">
-                  
                   {/* Left Column: Target Audience & Copy */}
                   <div className="lg:col-span-6 space-y-4">
                     {/* Audience Selector */}
@@ -5216,7 +5267,7 @@ export default function Dashboard() {
                             type="button"
                             onClick={() =>
                               setPitchRecipientMode(
-                                mode.id as "individual" | "all" | "vip" | "active"
+                                mode.id as "individual" | "all" | "vip" | "active",
                               )
                             }
                             className={`py-1.5 px-2 text-[11px] font-bold text-center border transition-all cursor-pointer ${
@@ -5242,7 +5293,9 @@ export default function Dashboard() {
                             <input
                               type="text"
                               value={pitchCustomName}
-                              onChange={(e) => setPitchCustomName(e.target.value)}
+                              onChange={(e) =>
+                                setPitchCustomName(e.target.value)
+                              }
                               placeholder="e.g. Sarah Jenkins"
                               className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1.5 text-white"
                             />
@@ -5255,7 +5308,9 @@ export default function Dashboard() {
                               type="email"
                               required
                               value={pitchCustomEmail}
-                              onChange={(e) => setPitchCustomEmail(e.target.value)}
+                              onChange={(e) =>
+                                setPitchCustomEmail(e.target.value)
+                              }
                               placeholder="client@example.com"
                               className="w-full bg-[#1f2937] border border-[#374151] px-2.5 py-1.5 text-white"
                             />
@@ -5272,7 +5327,7 @@ export default function Dashboard() {
                               value={pitchCustomEmail}
                               onChange={(e) => {
                                 const selected = customers.find(
-                                  (c) => c.email === e.target.value
+                                  (c) => c.email === e.target.value,
                                 )
                                 if (selected) {
                                   setPitchCustomName(selected.name)
@@ -5283,7 +5338,9 @@ export default function Dashboard() {
                               }}
                               className="w-full bg-[#1f2937] border border-[#374151] px-2 py-1.5 text-white text-[11px] cursor-pointer"
                             >
-                              <option value="">-- Choose from Customer Directory --</option>
+                              <option value="">
+                                -- Choose from Customer Directory --
+                              </option>
                               {customers
                                 .filter((c) => c.email)
                                 .map((c) => (
@@ -5347,7 +5404,8 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between pb-1 border-b border-[#374151]">
                       <div>
                         <span className="text-[11px] font-bold uppercase tracking-wider text-white">
-                          Select Products ({pitchSelectedProductIds.length} chosen)
+                          Select Products ({pitchSelectedProductIds.length}{" "}
+                          chosen)
                         </span>
                         <p className="text-[10px] text-[#9ca3af]">
                           Click cards to add or remove from email
@@ -5360,8 +5418,10 @@ export default function Dashboard() {
                             const jacketIds = products
                               .filter(
                                 (p) =>
-                                  p.category?.toLowerCase().includes("jacket") ||
-                                  p.name?.toLowerCase().includes("jacket")
+                                  p.category
+                                    ?.toLowerCase()
+                                    .includes("jacket") ||
+                                  p.name?.toLowerCase().includes("jacket"),
                               )
                               .map((p) => p.id)
                             setPitchSelectedProductIds(jacketIds)
@@ -5396,7 +5456,9 @@ export default function Dashboard() {
                       >
                         <option value="All">All Categories</option>
                         {Array.from(
-                          new Set(products.map((p) => p.category).filter(Boolean))
+                          new Set(
+                            products.map((p) => p.category).filter(Boolean),
+                          ),
                         ).map((cat) => (
                           <option key={cat} value={cat}>
                             {cat}
@@ -5411,14 +5473,21 @@ export default function Dashboard() {
                         .filter((p) => {
                           const matchesSearch =
                             !pitchProductSearch ||
-                            p.name.toLowerCase().includes(pitchProductSearch.toLowerCase()) ||
-                            p.category?.toLowerCase().includes(pitchProductSearch.toLowerCase())
+                            p.name
+                              .toLowerCase()
+                              .includes(pitchProductSearch.toLowerCase()) ||
+                            p.category
+                              ?.toLowerCase()
+                              .includes(pitchProductSearch.toLowerCase())
                           const matchesCat =
-                            pitchCategoryFilter === "All" || p.category === pitchCategoryFilter
+                            pitchCategoryFilter === "All" ||
+                            p.category === pitchCategoryFilter
                           return matchesSearch && matchesCat
                         })
                         .map((p) => {
-                          const isSelected = pitchSelectedProductIds.includes(p.id)
+                          const isSelected = pitchSelectedProductIds.includes(
+                            p.id,
+                          )
                           return (
                             <div
                               key={p.id}
@@ -5448,7 +5517,9 @@ export default function Dashboard() {
                               <input
                                 type="checkbox"
                                 checked={isSelected}
-                                onChange={() => {}} // handled by parent div
+                                onChange={
+                                  () => {} // handled by parent div
+                                }
                                 className="accent-[#4a5c2d] mt-0.5 pointer-events-none"
                               />
                             </div>
@@ -5456,7 +5527,6 @@ export default function Dashboard() {
                         })}
                     </div>
                   </div>
-
                 </div>
               ) : (
                 /* Live Email Preview Tab */
@@ -5471,7 +5541,9 @@ export default function Dashboard() {
                       </strong>
                       <span className="mx-2 text-[#4b5563]">|</span>
                       <span className="text-[#9ca3af]">Subject: </span>
-                      <span className="text-white font-medium">{pitchSubject}</span>
+                      <span className="text-white font-medium">
+                        {pitchSubject}
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -5479,7 +5551,9 @@ export default function Dashboard() {
                       disabled={pitchLoadingPreview}
                       className="px-3 py-1 bg-[#374151] hover:bg-gray-600 text-white text-[11px] font-semibold cursor-pointer"
                     >
-                      {pitchLoadingPreview ? "Refreshing..." : "↻ Refresh Preview"}
+                      {pitchLoadingPreview
+                        ? "Refreshing..."
+                        : "↻ Refresh Preview"}
                     </button>
                   </div>
 
@@ -5487,7 +5561,9 @@ export default function Dashboard() {
                     <div className="h-[460px] flex items-center justify-center bg-[#0b0f17] border border-[#374151]">
                       <div className="text-center space-y-2">
                         <div className="w-8 h-8 border-2 border-[#4a5c2d] border-t-transparent rounded-full animate-spin mx-auto" />
-                        <p className="text-xs text-[#9ca3af]">Generating responsive luxury email preview...</p>
+                        <p className="text-xs text-[#9ca3af]">
+                          Generating responsive luxury email preview...
+                        </p>
                       </div>
                     </div>
                   ) : pitchPreviewHtml ? (
@@ -5572,7 +5648,6 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       )}
@@ -5737,7 +5812,10 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateCustomer} className="space-y-3.5 text-xs mt-4">
+            <form
+              onSubmit={handleCreateCustomer}
+              className="space-y-3.5 text-xs mt-4"
+            >
               <div>
                 <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
                   Full Customer Name *
@@ -5764,7 +5842,10 @@ export default function Dashboard() {
                     required
                     value={customerForm.email}
                     onChange={(e) =>
-                      setCustomerForm({ ...customerForm, email: e.target.value })
+                      setCustomerForm({
+                        ...customerForm,
+                        email: e.target.value,
+                      })
                     }
                     placeholder="client@example.com"
                     className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"
@@ -5778,7 +5859,10 @@ export default function Dashboard() {
                     type="tel"
                     value={customerForm.phone}
                     onChange={(e) =>
-                      setCustomerForm({ ...customerForm, phone: e.target.value })
+                      setCustomerForm({
+                        ...customerForm,
+                        phone: e.target.value,
+                      })
                     }
                     placeholder="+230 5..."
                     className="w-full bg-[#111827] border border-[#374151] px-3 py-2 text-white"

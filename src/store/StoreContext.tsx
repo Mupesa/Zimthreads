@@ -194,7 +194,7 @@ export interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 const STORAGE_KEYS = {
-  PRODUCTS: "zimthread_products_v8",
+  PRODUCTS: "zimthread_products_v9",
   SERVICES: "zimthread_services_v8",
   BOOKINGS: "zimthread_bookings_v8",
   ORDERS: "zimthread_orders_v8",
@@ -207,6 +207,7 @@ const STORAGE_KEYS = {
 
 if (typeof window !== "undefined") {
   try {
+    localStorage.removeItem("zimthread_products_v8")
     localStorage.removeItem("zimthread_products_v7")
     localStorage.removeItem("zimthread_products_v6")
     localStorage.removeItem("zimthreads_products")
@@ -298,6 +299,17 @@ const syncToCloud = async (key: string, data: any): Promise<boolean> => {
     return false
   }
 
+  // Guarantee only ONE consolidated bracelet product card is synced to cloud
+  const payloadData =
+    key === "products" && Array.isArray(data)
+      ? data.filter(
+          (p: any) =>
+            p &&
+            (!p.id.startsWith("prod-brace-") ||
+              p.id === "prod-brace-heritage"),
+        )
+      : data
+
   try {
     const res = await fetch("/api/store", {
       method: "POST",
@@ -307,7 +319,7 @@ const syncToCloud = async (key: string, data: any): Promise<boolean> => {
       body: JSON.stringify({
         action: "sync",
         key,
-        data,
+        data: payloadData,
         adminToken: "Zimthreads200",
       }),
     })

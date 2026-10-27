@@ -313,6 +313,17 @@ export default async function handler(req: any, res: any) {
           })
         }
 
+        // Always sanitize products to ensure only ONE consolidated bracelet card exists
+        let sanitizedData = data
+        if (key === "products" && Array.isArray(data)) {
+          sanitizedData = data.filter(
+            (p: any) =>
+              p &&
+              (!p.id.startsWith("prod-brace-") ||
+                p.id === "prod-brace-heritage"),
+          )
+        }
+
         const query = `
           INSERT INTO public.zimthreads_store (key, data, updated_at)
           VALUES ($1, $2::jsonb, NOW())
@@ -320,12 +331,12 @@ export default async function handler(req: any, res: any) {
           SET data = EXCLUDED.data, updated_at = NOW()
           RETURNING key;
         `
-        await executeSql(query, [key, JSON.stringify(data)])
+        await executeSql(query, [key, JSON.stringify(sanitizedData)])
 
-        const count = Array.isArray(data)
-          ? data.length
-          : typeof data === "object" && data
-            ? Object.keys(data).length
+        const count = Array.isArray(sanitizedData)
+          ? sanitizedData.length
+          : typeof sanitizedData === "object" && sanitizedData
+            ? Object.keys(sanitizedData).length
             : 1
 
         return res.status(200).json({ success: true, key, updated: key, count })

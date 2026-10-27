@@ -63,7 +63,7 @@ export default function CollectionRail({
       pill: "HANDCRAFTED · ACCESSORIES",
       pricing: "From Rs 300 · Limited Quantities",
       imageUrl:
-        "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto,w_800/v1790926754/zimthreads/bracelets/maabu3xpq1t58u2xky6i.png",
+        "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto,w_800/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
       alt: "Zimthread African Heritage Beaded Bracelet",
       actionType: "category",
       category: "Apparel",

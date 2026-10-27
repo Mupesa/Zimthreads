@@ -4,15 +4,74 @@
  * Synchronizes prod-brace-heritage (Zimthread African Heritage Beaded Bracelet) in Neon PostgreSQL:
  * Project: rapid-hill-42448439 ("Zimthreads Collective")
  * Owner: anesumupesa@gmail.com / Mupesa
- * 
- * Appends the 2 new bracelet editions:
- * 1. Zimbabwe Flag Beaded Drawstring Bracelet
- * 2. Ghana "Black Star" Beaded Drawstring Bracelet
- * Total views: 14. Total images: 14.
  */
 
-import { executeSql } from "../api/store.ts"
-import { heritageBraceletProduct } from "../src/store/seedData.ts"
+const NEON_CONNECTION_STRING =
+  process.env.NEON_DATABASE_URL ||
+  "postgresql://neondb_owner:npg_DR0tIYcQyeX8@ep-icy-brook-b4bmxdh6-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require"
+
+const NEON_HOST = "ep-icy-brook-b4bmxdh6-pooler.c-6.us-east-2.aws.neon.tech"
+
+async function executeSql(query, params = []) {
+  const response = await fetch(`https://${NEON_HOST}/sql`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Neon-Connection-String": NEON_CONNECTION_STRING,
+    },
+    body: JSON.stringify({ query, params }),
+  })
+
+  if (!response.ok) {
+    const errText = await response.text()
+    throw new Error(`Neon SQL error (${response.status}): ${errText}`)
+  }
+
+  const data = await response.json()
+  return data.rows || []
+}
+
+const canonicalBracelet = {
+  id: "prod-brace-heritage",
+  name: "Zimthread African Heritage Beaded Bracelet",
+  category: "Accessories",
+  price: 320,
+  stock: 120,
+  img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+  images: [
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121583/zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121584/zimthreads/bracelets/bracelet-mauritius-flag-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121585/zimthreads/bracelets/bracelet-nigeria-naija-cord-v2.jpg",
+  ],
+  views: [
+    {
+      label: "Zimbabwe Flag Beaded Drawstring Bracelet",
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+    },
+    {
+      label: 'Ghana "Black Star" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121583/zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2.jpg",
+    },
+    {
+      label: 'Mauritius "Les 4 Couleurs" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121584/zimthreads/bracelets/bracelet-mauritius-flag-cord-v2.jpg",
+    },
+    {
+      label: 'Nigeria "Naija" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121585/zimthreads/bracelets/bracelet-nigeria-naija-cord-v2.jpg",
+    },
+  ],
+  alt: "Zimthread African Heritage Beaded Drawstring Bracelet Collection",
+  description:
+    "Handcrafted artisan beaded flag bracelet collection celebrating African heritage. Crafted with high-density polished glass beads, durable braided black cord, and an adjustable drawstring closure with accent beads for a tailored, flexible all-day fit.\n\nPRESALE EXCLUSIVE · Rs 320 each · Slide through options to choose your edition.",
+  sizes: ["One Size (Adjustable Drawstring)"],
+  featured: true,
+  isPreorder: true,
+  isPresale: true,
+  badge: "PRESALE",
+  preorderDeadline: "Presale Open · Rs 320",
+}
 
 async function main() {
   console.log("Checking Neon database connection for project rapid-hill-42448439...")
@@ -31,26 +90,24 @@ async function main() {
   }
 
   const currentBrace = products[braceIndex]
-  console.log(`Current bracelet views count: ${currentBrace.views?.length || 0}`)
-
-  const currentViews = Array.isArray(currentBrace.views) ? currentBrace.views : []
-  const canonicalViews = heritageBraceletProduct.views || []
-  const existingUrls = new Set(currentViews.map((v) => v.url))
-
-  const missingViews = canonicalViews.filter((v) => !existingUrls.has(v.url))
-  console.log(`Missing views to append: ${missingViews.length}`)
-  missingViews.forEach((v) => console.log(` + ${v.label} -> ${v.url}`))
-
-  const updatedViews = [...currentViews, ...missingViews]
-  const updatedImages = Array.from(new Set([...(currentBrace.images || []), ...(heritageBraceletProduct.images || [])]))
+  console.log(`Previous bracelet views count in Neon: ${currentBrace.views?.length || 0}`)
 
   products[braceIndex] = {
     ...currentBrace,
-    views: updatedViews,
-    images: updatedImages,
+    img: canonicalBracelet.img,
+    images: canonicalBracelet.images,
+    views: canonicalBracelet.views,
+    sizes: canonicalBracelet.sizes,
+    description: canonicalBracelet.description,
+    alt: canonicalBracelet.alt,
+    badge: canonicalBracelet.badge,
+    preorderDeadline: canonicalBracelet.preorderDeadline,
   }
 
-  console.log(`Updating prod-brace-heritage in Neon DB with ${updatedViews.length} views and ${updatedImages.length} images...`)
+  console.log(`Updating prod-brace-heritage in Neon DB with exactly ${canonicalBracelet.views.length} editions...`)
+  canonicalBracelet.views.forEach((v, idx) => {
+    console.log(` [${idx + 1}] ${v.label} -> ${v.url}`)
+  })
 
   await executeSql(
     `
@@ -69,11 +126,11 @@ async function main() {
   console.log(`Verified bracelet in Neon: views count = ${verifiedBrace?.views?.length}`)
   verifiedBrace?.views?.forEach((v, i) => console.log(` [${i + 1}] ${v.label}`))
 
-  if (!verifiedBrace || verifiedBrace.views?.length !== 14) {
-    throw new Error(`Verification failed: Expected 14 views, found ${verifiedBrace?.views?.length}`)
+  if (!verifiedBrace || verifiedBrace.views?.length !== 4) {
+    throw new Error(`Verification failed: Expected 4 views, found ${verifiedBrace?.views?.length}`)
   }
 
-  console.log("SUCCESS: prod-brace-heritage in Neon DB successfully updated and verified with all 14 editions.")
+  console.log("SUCCESS: prod-brace-heritage in Neon DB successfully updated and verified with the 4 editions.")
 }
 
 main().catch((err) => {

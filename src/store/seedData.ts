@@ -310,85 +310,35 @@ export const heritageBraceletProduct: Product = {
   category: "Accessories",
   price: 320,
   stock: 120,
-  img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926754/zimthreads/bracelets/maabu3xpq1t58u2xky6i.png",
+  img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
   images: [
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926754/zimthreads/bracelets/maabu3xpq1t58u2xky6i.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926758/zimthreads/bracelets/be6gv4qboptmainz4vft.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926764/zimthreads/bracelets/dsffwsxxtxwcj9iip1zq.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926770/zimthreads/bracelets/w4fsawbjgtpukn7amuwg.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926759/zimthreads/bracelets/no0gwunlce468b1nupo7.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926760/zimthreads/bracelets/b0grbn0ykhup7kea609f.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926755/zimthreads/bracelets/basxgdg80oz1jccmqsri.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926757/zimthreads/bracelets/cwtppklcr3wojy0xt2wj.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926762/zimthreads/bracelets/oi4g6biy2vkkwujnzrn3.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926765/zimthreads/bracelets/qa3jsl8s7imv7mxtjahs.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926767/zimthreads/bracelets/solml8gkubwtd8i4iznh.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926768/zimthreads/bracelets/fui950oxl9tuufejpijb.png",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035217/zimthreads/bracelets/elfgrd5kskbrpwhgfou0.jpg",
-    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035216/zimthreads/bracelets/iv3ei2ul8swzocdpvsfn.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121583/zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121584/zimthreads/bracelets/bracelet-mauritius-flag-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121585/zimthreads/bracelets/bracelet-nigeria-naija-cord-v2.jpg",
   ],
   views: [
     {
-      label: 'Mauritius "Les 4 Couleurs" Quad Stack',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926754/zimthreads/bracelets/maabu3xpq1t58u2xky6i.png",
-    },
-    {
-      label: 'Mauritius "Moris" Island Band',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926755/zimthreads/bracelets/basxgdg80oz1jccmqsri.png",
-    },
-    {
-      label: 'Pan-African "Uhuru" Tri-Tone Band',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926757/zimthreads/bracelets/cwtppklcr3wojy0xt2wj.png",
-    },
-    {
-      label: 'South Africa "Mzansi" Flag Band',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926758/zimthreads/bracelets/be6gv4qboptmainz4vft.png",
-    },
-    {
-      label: 'Nigeria "Naija" Green & White Band',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926759/zimthreads/bracelets/no0gwunlce468b1nupo7.png",
-    },
-    {
-      label: 'Kenya "Harambee" Flag Striped Band',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926760/zimthreads/bracelets/b0grbn0ykhup7kea609f.png",
-    },
-    {
-      label: 'Heritage "Roots & Culture" Band',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926762/zimthreads/bracelets/oi4g6biy2vkkwujnzrn3.png",
-    },
-    {
-      label: 'Kenya "Maasai Warrior" Shield Band',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926764/zimthreads/bracelets/dsffwsxxtxwcj9iip1zq.png",
-    },
-    {
-      label: "Kingdom of Eswatini Nguni Shield",
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926765/zimthreads/bracelets/qa3jsl8s7imv7mxtjahs.png",
-    },
-    {
-      label: 'South Africa "Protea" Wide Cuff',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926767/zimthreads/bracelets/solml8gkubwtd8i4iznh.png",
-    },
-    {
-      label: 'Côte d\'Ivoire "Éléphant" Tricolor Cuff',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926768/zimthreads/bracelets/fui950oxl9tuufejpijb.png",
-    },
-    {
-      label: 'Ghana "Black Star" Heritage Cuff',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1790926770/zimthreads/bracelets/w4fsawbjgtpukn7amuwg.png",
-    },
-    {
       label: "Zimbabwe Flag Beaded Drawstring Bracelet",
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035217/zimthreads/bracelets/elfgrd5kskbrpwhgfou0.jpg",
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
     },
     {
       label: 'Ghana "Black Star" Beaded Drawstring Bracelet',
-      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792035216/zimthreads/bracelets/iv3ei2ul8swzocdpvsfn.jpg",
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121583/zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2.jpg",
+    },
+    {
+      label: 'Mauritius "Les 4 Couleurs" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121584/zimthreads/bracelets/bracelet-mauritius-flag-cord-v2.jpg",
+    },
+    {
+      label: 'Nigeria "Naija" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121585/zimthreads/bracelets/bracelet-nigeria-naija-cord-v2.jpg",
     },
   ],
-  alt: "Zimthread African Heritage Beaded Bracelet Collection",
+  alt: "Zimthread African Heritage Beaded Drawstring Bracelet Collection",
   description:
-    "Hand-strung artisan beaded bracelet collection celebrating African national flags and cultural heritage. Crafted with high-density polished glass beads on durable reinforced elastic stretch-cord for a flexible, comfortable all-day fit.\n\nPRESALE EXCLUSIVE · Rs 320 each · Slide through options to choose your edition.",
-  sizes: ["One Size (Stretch Fit)"],
+    "Handcrafted artisan beaded flag bracelet collection celebrating African heritage. Crafted with high-density polished glass beads, durable braided black cord, and an adjustable drawstring closure with accent beads for a tailored, flexible all-day fit.\n\nPRESALE EXCLUSIVE · Rs 320 each · Slide through options to choose your edition.",
+  sizes: ["One Size (Adjustable Drawstring)"],
   featured: true,
   isPreorder: true,
   isPresale: true,

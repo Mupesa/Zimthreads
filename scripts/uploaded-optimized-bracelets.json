@@ -1,0 +1,26 @@
+{
+  "zimbabwe": {
+    "url": "https://res.cloudinary.com/pwranjbq/image/upload/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+    "public_id": "zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2",
+    "width": 1024,
+    "height": 1024
+  },
+  "ghana": {
+    "url": "https://res.cloudinary.com/pwranjbq/image/upload/v1793121583/zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2.jpg",
+    "public_id": "zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2",
+    "width": 1024,
+    "height": 1024
+  },
+  "mauritius": {
+    "url": "https://res.cloudinary.com/pwranjbq/image/upload/v1793121584/zimthreads/bracelets/bracelet-mauritius-flag-cord-v2.jpg",
+    "public_id": "zimthreads/bracelets/bracelet-mauritius-flag-cord-v2",
+    "width": 1024,
+    "height": 1024
+  },
+  "nigeria": {
+    "url": "https://res.cloudinary.com/pwranjbq/image/upload/v1793121585/zimthreads/bracelets/bracelet-nigeria-naija-cord-v2.jpg",
+    "public_id": "zimthreads/bracelets/bracelet-nigeria-naija-cord-v2",
+    "width": 1024,
+    "height": 1024
+  }
+}

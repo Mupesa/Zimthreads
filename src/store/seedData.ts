@@ -471,7 +471,47 @@ export const drawstringBracelets: Product[] = [
   },
 ]
 
-export const heritageBraceletProduct: Product = drawstringBracelets[0]
+export const heritageBraceletProduct: Product = {
+  id: "prod-brace-heritage",
+  name: "Zimthread African Heritage Beaded Bracelet",
+  category: "Accessories",
+  price: 320,
+  stock: 120,
+  img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+  images: [
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121583/zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121584/zimthreads/bracelets/bracelet-mauritius-flag-cord-v2.jpg",
+    "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121585/zimthreads/bracelets/bracelet-nigeria-naija-cord-v2.jpg",
+  ],
+  views: [
+    {
+      label: "Zimbabwe Flag Beaded Drawstring Bracelet",
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121580/zimthreads/bracelets/bracelet-zimbabwe-flag-cord-v2.jpg",
+    },
+    {
+      label: 'Ghana "Black Star" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121583/zimthreads/bracelets/bracelet-ghana-blackstar-cord-v2.jpg",
+    },
+    {
+      label: 'Mauritius "Les 4 Couleurs" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121584/zimthreads/bracelets/bracelet-mauritius-flag-cord-v2.jpg",
+    },
+    {
+      label: 'Nigeria "Naija" Beaded Drawstring Bracelet',
+      url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1793121585/zimthreads/bracelets/bracelet-nigeria-naija-cord-v2.jpg",
+    },
+  ],
+  alt: "Zimthread African Heritage Beaded Bracelet - Drawstring Editions",
+  description:
+    "Handcrafted artisan beaded flag bracelets celebrating African heritage and unity. Each piece is meticulously crafted with high-density polished glass beads on durable braided cord with an adjustable sliding drawstring closure for an effortless, tailored fit across all wrist sizes.\n\nPRESALE EXCLUSIVE · Rs 320",
+  sizes: ["One Size (Adjustable Drawstring)"],
+  featured: true,
+  isPreorder: true,
+  isPresale: true,
+  badge: "PRESALE",
+  preorderDeadline: "Presale Open · Rs 320",
+}
 
 export const racingJacketsProducts: Product[] = [
   {

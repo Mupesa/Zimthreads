@@ -606,9 +606,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         } else {
           // Cloud has products: merge any missing canonical products into cloud data without overriding cloud attributes
           const cloudIds = new Set(sanitizedCloudProducts.map((p: any) => p.id))
-          const missingCanonical = initialProducts.filter(
-            (p) => !cloudIds.has(p.id),
-          )
+          const missingCanonical = initialProducts
+            .filter(
+              (p) =>
+                !p.id.startsWith("prod-brace-") ||
+                p.id === "prod-brace-heritage",
+            )
+            .filter((p) => !cloudIds.has(p.id))
           if (missingCanonical.length > 0) {
             const fullCanonical = [
               ...sanitizedCloudProducts,

@@ -24,6 +24,7 @@ import {
   initialInquiries,
   initialSettings,
   heritageBraceletProduct,
+  drawstringBracelets,
 } from "./seedData"
 
 declare module "./seedData" {
@@ -194,15 +195,23 @@ export interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 const STORAGE_KEYS = {
-  PRODUCTS: "zimthread_products_v7",
-  SERVICES: "zimthread_services_v7",
-  BOOKINGS: "zimthread_bookings_v7",
-  ORDERS: "zimthread_orders_v7",
-  BLOG_POSTS: "zimthread_blog_posts_v7",
-  INQUIRIES: "zimthread_inquiries_v7",
-  SETTINGS: "zimthread_settings_v7",
-  CART: "zimthread_cart_v7",
-  CUSTOM_CUSTOMERS: "zimthread_custom_customers_v7",
+  PRODUCTS: "zimthread_products_v8",
+  SERVICES: "zimthread_services_v8",
+  BOOKINGS: "zimthread_bookings_v8",
+  ORDERS: "zimthread_orders_v8",
+  BLOG_POSTS: "zimthread_blog_posts_v8",
+  INQUIRIES: "zimthread_inquiries_v8",
+  SETTINGS: "zimthread_settings_v8",
+  CART: "zimthread_cart_v8",
+  CUSTOM_CUSTOMERS: "zimthread_custom_customers_v8",
+}
+
+if (typeof window !== "undefined") {
+  try {
+    localStorage.removeItem("zimthread_products_v7")
+    localStorage.removeItem("zimthread_products_v6")
+    localStorage.removeItem("zimthreads_products")
+  } catch {}
 }
 
 function getStored<T>(key: string, fallback: T): T {
@@ -323,8 +332,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [products, setProducts] = useState<Product[]>(() => {
     const loaded = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, initialProducts)
-    const effective =
+    const raw =
       Array.isArray(loaded) && loaded.length > 0 ? loaded : initialProducts
+
+    // Purge any legacy prod-brace-heritage and inject all 4 distinct drawstring bracelets
+    const withoutLegacyBrace = raw.filter(
+      (p) => p && p.id !== "prod-brace-heritage",
+    )
+    const existingIds = new Set(withoutLegacyBrace.map((p) => p.id))
+    const missingBracelets = drawstringBracelets.filter(
+      (b) => !existingIds.has(b.id),
+    )
+    const effective = [...withoutLegacyBrace, ...missingBracelets]
+
     return effective.map((p) => {
       if (
         p.id === "prod-4" &&
@@ -353,15 +373,18 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           sizes: finalSizes,
         }
       }
-      if (p.id === "prod-brace-heritage") {
+      const canonicalBrace = drawstringBracelets.find((b) => b.id === p.id)
+      if (canonicalBrace) {
         return {
           ...p,
-          img: heritageBraceletProduct.img,
-          images: heritageBraceletProduct.images,
-          views: heritageBraceletProduct.views,
-          sizes: heritageBraceletProduct.sizes,
-          description: heritageBraceletProduct.description,
-          alt: heritageBraceletProduct.alt,
+          img: canonicalBrace.img,
+          images: canonicalBrace.images,
+          views: canonicalBrace.views,
+          sizes: canonicalBrace.sizes,
+          description: canonicalBrace.description,
+          alt: canonicalBrace.alt,
+          badge: canonicalBrace.badge,
+          preorderDeadline: canonicalBrace.preorderDeadline,
         }
       }
       return p
@@ -512,8 +535,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       } = result.data
 
       if (Array.isArray(cloudProducts)) {
-        // Defensive sanitization: ensure prod-5 includes ["S", "M", "L", "XL", "2XL", "XXL"]
-        const sanitizedCloudProducts = cloudProducts.map((p: any) => {
+        // Purge legacy prod-brace-heritage and inject all 4 distinct drawstring bracelets
+        const withoutLegacy = cloudProducts.filter(
+          (p: any) => p && p.id !== "prod-brace-heritage",
+        )
+        const cloudIds = new Set(withoutLegacy.map((p: any) => p.id))
+        const missingBracelets = drawstringBracelets.filter(
+          (b) => !cloudIds.has(b.id),
+        )
+        const combinedCloud = [...withoutLegacy, ...missingBracelets]
+
+        const sanitizedCloudProducts = combinedCloud.map((p: any) => {
           if (p && p.id === "prod-5") {
             const sizes = Array.isArray(p.sizes) ? p.sizes : []
             const has2XL = sizes.includes("2XL")
@@ -525,15 +557,18 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
               return { ...p, sizes: merged }
             }
           }
-          if (p && p.id === "prod-brace-heritage") {
+          const canonicalBrace = drawstringBracelets.find((b) => b.id === p.id)
+          if (canonicalBrace) {
             return {
               ...p,
-              img: heritageBraceletProduct.img,
-              images: heritageBraceletProduct.images,
-              views: heritageBraceletProduct.views,
-              sizes: heritageBraceletProduct.sizes,
-              description: heritageBraceletProduct.description,
-              alt: heritageBraceletProduct.alt,
+              img: canonicalBrace.img,
+              images: canonicalBrace.images,
+              views: canonicalBrace.views,
+              sizes: canonicalBrace.sizes,
+              description: canonicalBrace.description,
+              alt: canonicalBrace.alt,
+              badge: canonicalBrace.badge,
+              preorderDeadline: canonicalBrace.preorderDeadline,
             }
           }
           return p

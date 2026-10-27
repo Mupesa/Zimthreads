@@ -24,7 +24,6 @@ import {
   initialInquiries,
   initialSettings,
   heritageBraceletProduct,
-  drawstringBracelets,
 } from "./seedData"
 
 declare module "./seedData" {
@@ -335,15 +334,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     const raw =
       Array.isArray(loaded) && loaded.length > 0 ? loaded : initialProducts
 
-    // Purge any legacy prod-brace-heritage and inject all 4 distinct drawstring bracelets
-    const withoutLegacyBrace = raw.filter(
-      (p) => p && p.id !== "prod-brace-heritage",
+    // Ensure only ONE bracelet card (prod-brace-heritage) and purge individual cards
+    const withoutIndividualBraces = raw.filter(
+      (p) => !p.id.startsWith("prod-brace-") || p.id === "prod-brace-heritage",
     )
-    const existingIds = new Set(withoutLegacyBrace.map((p) => p.id))
-    const missingBracelets = drawstringBracelets.filter(
-      (b) => !existingIds.has(b.id),
+    const hasHeritage = withoutIndividualBraces.some(
+      (p) => p.id === "prod-brace-heritage",
     )
-    const effective = [...withoutLegacyBrace, ...missingBracelets]
+    const effective = hasHeritage
+      ? withoutIndividualBraces
+      : [...withoutIndividualBraces, heritageBraceletProduct]
 
     return effective.map((p) => {
       if (
@@ -373,19 +373,31 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
           sizes: finalSizes,
         }
       }
-      const canonicalBrace = drawstringBracelets.find((b) => b.id === p.id)
-      if (canonicalBrace) {
-        return {
-          ...p,
-          img: canonicalBrace.img,
-          images: canonicalBrace.images,
-          views: canonicalBrace.views,
-          sizes: canonicalBrace.sizes,
-          description: canonicalBrace.description,
-          alt: canonicalBrace.alt,
-          badge: canonicalBrace.badge,
-          preorderDeadline: canonicalBrace.preorderDeadline,
+      if (p.id === "prod-brace-heritage") {
+        const views = Array.isArray(p.views) ? p.views : []
+        // If views have legacy cuffs or are empty, reset to canonical 4 drawstring editions
+        const hasLegacyCuffs = views.some(
+          (v: any) =>
+            v.url &&
+            (v.url.includes("maabu3xpq1t58u2xky6i") ||
+              v.url.includes("basxgdg80oz1jccmqsri") ||
+              v.url.includes("cwtppklcr3wojy0xt2wj") ||
+              v.url.includes("be6gv4qboptmainz4vft")),
+        )
+        if (views.length === 0 || hasLegacyCuffs) {
+          return {
+            ...p,
+            img: heritageBraceletProduct.img,
+            images: heritageBraceletProduct.images,
+            views: heritageBraceletProduct.views,
+            sizes: heritageBraceletProduct.sizes,
+            description: heritageBraceletProduct.description,
+            alt: heritageBraceletProduct.alt,
+            badge: heritageBraceletProduct.badge,
+            preorderDeadline: heritageBraceletProduct.preorderDeadline,
+          }
         }
+        return p
       }
       return p
     })
@@ -535,15 +547,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       } = result.data
 
       if (Array.isArray(cloudProducts)) {
-        // Purge legacy prod-brace-heritage and inject all 4 distinct drawstring bracelets
-        const withoutLegacy = cloudProducts.filter(
-          (p: any) => p && p.id !== "prod-brace-heritage",
+        // Consolidate bracelets into a single prod-brace-heritage product card
+        const withoutIndividualBraces = cloudProducts.filter(
+          (p: any) =>
+            p && (!p.id.startsWith("prod-brace-") || p.id === "prod-brace-heritage"),
         )
-        const cloudIds = new Set(withoutLegacy.map((p: any) => p.id))
-        const missingBracelets = drawstringBracelets.filter(
-          (b) => !cloudIds.has(b.id),
+        const hasHeritage = withoutIndividualBraces.some(
+          (p: any) => p && p.id === "prod-brace-heritage",
         )
-        const combinedCloud = [...withoutLegacy, ...missingBracelets]
+        const combinedCloud = hasHeritage
+          ? withoutIndividualBraces
+          : [...withoutIndividualBraces, heritageBraceletProduct]
 
         const sanitizedCloudProducts = combinedCloud.map((p: any) => {
           if (p && p.id === "prod-5") {
@@ -557,18 +571,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
               return { ...p, sizes: merged }
             }
           }
-          const canonicalBrace = drawstringBracelets.find((b) => b.id === p.id)
-          if (canonicalBrace) {
-            return {
-              ...p,
-              img: canonicalBrace.img,
-              images: canonicalBrace.images,
-              views: canonicalBrace.views,
-              sizes: canonicalBrace.sizes,
-              description: canonicalBrace.description,
-              alt: canonicalBrace.alt,
-              badge: canonicalBrace.badge,
-              preorderDeadline: canonicalBrace.preorderDeadline,
+          if (p && p.id === "prod-brace-heritage") {
+            const views = Array.isArray(p.views) ? p.views : []
+            const hasLegacyCuffs = views.some(
+              (v: any) =>
+                v.url &&
+                (v.url.includes("maabu3xpq1t58u2xky6i") ||
+                  v.url.includes("basxgdg80oz1jccmqsri") ||
+                  v.url.includes("cwtppklcr3wojy0xt2wj") ||
+                  v.url.includes("be6gv4qboptmainz4vft")),
+            )
+            if (views.length === 0 || hasLegacyCuffs) {
+              return {
+                ...p,
+                img: heritageBraceletProduct.img,
+                images: heritageBraceletProduct.images,
+                views: heritageBraceletProduct.views,
+                sizes: heritageBraceletProduct.sizes,
+                description: heritageBraceletProduct.description,
+                alt: heritageBraceletProduct.alt,
+                badge: heritageBraceletProduct.badge,
+                preorderDeadline: heritageBraceletProduct.preorderDeadline,
+              }
             }
           }
           return p

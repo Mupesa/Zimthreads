@@ -234,6 +234,97 @@ export default function Dashboard() {
     setEditProductPriceActive(true)
   }
 
+  // African Heritage Bracelets Manager state
+  const [braceletModalOpen, setBraceletModalOpen] = useState(false)
+  const [newBraceletLabel, setNewBraceletLabel] = useState("")
+  const [newBraceletUrl, setNewBraceletUrl] = useState("")
+
+  const handleAddBraceletEdition = (targetProductId = "prod-brace-heritage") => {
+    const label = newBraceletLabel.trim()
+    const url = newBraceletUrl.trim()
+    if (!label) {
+      showToast("Validation Error", "Please enter a name for the bracelet edition.")
+      return
+    }
+    if (!url) {
+      showToast("Validation Error", "Please provide or upload an image for the bracelet edition.")
+      return
+    }
+
+    const target = products.find((p) => p.id === targetProductId)
+    if (!target) {
+      showToast("Error", "Bracelet product not found in catalog.")
+      return
+    }
+
+    const currentViews = Array.isArray(target.views) ? [...target.views] : []
+    const updatedViews = [...currentViews, { label, url }]
+    const currentImages = Array.isArray(target.images) ? [...target.images] : []
+    const updatedImages = currentImages.includes(url)
+      ? currentImages
+      : [...currentImages, url]
+
+    updateProduct(target.id, {
+      views: updatedViews,
+      images: updatedImages,
+      img: target.img || url,
+    })
+
+    if (editProduct && editProduct.id === target.id) {
+      setEditProduct({
+        ...editProduct,
+        views: updatedViews,
+        images: updatedImages,
+        img: editProduct.img || url,
+      })
+    }
+
+    setNewBraceletLabel("")
+    setNewBraceletUrl("")
+    showToast("Bracelet Added", `Added "${label}" to bracelet editions.`)
+  }
+
+  const handleDeleteBraceletEdition = (
+    indexToDelete: number,
+    targetProductId = "prod-brace-heritage",
+  ) => {
+    const target = products.find((p) => p.id === targetProductId)
+    if (!target) return
+
+    const currentViews = Array.isArray(target.views) ? [...target.views] : []
+    const edition = currentViews[indexToDelete]
+    if (!edition) return
+
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the "${edition.label}" edition?`,
+      )
+    ) {
+      return
+    }
+
+    const updatedViews = currentViews.filter((_, idx) => idx !== indexToDelete)
+    const updatedImages = updatedViews.map((v) => v.url)
+    const nextMainImg = updatedViews.length > 0 ? updatedViews[0].url : target.img
+
+    updateProduct(target.id, {
+      views: updatedViews,
+      images: updatedImages,
+      img: nextMainImg,
+    })
+
+    if (editProduct && editProduct.id === target.id) {
+      setEditProduct({
+        ...editProduct,
+        views: updatedViews,
+        images: updatedImages,
+        img: nextMainImg,
+      })
+    }
+
+    showToast("Bracelet Removed", `Deleted "${edition.label}".`)
+  }
+
   const [serviceForm, setServiceForm] = useState({
     title: "",
     subtitle: "",
@@ -2022,6 +2113,19 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
+                        onClick={() => setBraceletModalOpen(true)}
+                        className="px-3.5 py-2 bg-[#1f2937] hover:bg-[#374151] border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
+                      >
+                        <span>📿</span>
+                        <span>
+                          Manage Bracelets (
+                          {products.find((p) => p.id === "prod-brace-heritage")
+                            ?.views?.length || 0}
+                          )
+                        </span>
+                      </button>
+                      <button
                         onClick={() => setShowBatchPricingDesk((prev) => !prev)}
                         className="px-3.5 py-2 bg-[#1f2937] hover:bg-[#374151] border border-[#374151] text-[#86a84e] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5"
                       >
@@ -2387,6 +2491,18 @@ export default function Dashboard() {
                                 >
                                   {p.hidden ? "Unhide" : "Hide"}
                                 </button>
+                                {(p.id === "prod-brace-heritage" ||
+                                  (p.views && p.views.length > 0)) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setBraceletModalOpen(true)}
+                                    className="text-xs text-amber-400 hover:text-amber-300 hover:underline font-bold cursor-pointer flex items-center gap-1"
+                                    title="Manage individual bracelet editions and flag styles"
+                                  >
+                                    <span>📿</span>
+                                    <span>Editions ({p.views?.length || 0})</span>
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => openEditProductModal(p)}
                                   className="text-xs text-[#86a84e] hover:underline font-bold cursor-pointer"
@@ -4132,6 +4248,54 @@ export default function Dashboard() {
                 compact
               />
 
+              {/* Bracelet Editions Management */}
+              {(editProduct.id === "prod-brace-heritage" ||
+                (editProduct.views && editProduct.views.length > 0)) && (
+                <div className="p-3 bg-[#111827] border border-amber-500/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                      📿 Flag / Bracelet Editions ({(editProduct.views || []).length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setBraceletModalOpen(true)}
+                      className="px-2 py-0.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[9px] font-bold uppercase cursor-pointer"
+                    >
+                      Full Manager ↗
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {(editProduct.views || []).map((v, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-1.5 bg-[#1f2937] border border-[#374151]"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <img
+                            src={v.url}
+                            alt={v.label}
+                            className="w-7 h-7 object-contain bg-white rounded-xs p-0.5 border border-gray-400 flex-shrink-0"
+                          />
+                          <span className="text-[10px] text-gray-200 font-medium truncate">
+                            {v.label}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeleteBraceletEdition(idx, editProduct.id)
+                          }
+                          className="text-red-400 hover:text-red-300 text-xs px-1.5 py-0.5 cursor-pointer font-bold"
+                          title="Delete edition"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Dynamic Size Configuration */}
               <div className="p-3 bg-[#111827] border border-[#374151] space-y-2.5">
                 <div className="flex items-center justify-between">
@@ -4198,7 +4362,7 @@ export default function Dashboard() {
                             ...editProduct,
                             sizes: [...currentSizes, val],
                           })
-                          setEditProductCustomSize("")
+                            setEditProductCustomSize("")
                         }
                       }
                     }}
@@ -4442,6 +4606,168 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* 3b. African Heritage Bracelet Editions Manager Modal */}
+      {braceletModalOpen && (() => {
+        const heritageProduct = products.find((p) => p.id === "prod-brace-heritage")
+        const views = Array.isArray(heritageProduct?.views) ? heritageProduct.views : []
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+            <div className="bg-[#1f2937] border-2 border-amber-500/50 w-full max-w-2xl p-6 text-white shadow-2xl animate-scale-up max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 pb-3 border-b border-[#374151]">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl">📿</span>
+                  <div>
+                    <h3 className="font-display text-lg font-bold uppercase text-white">
+                      Manage Bracelet Editions
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      Zimthread African Heritage Beaded Bracelet (Consolidated Single Product Card)
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBraceletModalOpen(false)}
+                  className="text-sm font-bold text-[#9ca3af] hover:text-white cursor-pointer px-2 py-1"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="bg-amber-950/30 border border-amber-600/40 p-3 mb-5 text-xs text-amber-200/90 leading-relaxed">
+                <span className="font-bold text-amber-300">Unified Catalog Architecture:</span>{" "}
+                All bracelet styles are consolidated into a single storefront card with an interactive switcher.
+                Add or delete flag editions here — additions and deletions will immediately reflect in the shop and sync to Neon DB.
+              </div>
+
+              {/* Current Active Editions */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-gray-300">
+                    Active Bracelet Editions ({views.length})
+                  </h4>
+                  <span className="text-[10px] text-gray-400 font-mono">
+                    Slide Switcher Order
+                  </span>
+                </div>
+
+                {views.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-gray-400 border border-dashed border-[#374151]">
+                    No bracelet editions currently configured. Add one below.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {views.map((v, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-[#111827] border border-[#374151] hover:border-gray-500 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-xs font-mono text-gray-500 font-bold w-5">
+                            #{idx + 1}
+                          </span>
+                          <div className="w-12 h-12 bg-white rounded-xs border border-gray-300 overflow-hidden flex-shrink-0 flex items-center justify-center p-0.5">
+                            <img
+                              src={v.url}
+                              alt={v.label}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-white truncate">
+                              {v.label}
+                            </p>
+                            <p className="text-[10px] text-gray-400 font-mono truncate max-w-xs sm:max-w-md">
+                              {v.url}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBraceletEdition(idx, "prod-brace-heritage")}
+                          className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900 border border-red-700/60 text-red-300 hover:text-white text-xs font-bold uppercase cursor-pointer transition-colors flex items-center gap-1.5 flex-shrink-0"
+                          title="Delete this bracelet edition"
+                        >
+                          <span>🗑️</span>
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add New Bracelet Edition */}
+              <div className="p-4 bg-[#111827] border border-amber-500/30 space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#374151] pb-2">
+                  <span className="text-amber-400 text-sm font-bold">+</span>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-300">
+                    Add New Bracelet Edition
+                  </h4>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-[#9ca3af] mb-1">
+                      Edition Name / Flag Title *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Kenya Flag Beaded Drawstring Bracelet"
+                      value={newBraceletLabel}
+                      onChange={(e) => setNewBraceletLabel(e.target.value)}
+                      className="w-full bg-[#1f2937] border border-[#374151] px-3 py-2 text-white text-xs focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <ImageUploader
+                    value={newBraceletUrl}
+                    onChange={(url) => setNewBraceletUrl(url)}
+                    folder="zimthreads/bracelets"
+                    label="Bracelet Photo (Pure White Canvas Recommended)"
+                    helperText="Upload image to Cloudinary (zimthreads/bracelets) or paste direct URL"
+                    compact
+                  />
+
+                  <div className="pt-2 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewBraceletLabel("")
+                        setNewBraceletUrl("")
+                      }}
+                      className="px-4 py-2 bg-[#374151] hover:bg-[#4b5563] text-gray-300 text-xs font-bold uppercase cursor-pointer"
+                    >
+                      Reset Form
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddBraceletEdition("prod-brace-heritage")}
+                      className="px-5 py-2 bg-[#86a84e] hover:bg-[#9cc45e] text-black text-xs font-extrabold uppercase tracking-wider cursor-pointer transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      <span>+</span>
+                      <span>Add Edition to Collection</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-[#374151] flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setBraceletModalOpen(false)}
+                  className="px-5 py-2 bg-[#374151] hover:bg-[#4b5563] text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  Close Manager
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* 4. New Service Modal */}
       {newServiceModal && (

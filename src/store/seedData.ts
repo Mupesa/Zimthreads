@@ -744,7 +744,7 @@ export const racingJacketsCollection: CollectiveCollection = {
 
 export const initialProducts: Product[] = [
   ...racingJacketsProducts,
-  ...drawstringBracelets,
+  heritageBraceletProduct,
   {
     id: "prod-zim-02",
     name: "Zimthread Zimbabwe '02' Heritage Jersey",

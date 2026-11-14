@@ -878,6 +878,72 @@ export const initialProducts: Product[] = [
     featured: true,
   },
   {
+    id: "prod-shona-white",
+    name: "Zimthread 'The Shona Republic' Boxy Tee - White",
+    category: "Apparel",
+    price: 650,
+    stock: 35,
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674172/zimthreads/products/efmb8kjhrcrmp6dtke9n.jpg",
+    images: [
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674172/zimthreads/products/efmb8kjhrcrmp6dtke9n.jpg",
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674178/zimthreads/products/edqd5ul58v2zm1o3pt9g.jpg",
+    ],
+    views: [
+      {
+        label: "Studio Mockup",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674172/zimthreads/products/efmb8kjhrcrmp6dtke9n.jpg",
+      },
+      {
+        label: "Back Artwork (+263)",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674178/zimthreads/products/edqd5ul58v2zm1o3pt9g.jpg",
+      },
+      {
+        label: "Clean Studio View",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674175/zimthreads/products/gwoltokldjcvruoktjdk.jpg",
+      },
+    ],
+    alt: "The Shona Republic Graphic Boxy Tee - White",
+    badge: "HERITAGE ATELIER",
+    tag: "Great Zimbabwe Capsule",
+    description:
+      "260 GSM heavyweight combed cotton boxy-fit graphic tee celebrating Great Zimbabwe stone architecture, conical tower, acacia landscape, and vibrant +263 national colors. Finished with custom Zimthread atelier collar tag.",
+    sizes: ["S", "M", "L", "XL", "2XL", "XXL"],
+    featured: true,
+  },
+  {
+    id: "prod-shona-black",
+    name: "Zimthread 'The Shona Republic' Boxy Tee - Black",
+    category: "Apparel",
+    price: 650,
+    stock: 35,
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674182/zimthreads/products/rxyhhjo7acwlb2mxnmff.jpg",
+    images: [
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674182/zimthreads/products/rxyhhjo7acwlb2mxnmff.jpg",
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674186/zimthreads/products/hahdust6qmslhndrjb8v.jpg",
+    ],
+    views: [
+      {
+        label: "Studio Mockup",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674182/zimthreads/products/rxyhhjo7acwlb2mxnmff.jpg",
+      },
+      {
+        label: "Back Artwork (+263)",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674186/zimthreads/products/hahdust6qmslhndrjb8v.jpg",
+      },
+      {
+        label: "Clean Studio View",
+        url: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674184/zimthreads/products/dcpx5n4ii6dxoxbhmqce.jpg",
+      },
+    ],
+    alt: "The Shona Republic Graphic Boxy Tee - Black",
+    badge: "HERITAGE ATELIER",
+    tag: "Great Zimbabwe Capsule",
+    description:
+      "260 GSM heavyweight combed cotton boxy-fit graphic tee in stealth black, showcasing contrasting white Great Zimbabwe conical tower artwork and dynamic +263 national brushstrokes on the reverse. Fitted with custom Zimthread atelier collar tag.",
+    sizes: ["S", "M", "L", "XL", "2XL", "XXL"],
+    featured: true,
+  },
+  {
     id: "prod-6",
     name: "Zimthread Structured Twill Cap",
     category: "Apparel",
@@ -1045,17 +1111,17 @@ export const initialSettings: StoreSettings = {
   freeDeliveryThreshold: 1500,
   featuredDrop: {
     enabled: true,
-    badge: "NEW DROP · LIMITED RELEASE",
-    title: 'THE "LLICYLAND" BOXY TEE',
+    badge: "NEW DROP · HERITAGE ATELIER",
+    title: 'THE "SHONA REPUBLIC" BOXY TEE',
     subtitle: "260 GSM Heavyweight Streetwear Cut",
     description:
-      "Crafted from heavyweight combed cotton with drop-shoulder silhouette, iconic red dice LLICYLAND typography, and woven Zimthread atelier tag.",
+      "260 GSM heavyweight combed cotton boxy-fit graphic tee celebrating Great Zimbabwe stone architecture, conical tower, acacia landscape, and vibrant +263 national colors. Finished with custom Zimthread atelier collar tag.",
     imageUrl:
-      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1792407895/zimthreads/banners/wjn81t1rzt0h6boikoxd.jpg",
-    productId: "prod-5",
+      "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674172/zimthreads/products/efmb8kjhrcrmp6dtke9n.jpg",
+    productId: "prod-shona-white",
     priceText: "Rs 650",
     ctaText: "Shop This Drop",
     secondaryCtaText: "Inquire via WhatsApp",
-    tag: "Atelier Exclusive",
+    tag: "Heritage Atelier Exclusive",
   },
 }

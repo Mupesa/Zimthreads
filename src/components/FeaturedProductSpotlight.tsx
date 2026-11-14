@@ -19,20 +19,33 @@ export default function FeaturedProductSpotlight({
     return null
   }
 
+  // Active drop product state (allows switching between flagship drops)
+  const [selectedDropId, setSelectedDropId] = useState<string | null>(null)
+
   // Resolve target product:
-  // 1. Specified productId in activeBanner
-  // 2. Default to flagship 'prod-zim-02'
-  // 3. First product with featured flag or first catalog product
+  // 1. Explicit drop chosen by user via showcase switcher
+  // 2. Specified productId in activeBanner
+  // 3. Default to Shona Republic flagship
+  // 4. Fallback to LLICYLAND or 'prod-zim-02'
   const targetProduct = useMemo<Product | undefined>(() => {
+    if (selectedDropId) {
+      const chosen = products.find((p) => p.id === selectedDropId)
+      if (chosen) return chosen
+    }
     if (activeBanner?.productId) {
       const found = products.find((p) => p.id === activeBanner.productId)
       if (found) return found
     }
-    const defaultFlagship = products.find((p) => p.id === "prod-zim-02")
+    const shonaDefault = products.find((p) => p.id === "prod-shona-white")
+    if (shonaDefault) return shonaDefault
+
+    const defaultFlagship =
+      products.find((p) => p.id === "prod-5") ||
+      products.find((p) => p.id === "prod-zim-02")
     if (defaultFlagship) return defaultFlagship
 
     return products.find((p) => p.featured && !p.hidden) || products[0]
-  }, [products, activeBanner?.productId])
+  }, [products, selectedDropId, activeBanner?.productId])
 
   if (!targetProduct) {
     return null
@@ -263,15 +276,27 @@ export default function FeaturedProductSpotlight({
     }
   }
 
+  const isShona = Boolean(
+    targetProduct &&
+      (targetProduct.id === "prod-shona-white" ||
+        targetProduct.id === "prod-shona-black"),
+  )
+  const shonaColor =
+    targetProduct?.id === "prod-shona-black" ? "black" : "white"
+
   // Overrides from admin banner if present
-  const displayTitle = activeBanner?.title || targetProduct.name
-  const displayBadge =
-    activeBanner?.badge ||
-    (targetProduct.isPreorder
-      ? "PRE-ORDER · LIMITED DROP"
-      : targetProduct.badge || "ATELIER SPOTLIGHT")
-  const displayDescription =
-    activeBanner?.description || targetProduct.description
+  const displayTitle = isShona
+    ? 'THE "SHONA REPUBLIC" BOXY TEE'
+    : activeBanner?.title || targetProduct.name
+  const displayBadge = isShona
+    ? "NEW DROP · HERITAGE ATELIER"
+    : activeBanner?.badge ||
+      (targetProduct.isPreorder
+        ? "PRE-ORDER · LIMITED DROP"
+        : targetProduct.badge || "ATELIER SPOTLIGHT")
+  const displayDescription = isShona
+    ? "260 GSM heavyweight combed cotton boxy-fit graphic tee celebrating Great Zimbabwe stone architecture, conical tower, acacia landscape, and vibrant +263 national colors. Finished with custom Zimthread atelier collar tag."
+    : activeBanner?.description || targetProduct.description
 
   return (
     <section
@@ -288,6 +313,55 @@ export default function FeaturedProductSpotlight({
           <h2 className="font-display text-xl sm:text-4xl font-black uppercase tracking-tight text-[#1a1a1a]">
             FLAGSHIP DROP SHOWCASE
           </h2>
+        </div>
+
+        {/* Flagship Drop Switcher Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedDropId("prod-shona-white")
+              setActiveImageIdx(0)
+            }}
+            className={`px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 ${
+              isShona
+                ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                : "bg-white text-[#6b7280] border-[#e5e1d8] hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#86a84e] animate-pulse" />
+            <span>THE SHONA REPUBLIC (NEW DROP)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedDropId("prod-5")
+              setActiveImageIdx(0)
+            }}
+            className={`px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 ${
+              targetProduct.id === "prod-5"
+                ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                : "bg-white text-[#6b7280] border-[#e5e1d8] hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
+            }`}
+          >
+            <span>THE &quot;LLICYLAND&quot; BOXY TEE</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedDropId("prod-zim-02")
+              setActiveImageIdx(0)
+            }}
+            className={`px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 ${
+              targetProduct.id === "prod-zim-02"
+                ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                : "bg-white text-[#6b7280] border-[#e5e1d8] hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
+            }`}
+          >
+            <span>ZIMBABWE &apos;02 RETRO</span>
+          </button>
         </div>
 
         {/* 2-Column Split: Gallery on Left, Sticky Purchase Card on Right on Desktop */}
@@ -392,6 +466,45 @@ export default function FeaturedProductSpotlight({
                   {displayDescription}
                 </p>
 
+                {/* Shona Republic Quick Colorway Toggle on Mobile */}
+                {isShona && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-mono uppercase text-[#6b7280]">
+                      Colorway:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDropId("prod-shona-white")
+                        setActiveImageIdx(0)
+                      }}
+                      className={`px-2.5 py-1 text-[9px] font-mono font-bold uppercase border flex items-center gap-1.5 cursor-pointer ${
+                        shonaColor === "white"
+                          ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+                          : "bg-white text-[#1a1a1a] border-[#e5e1d8]"
+                      }`}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full border border-neutral-300 bg-white" />
+                      <span>White</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDropId("prod-shona-black")
+                        setActiveImageIdx(0)
+                      }}
+                      className={`px-2.5 py-1 text-[9px] font-mono font-bold uppercase border flex items-center gap-1.5 cursor-pointer ${
+                        shonaColor === "black"
+                          ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+                          : "bg-white text-[#1a1a1a] border-[#e5e1d8]"
+                      }`}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full border border-neutral-700 bg-[#111827]" />
+                      <span>Black</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* Prominent Trigger Button: Opens Slide-Up Selection Drawer */}
                 <button
                   ref={triggerButtonRef}
@@ -491,6 +604,53 @@ export default function FeaturedProductSpotlight({
                 </span>
               )}
             </div>
+
+            {/* Shona Republic Colorway Edition Selector (Desktop) */}
+            {isShona && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-[#6b7280] mb-2">
+                  <span>COLORWAY EDITION</span>
+                  <span className="text-[10px] text-[#4a5c2d] font-bold">
+                    {shonaColor === "white"
+                      ? "Crisp Studio White"
+                      : "Stealth Atelier Black"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDropId("prod-shona-white")
+                      setActiveImageIdx(0)
+                    }}
+                    className={`py-2 px-3 text-xs font-mono font-bold uppercase flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                      shonaColor === "white"
+                        ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                        : "bg-[#fafafa] text-[#1a1a1a] border-[#e5e1d8] hover:border-[#1a1a1a]"
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 rounded-full border border-neutral-300 bg-white inline-block shrink-0" />
+                    <span>WHITE EDITION</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDropId("prod-shona-black")
+                      setActiveImageIdx(0)
+                    }}
+                    className={`py-2 px-3 text-xs font-mono font-bold uppercase flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                      shonaColor === "black"
+                        ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                        : "bg-[#fafafa] text-[#1a1a1a] border-[#e5e1d8] hover:border-[#1a1a1a]"
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 rounded-full border border-neutral-700 bg-[#111827] inline-block shrink-0" />
+                    <span>BLACK EDITION</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Size Selector */}
             {targetProduct.sizes && targetProduct.sizes.length > 0 && (
@@ -610,7 +770,9 @@ export default function FeaturedProductSpotlight({
                     role="region"
                     className="px-4 pb-4 text-xs text-[#6b7280] leading-relaxed border-t border-[#e5e1d8] pt-3 whitespace-pre-line font-sans"
                   >
-                    {displayDescription}
+                    {isShona
+                      ? "Crafted to honor the monumental dry-stone architecture of Great Zimbabwe and its iconic Conical Tower — an ancient symbol of royal court sovereignty and Zimbabwean stone masonry. Features the sacred acacia tree, tribal chevron patterns, and vibrant +263 national colors on the reverse. Fitted with custom Zimthread atelier collar tag."
+                      : displayDescription}
                   </div>
                 )}
               </div>
@@ -634,9 +796,9 @@ export default function FeaturedProductSpotlight({
                     role="region"
                     className="px-4 pb-4 text-xs text-[#6b7280] leading-relaxed border-t border-[#e5e1d8] pt-3 font-sans"
                   >
-                    True to size athletic cut with relaxed streetwear shoulders.
-                    For an oversized, boxy look, we recommend sizing up one full
-                    size.
+                    {isShona
+                      ? "Engineered in dense 260 GSM combed cotton with a relaxed drop-shoulder boxy cut. Substantial streetwear fabric drape. True to size for a streetwear boxy fit, or size up one size for an oversized look."
+                      : "True to size athletic cut with relaxed streetwear shoulders. For an oversized, boxy look, we recommend sizing up one full size."}
                   </div>
                 )}
               </div>
@@ -740,6 +902,53 @@ export default function FeaturedProductSpotlight({
                   </span>
                 )}
               </div>
+
+              {/* Shona Republic Colorway Edition Selector (Mobile Drawer) */}
+              {isShona && (
+                <div>
+                  <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-[#6b7280] mb-2">
+                    <span>COLORWAY EDITION</span>
+                    <span className="text-[10px] text-[#4a5c2d] font-bold">
+                      {shonaColor === "white"
+                        ? "Crisp Studio White"
+                        : "Stealth Atelier Black"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDropId("prod-shona-white")
+                        setActiveImageIdx(0)
+                      }}
+                      className={`py-2 px-3 text-xs font-mono font-bold uppercase flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                        shonaColor === "white"
+                          ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                          : "bg-[#fafafa] text-[#1a1a1a] border-[#e5e1d8] hover:border-[#1a1a1a]"
+                      }`}
+                    >
+                      <span className="w-3.5 h-3.5 rounded-full border border-neutral-300 bg-white inline-block shrink-0" />
+                      <span>WHITE EDITION</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDropId("prod-shona-black")
+                        setActiveImageIdx(0)
+                      }}
+                      className={`py-2 px-3 text-xs font-mono font-bold uppercase flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                        shonaColor === "black"
+                          ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs"
+                          : "bg-[#fafafa] text-[#1a1a1a] border-[#e5e1d8] hover:border-[#1a1a1a]"
+                      }`}
+                    >
+                      <span className="w-3.5 h-3.5 rounded-full border border-neutral-700 bg-[#111827] inline-block shrink-0" />
+                      <span>BLACK EDITION</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Size Selector */}
               {targetProduct.sizes && targetProduct.sizes.length > 0 && (

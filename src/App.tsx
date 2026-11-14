@@ -13,6 +13,7 @@ import About from "./pages/About"
 import Contact from "./pages/Contact"
 import Dashboard from "./pages/admin/Dashboard"
 import JacketsCollectionPage from "./pages/JacketsCollectionPage"
+import VIPEventPage from "./pages/VIPEventPage"
 
 import SEOHead from "./components/SEOHead"
 
@@ -75,6 +76,18 @@ const routeSeo: Record<string, {
       "Get in touch with Zimthreads Collective Mauritius. Call or WhatsApp +230 5513 2614, arrange drop-off and collection, or inquire about bespoke orders.",
     canonical: "https://www.zimthreads.online/contact",
   },
+  "/vip": {
+    title: "VIP Event Pass & Exclusive Drop Access | Zimthreads Collective",
+    description:
+      "Claim your 10% discount pass for streetwear apparel and sneaker restoration at the Zimthreads pop-up booth.",
+    canonical: "https://www.zimthreads.online/vip",
+  },
+  "/event": {
+    title: "VIP Event Pass & Exclusive Drop Access | Zimthreads Collective",
+    description:
+      "Claim your 10% discount pass for streetwear apparel and sneaker restoration at the Zimthreads pop-up booth.",
+    canonical: "https://www.zimthreads.online/vip",
+  },
 }
 
 function AppRoutes() {
@@ -92,6 +105,22 @@ function AppRoutes() {
           noindex={true}
         />
         <Dashboard />
+        <ToastContainer />
+      </>
+    )
+  }
+
+  const isVipRoute = cleanPath === "/vip" || cleanPath === "/event"
+
+  if (isVipRoute) {
+    return (
+      <>
+        <SEOHead
+          title="VIP Event Pass | Zimthreads Collective"
+          description="Claim your exclusive 10% discount pass for streetwear apparel and sneaker restoration at the Zimthreads pop-up booth."
+          canonicalUrl="https://www.zimthreads.online/vip"
+        />
+        <VIPEventPage />
         <ToastContainer />
       </>
     )

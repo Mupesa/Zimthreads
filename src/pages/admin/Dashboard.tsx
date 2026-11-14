@@ -38,7 +38,7 @@ import {
 } from "@/lib/cloudinary"
 import { getWhatsAppUrl } from "@/lib/whatsapp"
 
-type Section = "dashboard" | "bookings" | "orders" | "services" | "products" | "blog" | "customers" | "inquiries" | "settings" | "media"
+type Section = "dashboard" | "bookings" | "orders" | "services" | "products" | "blog" | "customers" | "leads" | "inquiries" | "settings" | "media"
 
 export default function Dashboard() {
   const {
@@ -50,6 +50,9 @@ export default function Dashboard() {
     inquiries,
     settings,
     customers,
+    subscribers,
+    markSubscriberRedeemed,
+    deleteSubscriber,
     isHydrating,
     lastSyncedAt,
     refreshCloudData,
@@ -126,6 +129,8 @@ export default function Dashboard() {
   const [inquiryFilter, setInquiryFilter] = useState<"All" | "Unread" | "Read">(
     "All",
   )
+  const [leadsSearch, setLeadsSearch] = useState("")
+  const [leadsFilter, setLeadsFilter] = useState<"All" | "Active" | "Redeemed">("All")
 
   // Modals
   const [newBookingModal, setNewBookingModal] = useState(false)
@@ -700,6 +705,12 @@ export default function Dashboard() {
     { icon: SparklesIcon, label: "Media Studio", id: "media", count: null },
     { icon: ArticleIcon, label: "Blog Posts", id: "blog", count: null },
     { icon: UsersIcon, label: "Customers", id: "customers", count: null },
+    {
+      icon: SparklesIcon,
+      label: "VIP Leads & QR",
+      id: "leads",
+      count: subscribers?.length || null,
+    },
     {
       icon: MailIcon,
       label: "Inquiries",
@@ -2794,6 +2805,254 @@ export default function Dashboard() {
                         </tr>
                       ))
                     )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ===================== VIP LEADS & EVENT QR SECTION ===================== */}
+          {active === "leads" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="font-display text-2xl font-extrabold uppercase text-[#f9fafb]">
+                    VIP LEADS & EVENT QR ({subscribers?.length || 0})
+                  </h1>
+                  <p className="text-xs text-[#9ca3af]">
+                    Emails captured via event tabletop QR codes & Google One-Tap at Oasis Beach Bar
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="/vip?src=oasis_popup"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#111827] hover:bg-[#374151] text-white border border-[#374151] text-xs font-bold uppercase tracking-wider transition-colors"
+                  >
+                    <span>↗ Preview /vip Page</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!subscribers || subscribers.length === 0) {
+                        showToast("No Leads", "There are no leads to export.", "info")
+                        return
+                      }
+                      const headers = ["ID", "Email", "Name", "Source", "Event", "Code", "Redeemed", "Created Date"]
+                      const rows = subscribers.map((s) => [
+                        s.id,
+                        `"${s.email}"`,
+                        `"${s.name || ""}"`,
+                        `"${s.source || "event_qr"}"`,
+                        `"${s.event || "oasis_beach_bar"}"`,
+                        `"${s.code || "OASIS10"}"`,
+                        s.redeemed ? "YES" : "NO",
+                        `"${s.createdAt}"`,
+                      ])
+                      const csvContent =
+                        "data:text/csv;charset=utf-8," +
+                        [headers.join(","), ...rows.map((e) => e.join(","))].join("\n")
+                      const encodedUri = encodeURI(csvContent)
+                      const link = document.createElement("a")
+                      link.setAttribute("href", encodedUri)
+                      link.setAttribute("download", `zimthreads-vip-leads-${new Date().toISOString().split("T")[0]}.csv`)
+                      document.body.appendChild(link)
+                      link.click()
+                      document.body.removeChild(link)
+                      showToast("Export Complete", `Exported ${subscribers.length} VIP leads to CSV.`)
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#4a5c2d] hover:bg-[#586e36] text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-md"
+                  >
+                    <span>📥 Export CSV</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* KPI Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-4 bg-[#111827] border border-[#374151] rounded-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">Total Captured</span>
+                  <div className="text-2xl font-extrabold text-white mt-1">{subscribers?.length || 0}</div>
+                  <span className="text-[10px] text-[#86a84e]">All-Time Event Leads</span>
+                </div>
+                <div className="p-4 bg-[#111827] border border-[#374151] rounded-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">Active Codes</span>
+                  <div className="text-2xl font-extrabold text-amber-400 mt-1">
+                    {subscribers?.filter((s) => !s.redeemed).length || 0}
+                  </div>
+                  <span className="text-[10px] text-gray-400">Ready to Redeem</span>
+                </div>
+                <div className="p-4 bg-[#111827] border border-[#374151] rounded-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">Redeemed</span>
+                  <div className="text-2xl font-extrabold text-emerald-400 mt-1">
+                    {subscribers?.filter((s) => s.redeemed).length || 0}
+                  </div>
+                  <span className="text-[10px] text-gray-400">Used at Booth / Shop</span>
+                </div>
+                <div className="p-4 bg-[#111827] border border-[#374151] rounded-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">Conversion</span>
+                  <div className="text-2xl font-extrabold text-[#86a84e] mt-1">
+                    {subscribers && subscribers.length > 0
+                      ? `${Math.round((subscribers.filter((s) => s.redeemed).length / subscribers.length) * 100)}%`
+                      : "0%"}
+                  </div>
+                  <span className="text-[10px] text-gray-400">Redemption Rate</span>
+                </div>
+              </div>
+
+              {/* Search & Filter Bar */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-[#111827] p-3 border border-[#374151]">
+                <div className="relative w-full sm:w-80">
+                  <input
+                    type="text"
+                    value={leadsSearch}
+                    onChange={(e) => setLeadsSearch(e.target.value)}
+                    placeholder="Search by email, name, or code..."
+                    className="w-full px-3 py-2 bg-[#1f2937] border border-[#374151] text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#86a84e]"
+                  />
+                  {leadsSearch && (
+                    <button
+                      onClick={() => setLeadsSearch("")}
+                      className="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-white"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                  {(["All", "Active", "Redeemed"] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setLeadsFilter(tab)}
+                      className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+                        leadsFilter === tab
+                          ? "bg-[#4a5c2d] text-white"
+                          : "bg-[#1f2937] text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Table of Leads */}
+              <div className="overflow-x-auto border border-[#374151]">
+                <table className="w-full text-left text-xs text-[#9ca3af]">
+                  <thead className="bg-[#111827] text-[10px] font-extrabold uppercase text-[#f9fafb] border-b border-[#374151]">
+                    <tr>
+                      <th className="px-4 py-3">Lead Email & Name</th>
+                      <th className="px-4 py-3">Event / Source</th>
+                      <th className="px-4 py-3">VIP Code</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Date Captured</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#1f2937] bg-[#111827]/60">
+                    {(() => {
+                      const filtered = (subscribers || []).filter((s) => {
+                        const matchesSearch =
+                          !leadsSearch ||
+                          s.email.toLowerCase().includes(leadsSearch.toLowerCase()) ||
+                          (s.name && s.name.toLowerCase().includes(leadsSearch.toLowerCase())) ||
+                          (s.code && s.code.toLowerCase().includes(leadsSearch.toLowerCase()))
+
+                        const matchesFilter =
+                          leadsFilter === "All" ||
+                          (leadsFilter === "Active" && !s.redeemed) ||
+                          (leadsFilter === "Redeemed" && s.redeemed)
+
+                        return matchesSearch && matchesFilter
+                      })
+
+                      if (filtered.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                              No VIP leads found matching current criteria.
+                            </td>
+                          </tr>
+                        )
+                      }
+
+                      return filtered.map((lead) => (
+                        <tr key={lead.id} className="hover:bg-[#1f2937]/50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="font-bold text-white text-xs">{lead.email}</div>
+                            {lead.name && <div className="text-[11px] text-gray-400">{lead.name}</div>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-800 text-gray-300 border border-gray-700">
+                              {lead.event || "Oasis Beach Bar"}
+                            </span>
+                            <div className="text-[10px] text-gray-500 mt-0.5">{lead.source || "QR"}</div>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-bold text-amber-300">
+                            {lead.code || "OASIS10"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                lead.redeemed
+                                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                                  : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                              }`}
+                            >
+                              {lead.redeemed ? "Redeemed" : "Active"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-[11px] text-gray-400">
+                            {new Date(lead.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => markSubscriberRedeemed(lead.id, !lead.redeemed)}
+                                className={`px-2.5 py-1 text-[11px] font-bold rounded transition-colors cursor-pointer ${
+                                  lead.redeemed
+                                    ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                                    : "bg-[#4a5c2d] text-white hover:bg-[#586e36]"
+                                }`}
+                              >
+                                {lead.redeemed ? "Mark Active" : "✓ Mark Redeemed"}
+                              </button>
+                              <a
+                                href={`https://wa.me/?text=${encodeURIComponent(
+                                  `Hi! Thanks for visiting Zimthreads at the pop-up. Here is your 10% VIP code: ${lead.code || "OASIS10"}`,
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2 py-1 bg-gray-800 hover:bg-emerald-900/40 text-gray-400 hover:text-emerald-400 text-xs rounded transition-colors"
+                                title="Share via WhatsApp"
+                              >
+                                💬
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Remove lead "${lead.email}"?`)) {
+                                    deleteSubscriber(lead.id)
+                                  }
+                                }}
+                                className="px-2 py-1 bg-gray-800 hover:bg-rose-900/40 text-gray-400 hover:text-rose-400 text-xs rounded transition-colors cursor-pointer"
+                                title="Delete Lead"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    })()}
                   </tbody>
                 </table>
               </div>

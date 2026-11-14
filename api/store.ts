@@ -45,7 +45,8 @@ export async function ensureDbInitialized() {
         ('services', '[]'::jsonb, NOW()),
         ('blog_posts', '[]'::jsonb, NOW()),
         ('settings', '{}'::jsonb, NOW()),
-        ('custom_customers', '[]'::jsonb, NOW())
+        ('custom_customers', '[]'::jsonb, NOW()),
+        ('subscribers', '[]'::jsonb, NOW())
       ON CONFLICT (key) DO NOTHING;
     `)
     isInitialized = true
@@ -55,7 +56,18 @@ export async function ensureDbInitialized() {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const ALLOWED_PUBLIC_ENTITIES = new Set(["bookings", "orders", "inquiries"])
+const ALLOWED_PUBLIC_ENTITIES = new Set(["bookings", "orders", "inquiries", "subscribers"])
+
+function validateSubscriberRecord(record: any): string | null {
+  if (!record || typeof record !== "object") {
+    return "Missing subscriber record"
+  }
+  const email = String(record.email || "").trim()
+  if (!email || !EMAIL_REGEX.test(email)) {
+    return "Validation failed: invalid email address"
+  }
+  return null
+}
 
 function validateBookingRecord(record: any): string | null {
   if (!record || typeof record !== "object") {
@@ -167,6 +179,8 @@ export default async function handler(req: any, res: any) {
         bookings: [],
         orders: [],
         inquiries: [],
+        subscribers: [],
+        custom_customers: [],
       }
       for (const row of rows) {
         storeData[row.key] = row.data
@@ -201,6 +215,7 @@ export default async function handler(req: any, res: any) {
         if (entity === "bookings") validationError = validateBookingRecord(record)
         else if (entity === "orders") validationError = validateOrderRecord(record)
         else if (entity === "inquiries") validationError = validateInquiryRecord(record)
+        else if (entity === "subscribers") validationError = validateSubscriberRecord(record)
 
         if (validationError) {
           return res.status(400).json({ error: validationError })
@@ -209,7 +224,80 @@ export default async function handler(req: any, res: any) {
         const now = new Date()
         let preparedRecord: any
 
-        if (entity === "bookings") {
+        if (entity === "subscribers") {
+          preparedRecord = {
+            ...record,
+            id: record.id || `SUB-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`.toUpperCase(),
+            email: String(record.email).trim().toLowerCase(),
+            name: record.name ? String(record.name).trim() : "",
+            source: record.source || "event_qr",
+            event: record.event || "oasis_beach_bar",
+            code: record.code || "OASIS10",
+            redeemed: typeof record.redeemed === "boolean" ? record.redeemed : false,
+            createdAt: record.createdAt || now.toISOString(),
+            updatedAt: now.toISOString(),
+          }
+
+          // Check if email already exists in subscribers array for graceful deduplication
+          const existingRows = await executeSql(
+            "SELECT data FROM public.zimthreads_store WHERE key = 'subscribers';",
+          )
+          let existingArray: any[] = []
+          if (existingRows.length > 0 && Array.isArray(existingRows[0].data)) {
+            existingArray = existingRows[0].data
+          }
+          const existingIndex = existingArray.findIndex(
+            (s: any) => s && s.email && s.email.toLowerCase() === preparedRecord.email,
+          )
+
+          // Dispatch confirmation email in background if Resend API key is available
+          const resendKey = process.env.RESEND_API_KEY
+          if (resendKey && preparedRecord.email) {
+            fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${resendKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from:
+                  process.env.RESEND_FROM_EMAIL ||
+                  "Zimthreads Collective <concierge@zimthreads.online>",
+                to: preparedRecord.email,
+                subject: `🎉 Zimthreads VIP Pass: 10% OFF (${preparedRecord.code || "OASIS10"})`,
+                html: `
+                  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif; background: #0d1117; color: #f5f2ec; padding: 28px; border-radius: 16px; max-width: 480px; margin: auto; border: 1px solid #374151;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                      <div style="color: #86a84e; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Zimthreads Collective</div>
+                      <h1 style="color: #ffffff; font-size: 24px; margin: 4px 0; text-transform: uppercase;">You're on the VIP List!</h1>
+                      <p style="color: #9ca3af; font-size: 13px; margin: 0;">Captured at ${preparedRecord.event || "Oasis Beach Bar"}</p>
+                    </div>
+                    <div style="background: #161b22; border: 2px solid #fbbf24; border-radius: 14px; padding: 20px; text-align: center; margin: 20px 0;">
+                      <div style="font-size: 11px; text-transform: uppercase; color: #9ca3af; letter-spacing: 1.5px;">Your 10% Event Discount Code</div>
+                      <div style="font-size: 34px; font-weight: 800; font-family: monospace; color: #fbbf24; margin: 8px 0; letter-spacing: 3px;">${preparedRecord.code || "OASIS10"}</div>
+                      <div style="font-size: 11px; color: #86a84e; font-weight: bold;">★ 10% OFF T-SHIRTS, RACING JACKETS & SNEAKER RESTORATION</div>
+                    </div>
+                    <p style="font-size: 13px; color: #d1d5db; line-height: 1.5; text-align: center;">Show this code on your phone to <strong>Shepherd, Davies, or Anesu</strong> at the booth right now, or use it online at <a href="https://www.zimthreads.online/shop" style="color: #86a84e; text-decoration: underline;">zimthreads.online/shop</a>.</p>
+                  </div>
+                `,
+              }),
+            }).catch((err) => console.warn("[Resend] Email dispatch notice:", err))
+          }
+          if (existingIndex >= 0) {
+            existingArray[existingIndex] = {
+              ...existingArray[existingIndex],
+              ...preparedRecord,
+              id: existingArray[existingIndex].id,
+              scanCount: (existingArray[existingIndex].scanCount || 1) + 1,
+              updatedAt: now.toISOString(),
+            }
+            await executeSql(
+              `UPDATE public.zimthreads_store SET data = $1::jsonb, updated_at = NOW() WHERE key = 'subscribers';`,
+              [JSON.stringify(existingArray)],
+            )
+            return res.status(200).json({ success: true, record: existingArray[existingIndex], isExisting: true })
+          }
+        } else if (entity === "bookings") {
           preparedRecord = {
             ...record,
             id: record.id || `BK-${Math.floor(1000 + Math.random() * 9000)}`,

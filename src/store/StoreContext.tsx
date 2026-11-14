@@ -60,6 +60,20 @@ export interface CustomCustomer {
   createdAt?: string
 }
 
+export interface Subscriber {
+  id: string
+  email: string
+  name?: string
+  source?: string
+  event?: string
+  code?: string
+  redeemed?: boolean
+  redeemedAt?: string
+  scanCount?: number
+  createdAt: string
+  updatedAt?: string
+}
+
 export interface CustomerSummary {
   id?: string
   name: string
@@ -189,6 +203,17 @@ export interface StoreContextType {
   customCustomers: CustomCustomer[]
   addCustomer: (customer: Omit<CustomCustomer, "id">) => CustomCustomer
   deleteCustomer: (id: string) => void
+
+  // VIP Subscriber / Event Lead actions
+  subscribers: Subscriber[]
+  addSubscriber: (
+    email: string,
+    name?: string,
+    source?: string,
+    event?: string,
+  ) => Promise<{ success: boolean; record?: Subscriber; error?: string }>
+  markSubscriberRedeemed: (id: string, redeemed?: boolean) => Promise<void>
+  deleteSubscriber: (id: string) => Promise<void>
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -203,6 +228,7 @@ const STORAGE_KEYS = {
   SETTINGS: "zimthread_settings_v8",
   CART: "zimthread_cart_v8",
   CUSTOM_CUSTOMERS: "zimthread_custom_customers_v8",
+  SUBSCRIBERS: "zimthread_subscribers_v1",
 }
 
 if (typeof window !== "undefined") {
@@ -238,7 +264,7 @@ function setStored<T>(key: string, data: T) {
 
 // Unauthenticated persistence helper for customer submissions
 const persistPublicRecord = async <T,>(
-  entity: "bookings" | "orders" | "inquiries",
+  entity: "bookings" | "orders" | "inquiries" | "subscribers",
   record: T,
 ): Promise<T> => {
   const controller = new AbortController()
@@ -486,6 +512,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
   )
   const customCustomersRef = useRef<CustomCustomer[]>(customCustomers)
 
+  const [subscribers, setSubscribers] = useState<Subscriber[]>(() =>
+    getStored(STORAGE_KEYS.SUBSCRIBERS, []),
+  )
+  const subscribersRef = useRef<Subscriber[]>(subscribers)
+
+  useEffect(() => {
+    subscribersRef.current = subscribers
+    setStored(STORAGE_KEYS.SUBSCRIBERS, subscribers)
+  }, [subscribers])
+
   useEffect(() => {
     productsRef.current = products
   }, [products])
@@ -556,6 +592,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         orders: cloudOrders,
         inquiries: cloudInquiries,
         custom_customers: cloudCustomCustomers,
+        subscribers: cloudSubscribers,
       } = result.data
 
       if (Array.isArray(cloudProducts)) {
@@ -727,6 +764,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
       if (Array.isArray(cloudCustomCustomers)) {
         setCustomCustomers(cloudCustomCustomers)
         customCustomersRef.current = cloudCustomCustomers
+      }
+      if (Array.isArray(cloudSubscribers)) {
+        setSubscribers((prev) => {
+          const cloudIds = new Set(cloudSubscribers.map((s) => s.id))
+          const recentLocal = prev.filter((s) => {
+            if (cloudIds.has(s.id)) return false
+            const created = s.createdAt
+            const ageMs = Date.now() - new Date(created || 0).getTime()
+            return !isNaN(ageMs) && ageMs < 60000
+          })
+          const merged = [...recentLocal, ...cloudSubscribers]
+          subscribersRef.current = merged
+          return merged
+        })
       }
       setLastSyncedAt(new Date())
     } catch (err) {
@@ -1246,6 +1297,101 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
     showToast("Customer Removed", "Customer profile deleted.", "info")
   }
 
+  // VIP Subscriber / Event Lead actions
+  const addSubscriber = async (
+    email: string,
+    name?: string,
+    source?: string,
+    event?: string,
+  ): Promise<{ success: boolean; record?: Subscriber; error?: string }> => {
+    const cleanEmail = (email || "").trim().toLowerCase()
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      return { success: false, error: "Please enter a valid email address." }
+    }
+    const cleanName = (name || "").trim()
+    const cleanSource = source || "event_qr"
+    const cleanEvent = event || "oasis_beach_bar"
+    const code = "OASIS10"
+    const nowIso = new Date().toISOString()
+
+    const tempSubscriber: Subscriber = {
+      id: `SUB-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`.toUpperCase(),
+      email: cleanEmail,
+      name: cleanName,
+      source: cleanSource,
+      event: cleanEvent,
+      code,
+      redeemed: false,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    }
+
+    try {
+      const persisted = await persistPublicRecord<Subscriber>(
+        "subscribers",
+        tempSubscriber,
+      )
+      const finalRecord = persisted || tempSubscriber
+
+      setSubscribers((prev) => {
+        const existingIdx = prev.findIndex(
+          (s) => s.email && s.email.toLowerCase() === cleanEmail,
+        )
+        if (existingIdx >= 0) {
+          const next = [...prev]
+          next[existingIdx] = { ...next[existingIdx], ...finalRecord }
+          subscribersRef.current = next
+          return next
+        }
+        const next = [finalRecord, ...prev]
+        subscribersRef.current = next
+        return next
+      })
+
+      return { success: true, record: finalRecord }
+    } catch (err: any) {
+      console.warn("[StoreContext] Error persisting subscriber to cloud:", err)
+      // Optimistic local fallback
+      setSubscribers((prev) => {
+        const existingIdx = prev.findIndex(
+          (s) => s.email && s.email.toLowerCase() === cleanEmail,
+        )
+        if (existingIdx >= 0) return prev
+        const next = [tempSubscriber, ...prev]
+        subscribersRef.current = next
+        return next
+      })
+      return { success: true, record: tempSubscriber }
+    }
+  }
+
+  const markSubscriberRedeemed = async (id: string, redeemed: boolean = true) => {
+    const next = subscribersRef.current.map((s) =>
+      s.id === id
+        ? {
+            ...s,
+            redeemed,
+            redeemedAt: redeemed ? new Date().toISOString() : undefined,
+          }
+        : s,
+    )
+    subscribersRef.current = next
+    setSubscribers(next)
+    syncToCloud("subscribers", next)
+    showToast(
+      "Status Updated",
+      redeemed ? "VIP Code marked as Redeemed." : "VIP Code marked as Active.",
+    )
+  }
+
+  const deleteSubscriber = async (id: string) => {
+    const next = subscribersRef.current.filter((s) => s.id !== id)
+    subscribersRef.current = next
+    setSubscribers(next)
+    syncToCloud("subscribers", next)
+    showToast("Lead Removed", "VIP Lead removed from list.", "info")
+  }
+
   // Settings
   const updateSettings = (newSettings: Partial<StoreSettings>) => {
     const next: StoreSettings = { ...settingsRef.current, ...newSettings }
@@ -1434,6 +1580,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({
         customCustomers,
         addCustomer,
         deleteCustomer,
+        subscribers,
+        addSubscriber,
+        markSubscriberRedeemed,
+        deleteSubscriber,
       }}
     >
       {children}

@@ -71,6 +71,7 @@
 | M6 | Data Model & Storefront Sizes & Price Tiers | Types (`PriceOption`), `prod-5` sizes (`2XL`, `XXL`), `ProductModal` & `Shop` size/price selectors with disabled states | M5 | DONE |
 | M7 | Admin CMS Size Chips & Price Tiers Config | Dashboard Add/Edit product modals with preset chips, custom sizes, price options & active toggles with Neon DB sync | M6 | DONE |
 | M8 | Automated E2E Verification, Build & Git Push | E2E automated test script for sizes & prices, clean Vite build, git commit & push under Mupesa | M7 | DONE |
+| M9 | Event QR Code Lead Capture & Google 1-Tap | Google Identity Services One-Tap, `/vip` mobile landing, confetti celebration, Neon DB `subscribers` storage, Admin VIP Leads desk, and 300 DPI tent card | M8 | DONE |
 
 ## Interface Contracts
 ### Client ↔ `/api/store`
@@ -113,3 +114,15 @@
 - `src/pages/admin/Dashboard.tsx`: Admin dashboard with Products desk, preset/custom size chips, and price tiers config
 - `scripts/verify-sizes-and-prices.mjs`: Automated verification test script for sizes and price options CRUD against Neon DB
 - `scripts/verify-all-entities-e2e.mjs`: Complete entities E2E test runner
+
+---
+
+## Business Strategies & Revenue Tracks (Mandatory Context)
+When the user asks for business strategies, **always bring up the following high-priority strategy**:
+
+### 🎯 B2B Custom Corporate Beaded Wristbands & Merchandise
+- **Concept**: Selling customized artisan beaded wristbands to corporate clients, tech hubs (Ebene Cybercity), luxury hotels/resorts, universities, and conference summits with their brand colors and custom laser-engraved logo charms.
+- **Reference Catalog**: The live consumer line on the website (*"Zimthread African Heritage Beaded Bracelet"*, retailing at Rs 320) acts as the physical proof-of-concept for artisan craftsmanship, high bead density, and sliding drawstring finish.
+- **Economics**: COGS ~Rs 85–125/unit; Wholesale pricing Rs 145–240/unit (MOQ 25–100+ units); 45%–62% gross margins; high AOV (Rs 15k–45k+ per deal) generating immediate cash flow to subsidize apparel fabric runs.
+- **Notion Page**: Documented in Notion under `Zimthreads — Business Decisions & Collections Hub` > `B2B Strategy — Custom Corporate Beaded Wristbands` (Page ID: `416cf5b7-22df-8179-9b5b-fdff7fec87a9`).
+

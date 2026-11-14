@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zimthreads VIP Pop-Up Display Card (Print Ready)</title>
+  <style>
+    @page {
+      size: 5in 7in;
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0b0f19;
+      color: #f5f2ec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      width: 5in;
+      height: 7in;
+      background: linear-gradient(165deg, #111827 0%, #0d131f 60%, #162015 100%);
+      border: 3px solid #4a5c2d;
+      border-radius: 18px;
+      padding: 34px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+    .badge {
+      background: rgba(74, 92, 45, 0.3);
+      border: 1px solid #4a5c2d;
+      color: #9ec26b;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+    .brand-title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+    .brand-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .headline {
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fbbf24;
+      line-height: 1.2;
+    }
+    .qr-frame {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 16px;
+      margin: 12px 0;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: inline-block;
+      border: 3px solid #9ec26b;
+    }
+    .qr-frame img {
+      display: block;
+      width: 195px;
+      height: 195px;
+    }
+    .callout {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+    }
+    .callout-sub {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 3px;
+    }
+    .footer-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 10px;
+      color: #d1d5db;
+      line-height: 1.4;
+      width: 100%;
+    }
+    .print-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4a5c2d;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-size: 14px;
+    }
+    @media print {
+      body {
+        padding: 0;
+        background: none;
+      }
+      .print-btn {
+        display: none;
+      }
+      .card {
+        box-shadow: none;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.print()">🖨️ Print Display Card</button>
+
+  <div class="card">
+    <div>
+      <div class="badge">Oasis Beach Bar Pop-Up</div>
+      <div class="brand-title">ZIMTHREADS</div>
+      <div class="brand-sub">Sneaker Atelier & Streetwear</div>
+    </div>
+
+    <div>
+      <div class="headline">⚡ SCAN FOR 10% OFF ⚡</div>
+      <div class="qr-frame">
+        <img src="data:image/png;base64,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" alt="Scan to Unlock 10% Off VIP Pass" />
+      </div>
+      <div class="callout">1-Tap Google Access</div>
+      <div class="callout-sub">Instant VIP Discount Pass • No Typing Needed</div>
+    </div>
+
+    <div class="footer-box">
+      <strong>Show your phone screen to the team at the table</strong> to apply 10% off graphic tees, archival racing jackets, or sneaker drop-off!
+    </div>
+  </div>
+</body>
+</html>

@@ -988,6 +988,56 @@ export const initialInquiries: Inquiry[] = []
 
 export const initialBlogPosts: BlogPost[] = [
   {
+    id: "post-shona-republic-manifesto",
+    title: "THE REPUBLICS OF ZIMBABWE: CULTURAL SOVEREIGNTY, DIVERSITY, AND THE STORY BEHIND THE SHONA REPUBLIC BOXY TEE",
+    excerpt:
+      "Beyond borders and statehood lies the sovereign soul of heritage. Discover how Zimthreads reimagines Zimbabwe's pluralistic cultural identities—from Great Zimbabwe stone masonry to Binga weaving—engineered into a 260 GSM streetwear statement.",
+    content: `In the lexicon of modern geopolitics, a "republic" is defined by delineated borders, parliamentary halls, and legal constitutions. But long before lines were etched across African soil with surveyor ink, sovereign domains of memory, art, and philosophy flourished across the plateau between the Zambezi and the Limpopo.
+
+At Zimthreads Collective, when we speak of "The Republics of Zimbabwe", we do not speak of division, secession, or political friction. We speak of Cultural Sovereignty—an empowering, elevated celebration of the distinct ancestral domains that collectively compose our national identity.
+
+To honor the Shona Republic is not to elevate one voice above the rest; it is to inaugurate an intentional, pan-Zimbabwean series where every heritage receives the reverence of high-fashion curation: Shona Republic, Ndebele Republic, Tsonga Republic, and Tonga Republic.
+
+### The Cultural Pillars of the Republics
+
+• The Shona Republic: Rooted in the ancient civilizational heights of the Mutapa and Rozvi Empires and the stone-hewn grandeur of Dzimba-dza-Mabwe (Great Zimbabwe). It celebrates dry-stone masonry, ancient metallurgy, the reflective wisdom of the dare (sacred communal council), and the spiritual pulse of the mbira dzaVadzimu.
+
+• The Ndebele Republic: Built upon the martial nobility and sovereign dignity (isidima) founded by King Mzilikazi and preserved through King Lobengula. It lives through intricate beadwork (ubuhlalu), bold geometric homestead murals (amabala), and an unwavering tradition of pride and courage.
+
+• The Tsonga (Shangaan) Republic: Custodians of the radiant southeastern lowveld and the Save-Limpopo basin. Celebrated for the dynamic swirling kinetic beauty of the Xibelani dance skirts, vibrant textiles, profound ecological wisdom, and timeless storytelling.
+
+• The Tonga Republic: The eternal guardians of the great Zambezi River (Gwembe Valley). Their legacy carries the sacred mythology of the Nyami Nyami river deity, intimate stewardship of water systems, and the globally celebrated precision of hand-woven Binga baskets.
+
+### Deconstructing The Shona Republic Boxy Tee
+
+The inaugural drop in our Heritage Capsule merges vintage collegiate athletic codes with profound Southern African historical iconography:
+
+1. Distressed Collegiate Typography: The bold arch of "THE SHONA REPUBLIC" draws inspiration from vintage athletic varsity apparel, subverting traditional Western collegiate logos with African sovereign pride.
+2. The Great Enclosure & Conical Tower (Chikuva): Central to the illustration is the conical stone tower of Great Zimbabwe. Standing 10 meters tall, erected between the 11th and 15th centuries using interlocking granite blocks without a single droplet of mortar.
+3. The Sacred Acacia Tree (Muunga): Flanking the stone towers is the sprawling umbrella canopy of the native Acacia, representing shade, endurance in arid seasons, and the physical location of the dare—the ancestral council of wisdom.
+4. The Chevron Stone Pattern (Nhodo): Framed along the lower borders is the double-chevron masonry pattern carved along the outer wall of Great Zimbabwe, symbolizing fertility, the ripple of life-giving water, royal dignity, and unbroken generational continuity.
+
+### The Reverse Canvas: The Diasporic Heartbeat (+263)
+
+• The "+263" Calling Code: Spanning the upper back in bold, energetic, street-art brushstrokes, the country code +263 serves as the universal passport of the Zimbabwean diaspora worldwide.
+• The Expressive Tricolor Slashes: Sweeping across and behind the numerals are dynamic brushstrokes bearing Zimbabwe's iconic colors—Green (fertile earth & vegetation), Gold/Yellow (unmined mineral wealth & sunshine), and Red (liberation, courage & fierce resilience).
+
+### Garment Engineering & Tailoring Details
+
+• 260 GSM Heavyweight Combed Cotton: Substantial, heavyweight fabric with an ultra-soft hand-feel that drapes with architectural presence.
+• The 90s Boxy Drop-Shoulder Silhouette: Generously widened across the chest, relaxed dropped shoulder seams, and roomy sleeves that break cleanly at the elbow.
+• Anti-Sag 1.25" High-Density Ribbed Collar: Double-needle stitched neckband tailored to fit snug against the collarbone, engineered to resist stretching or warping.
+• Bespoke Zimthreads Atelier Woven Collar Label: Finished with signature studio hang-tag and care labelling certifying small-batch atelier provenance.
+
+*We do not wear our history to live in yesterday. We wear our history to anchor who we are tomorrow.*`,
+    category: "Knowledge & Culture",
+    date: "Nov 16, 2026",
+    img: "https://res.cloudinary.com/pwranjbq/image/upload/f_auto,q_auto/v1794674172/zimthreads/products/efmb8kjhrcrmp6dtke9n.jpg",
+    alt: "The Shona Republic Graphic Boxy Tee - Heritage Atelier Showcase",
+    readTime: "6 min read",
+    author: "Zimthreads Atelier",
+  },
+  {
     id: "post-llicyland-dice-collab",
     title: 'OWN THE DRIP: THE "LLICYLAND" DICE ROLL STREETWEAR COLLABORATION',
     excerpt:
